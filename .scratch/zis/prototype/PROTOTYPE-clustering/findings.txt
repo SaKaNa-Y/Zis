@@ -1,0 +1,475 @@
+=== ingest ===
+  simonwillison        rss               30 items
+    bsky simonwillison: dropped 6 reposts (reason field)
+  simonwillison        bluesky-author    41 items
+  tldr                 rss               20 items
+  jsweekly             rss                4 items
+  reactstatus          rss                4 items
+  frontendfocus        rss                4 items
+  twir                 rss                4 items
+  jimnielsen           rss               10 items
+  pycoders             rss                3 items
+  react                rss               23 items
+  ! gh releases facebook/react -> 403
+  react                github-releases    0 items
+  nextjs               rss               40 items
+  ! gh releases vercel/next.js -> 403
+  nextjs               github-releases    0 items
+  typescript           rss               10 items
+  ! gh releases microsoft/TypeScript -> 403
+  typescript           github-releases    0 items
+  nodejs               rss               40 items
+  ! gh releases nodejs/node -> 403
+  nodejs               github-releases    0 items
+  rust                 rss               10 items
+  ! gh releases rust-lang/rust -> 403
+  rust                 github-releases    0 items
+  go                   rss               10 items
+  cloudflare           rss               20 items
+  github               rss               10 items
+  github               rss               10 items
+  openai               rss               40 items
+  deepmind             rss               40 items
+  webkit               rss               10 items
+  chromedev            rss               10 items
+  svelte               rss               40 items
+  ! gh releases sveltejs/svelte -> 403
+  svelte               github-releases    0 items
+  astro                rss               40 items
+  ! gh releases withastro/astro -> 403
+  astro                github-releases    0 items
+  deno                 rss               40 items
+  ! gh releases denoland/deno -> 403
+  deno                 github-releases    0 items
+  bun                  rss               40 items
+  ! gh releases oven-sh/bun -> 403
+  bun                  github-releases    0 items
+  arstechnica          rss               20 items
+  theregister          rss               40 items
+  lwn                  rss               15 items
+  infoq                rss               15 items
+  ! 404media https://www.404media.co/rss/ -> 0 fetch failed
+  404media             rss                0 items
+  thenewstack          rss               26 items
+  bramus               rss               10 items
+  rachelandrew         rss               10 items
+    bsky rachelandrew: dropped 24 reposts (reason field)
+  rachelandrew         bluesky-author     9 items
+  armin                rss               10 items
+  interconnects        rss               20 items
+  latentspace          rss               20 items
+  pragmaticengineer    rss               15 items
+  chriscoyier          rss               12 items
+    bsky chriscoyier: dropped 16 reposts (reason field)
+  chriscoyier          bluesky-author    19 items
+    bsky adactio: dropped 1 reposts (reason field)
+  adactio              bluesky-author    59 items
+    bsky kentcdodds: dropped 2 reposts (reason field)
+  kentcdodds           bluesky-author    56 items
+    bsky juliaevans: dropped 23 reposts (reason field)
+  juliaevans           bluesky-author    30 items
+  juliaevans           rss               20 items
+    bsky glyph: dropped 22 reposts (reason field)
+  glyph                bluesky-author    26 items
+    bsky emollick: dropped 1 reposts (reason field)
+  emollick             bluesky-author    24 items
+    bsky una: dropped 20 reposts (reason field)
+  una                  bluesky-author    16 items
+    bsky cassidoo: dropped 17 reposts (reason field)
+  cassidoo             bluesky-author    30 items
+  hn                   hn               120 items
+  hn                   hn               120 items
+  aws                  rss               20 items
+  huggingface          rss               40 items
+  vercel               rss               40 items
+  issue-page hydration: 24 newsletter issues fetched
+total items: 1395
+
+=== canonicalization cases ===
+  28 pass / 0 fail
+
+=== corpus build (window 72h) ===
+  links after pure cascade: 5274 (citations 6404)
+  shorteners: 6 found, 6 hops, 0 hit the 3-hop wall
+  github renames resolved: 0 links rewritten
+  rel=canonical: 0 via header, 20 via <link>, 7 cross-site rejected
+  HN discussion links resolved to their targets: 229
+  single-citation vehicle posts folded into their target: 170
+  release<->announcement bridges: 0
+  signals: 4937  (strength>=2: 27, >=3: 5, >=5: 0)
+  merges applied: 399, refused (closed/out-of-window): 0
+
+=== window sweep (does the window matter?) ===
+   12h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+   24h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+   48h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+   72h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+  168h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+
+=== layer ablation (which layers earn their keep?) ===
+  all layers               links  5336  signals  4937  s>=2   27  s>=3    5  max 4
+  no shortener unwrap      links  5330  signals  4931  s>=2   27  s>=3    5  max 4
+  no HN discussion alias   links  5298  signals  5128  s>=2   26  s>=3    5  max 4
+  no rel=canonical         links  5318  signals  4919  s>=2   27  s>=3    5  max 4
+  no github rename         links  5336  signals  4937  s>=2   27  s>=3    5  max 4
+  no release bridge        links  5336  signals  4937  s>=2   27  s>=3    5  max 4
+  no reference filter      links  6387  signals  5984  s>=2   29  s>=3    6  max 4
+  no intra-publisher filter links  6796  signals  6300  s>=2   27  s>=3    5  max 4
+  no citation-worthiness at all links  7969  signals  7473  s>=2   29  s>=3    6  max 4
+  no vehicle folding       links  5336  signals  5107  s>=2   26  s>=3    5  max 4
+  pure syntactic only      links  5274  signals  5274  s>=2   25  s>=3    4  max 4
+
+=== expected clusters (C1..C10) ===
+  C1   React release / React Team post            THIN (0, +origin=1, wanted >=7)
+        https://react.dev/blog/2026/02/24/the-react-foundation
+        voters: (none)  [origin: React]
+  C2   TypeScript release                         THIN (1, +origin=2, wanted >=6)
+        https://devblogs.microsoft.com/typescript/announcing-typescript-6-0
+        voters: Svelte  [origin: TypeScript]
+  C3   Rust release / major RFC                   THIN (1, +origin=1, wanted >=5)
+        https://blog.rust-lang.org/inside-rust/2026/08/10/call-for-testing-impl-and-mut-restrictions
+        voters: This Week in Rust
+  C4   Cloudflare Birthday/Developer Week         THIN (2, +origin=3, wanted >=6)
+        https://blog.cloudflare.com/kitesurf
+        voters: TLDR, JavaScript Weekly  [origin: Cloudflare]
+  C5   Frontier-model launch                      THIN (1, +origin=1, wanted >=7)
+        https://mistral.ai/news/regional-inference-open-models-new-compute
+        voters: The New Stack
+  C6   Anthropic announcement (ZERO from origin)  THIN (3, +origin=3, wanted >=5)
+        https://anthropic.com/research/riemann-zeta
+        voters: TLDR, JavaScript Weekly, Interconnects
+  C7   Web-platform / CSS feature ships           THIN (1, +origin=1, wanted >=5)
+        https://developer.chrome.com/blog/container-timing-origin-trial
+        voters: JavaScript Weekly
+  C8   Postgres release / major extension         ABSENT — no Link of this shape in the corpus at all
+  C9   Viral long-form engineering post           THIN (1, +origin=1, wanted >=4)
+        https://danluu.com/pl-tokens
+        voters: TLDR
+  C10  Node.js security release                   THIN (1, +origin=2, wanted >=4)
+        https://nodejs.org/en/blog/release/v26.7.0
+        voters: JavaScript Weekly  [origin: Node.js]
+
+=== negative controls (must NOT cluster) ===
+  aws            multi-publisher signals touching its hosts: 0
+  huggingface    multi-publisher signals touching its hosts: 3
+      s=2 https://news.ycombinator.com/item?id=49299605
+         voters: thenewstack, hn
+      s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+         voters: simonwillison, interconnects
+      s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+         voters: simonwillison, latentspace
+  vercel         multi-publisher signals touching its hosts: 0
+
+=== part 3: second-pass headroom (lexical proxy, NOT embeddings) ===
+  Signals with a title of their own (an ingested Item): 1330 / 4937
+  Signals that are cited-only (no ingested Item — the C6 shape): 3607
+  candidate cross-Signal pairs at Jaccard>=0.45: 278 (of 404550 pairs)
+   1.00 "Now we have a timeline of the OpenAI accidental attack against Hugging Face" [3p]
+        vs "Now we have a timeline of the OpenAI accidental attack against Hugging Face" [0p]
+        https://news.ycombinator.com/item?id=49220609
+        https://simonwillison.net/2026/Aug/8/now-we-have-a-timeline-of-the-openai-accidental-attack-against-h
+   1.00 "Asus Bike Booster" [1p]
+        vs "Asus Bike Booster" [0p]
+        https://news.ycombinator.com/item?id=49268580
+        https://news.ycombinator.com/item?id=49317864
+   1.00 "Why CPUs still matter in the age of AI agents" [0p]
+        vs "Why CPUs still matter in the age of AI agents" [0p]
+        https://thenewstack.io/cpus-matter-ai-agents
+        https://thenewstack.io/why-cpus-still-matter-in-the-age-of-ai-agents
+   0.80 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22682" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a
+   0.80 "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22695" [1p]
+        vs "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22677" [1p]
+        https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u
+        https://bsky.app/profile/adactio.com/post/3mrnwshehso2a
+   0.75 "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber" [0p]
+        vs "Introducing Gemini 3.5 Flash Cyber" [0p]
+        https://deepmind.google/blog/introducing-gemini-3-6-flash-3-5-flash-lite-and-3-5-flash-cyber
+        https://deepmind.google/blog/introducing-gemini-3-5-flash-cyber
+   0.70 "Sunday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22689" [1p]
+        vs "Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22673" [1p]
+        https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u
+        https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23
+   0.70 "Another Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22674" [1p]
+        vs "Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22673" [1p]
+        https://bsky.app/profile/adactio.com/post/3mrkrfhfnb62z
+        https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23
+   0.67 "Tuesday session in Glencolmcille 🎻🎷
+
+
+🔗 https://adactio.com/notes/22667" [1p]
+        vs "Tuesday session
+
+
+🔗 https://adactio.com/notes/22642" [1p]
+        https://bsky.app/profile/adactio.com/post/3mr6yaaczij2w
+        https://bsky.app/profile/adactio.com/post/3mq3csmfb4723
+   0.67 "Release Notes for Safari Technology Preview 250" [0p]
+        vs "Release Notes for Safari Technology Preview 249" [0p]
+        https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250
+        https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249
+   0.67 "Release Notes for Safari Technology Preview 250" [0p]
+        vs "Release Notes for Safari Technology Preview 248" [0p]
+        https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250
+        https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248
+   0.67 "Release Notes for Safari Technology Preview 250" [0p]
+        vs "Release Notes for Safari Technology Preview 247" [0p]
+        https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250
+        https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247
+   0.67 "Release Notes for Safari Technology Preview 249" [0p]
+        vs "Release Notes for Safari Technology Preview 248" [0p]
+        https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249
+        https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248
+   0.67 "Release Notes for Safari Technology Preview 249" [0p]
+        vs "Release Notes for Safari Technology Preview 247" [0p]
+        https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249
+        https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247
+   0.67 "Release Notes for Safari Technology Preview 248" [0p]
+        vs "Release Notes for Safari Technology Preview 247" [0p]
+        https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248
+        https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247
+   0.64 "Thursday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22701" [1p]
+        vs "Wednesday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22698" [1p]
+        https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e
+        https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w
+   0.64 "Thursday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22701" [1p]
+        vs "Tuesday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22697" [1p]
+        https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e
+        https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e
+   0.64 "Thursday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22701" [1p]
+        vs "Thursday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22683" [1p]
+        https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e
+        https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Wednesday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22698" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22695" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Sunday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22689" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Thursday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22683" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Tuesday afternoon session in Belfast 
+
+
+🔗 https://adactio.com/notes/22679" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3mrpu5wsu2s2g
+   0.64 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22677" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3mrnwshehso2a
+   0.64 "Wednesday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22698" [1p]
+        vs "Tuesday morning session in Belfast
+
+
+🔗 https://adactio.com/notes/22697" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w
+        https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e
+
+=== top signals by strength ===
+  s= 4 score=0.08 [closed] https://youtube.com/watch?v=87DyyMV0kCY
+        "You may have been told to watch this video about the OpenAI AI hack. You really should, ev"
+        Simon Willison, Interconnects, Ethan Mollick, Vercel
+        merged links: 2 -> https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+  s= 3 score=1.12          https://z.ai/blog/glm-5.3
+        "GLM-5.3: Frontier coding with emergent cyber capabilities"
+        The New Stack, Interconnects, Hacker News | origin=Hacker News
+        merged links: 2 -> https://news.ycombinator.com/item?id=49294997
+  s= 3 score=0.25 [closed] https://anthropic.com/research/riemann-zeta
+        ""
+        TLDR, JavaScript Weekly, Interconnects
+  s= 3 score=0.06 [closed] https://news.ycombinator.com/item?id=49220609
+        "Now we have a timeline of the OpenAI accidental attack against Hugging Face"
+        Simon Willison, TLDR, Interconnects | origin=Simon Willison
+        merged links: 3 -> https://simonwillison.net/2026/Aug/7/openai-timeline , https://bsky.app/profile/simonwillison.net/post/3msjr3mlnz22x
+  s= 3 score=0.00 [closed] https://anthropic.com/news/fable-mythos-access
+        ""
+        Simon Willison, Armin Ronacher, Interconnects
+  s= 2 score=0.90          https://news.ycombinator.com/item?id=49299605
+        "Qwen 3.8 27B"
+        The New Stack, Hacker News | origin=Hacker News
+        merged links: 2 -> https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+  s= 2 score=0.60          https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+        "Gemini 3.7 Flash"
+        Simon Willison, Hacker News | origin=Hacker News
+        merged links: 2 -> https://news.ycombinator.com/item?id=49289112
+  s= 2 score=0.55          https://deepseek.com/harness/en
+        "DeepSeek Harness developer preview"
+        TLDR, Hacker News | origin=Hacker News
+        merged links: 2 -> https://news.ycombinator.com/item?id=49285244
+  s= 2 score=0.44 [closed] https://x.com/SpaceXAI/status/2087562800982077492
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.44 [closed] https://x.com/kunchenguid/status/2087567139318477117
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.36 [closed] https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+        ""
+        Simon Willison, TLDR
+  s= 2 score=0.31 [closed] https://x.com/bot/status/2087224798078517251
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.25 [closed] https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.02 [closed] https://blog.cloudflare.com/kitesurf
+        "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Worke"
+        TLDR, JavaScript Weekly | origin=Cloudflare
+  s= 2 score=0.02 [closed] https://blog.modelcontextprotocol.io/posts/2026-07-28
+        ""
+        JavaScript Weekly, Cloudflare
+  s= 2 score=0.01 [closed] https://seangoedecke.com/llms-reward-expertise
+        ""
+        TLDR, JavaScript Weekly
+  s= 2 score=0.00 [closed] https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        ""
+        Simon Willison, Interconnects
+  s= 2 score=0.00 [closed] https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview
+        ""
+        TLDR, JavaScript Weekly
+  s= 2 score=0.00 [closed] https://codepen.io/2/whats-new
+        ""
+        Bramus, Chris Coyier
+  s= 2 score=0.00 [closed] https://youtube.com/watch?v=Xs-U7SY2uNE
+        "Stop reviewing thousand-line agent diffs line by line.
+
+Review the system first: primitive"
+        JavaScript Weekly, Kent C. Dodds
+        merged links: 2 -> https://bsky.app/profile/kentcdodds.com/post/3mrpkylmpst2k
+  s= 2 score=0.00 [closed] https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+        "Hugging Face just published a highly detailed technical account of OpenAI's accidental cyb"
+        Simon Willison, Latent Space | origin=Hugging Face
+        merged links: 2 -> https://huggingface.co/blog/agent-intrusion-technical-timeline
+  s= 2 score=0.00 [closed] https://noahpinion.blog/p/what-will-more-intelligence-actually
+        "We already have superintelligences that have taken over the planet: we call them organizat"
+        TLDR, Ethan Mollick
+        merged links: 2 -> https://bsky.app/profile/emollick.bsky.social/post/3mrlpvzvoc226
+  s= 2 score=0.00 [closed] https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+        "I interviewed Cat Wu and Thariq Shihipar  from the Claude Code team at the AI engineer Wor"
+        Simon Willison, TLDR
+        merged links: 2 -> https://simonwillison.net/2026/Jul/21/cat-and-thariq
+  s= 2 score=0.00 [closed] https://x.com/Alibaba_Qwen/status/2078759124914098291
+        ""
+        TLDR, Interconnects
+  s= 2 score=0.00 [closed] https://bun.com/blog/bun-in-rust
+        "Rewriting Bun in Rust"
+        JavaScript Weekly, Pragmatic Engineer | origin=Bun
+  s= 2 score=0.00 [closed] https://anthropic.com/news/claude-fable-5-mythos-5
+        ""
+        Armin Ronacher, Interconnects
+  s= 2 score=0.00 [closed] https://youtube.com/watch?v=uT7MVcCQ4rw
+        "What's new in Web UI: 2026 Edition ✨
+
+@bram.us and I go over 35+ new CSS, HTML, and JS fea"
+        Bramus, Una Kravets
+        merged links: 2 -> https://bsky.app/profile/una.im/post/3mmhi5l6jmk2b
+  s= 1 score=0.99          https://news.ycombinator.com/item?id=49317837
+        "Pax Silica vs. Waico: Competing AI and Tech Blocs"
+        Hacker News | origin=Hacker News
+        merged links: 2 -> https://earthly.city/datasets/geoevent/naddr1qvzqqqyj3vpzpfe82g8nhe34mayaj656t2zctv0d5nsv6kjnss558wkrf4kapd30qq257vm6wddx5un4x94kkvtsf5mxkjtcd9jxg58ju7p?ms=dataset%3Aa727520f3be635df49d96a9a5a8585b1eda4e0cd5a53842943bac34d6dd0b62f%3AO3zsZjru1kk1pM6kIxidd
+  s= 1 score=0.99          https://news.ycombinator.com/item?id=49317814
+        "Invisible to the Machine: auditing AI recommendation against a complete census"
+        Hacker News | origin=Hacker News
+        merged links: 2 -> https://arxiv.org/abs/2608.07069
+  s= 1 score=0.99          https://news.ycombinator.com/item?id=49317799
+        "Show HN: PyScrappy, self-healing web scraping selectors plus an MCP server"
+        Hacker News | origin=Hacker News
+        merged links: 2 -> https://github.com/mldsveda/pyscrappy
+
+=== issue-page hydration leverage ===
+  aggregator items: 39, hydrated with gain: 24, links gained: 820
+
+=== diagnostics ===
+  {"shortenerHops":6,"shortenerExhausted":0,"ssrfRejects":0,"canonicalHeader":0,"canonicalTag":20,"canonicalCrossSite":7,"ghRenames":0,"hnResolved":229,"releaseBridges":0,"droppedNonHttp":18,"referenceDropped":1589,"intraPublisherDropped":2312,"vehicleMerges":170}
+  net: {"hits":8789,"misses":0,"errors":0,"bytes":0}
+  citations by kind: self=1395 outbound=5009
+  citations per publisher: latentspace=1205 svelte=962 twir=618 hn=438 tldr=406 interconnects=313 pragmaticengineer=191 juliaevans=175 jsweekly=167 simonwillison=145 thenewstack=144 kentcdodds=109 typescript=95 bramus=88 chriscoyier=85 aws=85 cloudflare=84 adactio=61 glyph=57 vercel=55 webkit=54 rachelandrew=51 cassidoo=50 jimnielsen=49 arstechnica=47 github=45 go=43 nextjs=40 nodejs=40 rust=40 openai=40 deepmind=40 astro=40 deno=40 bun=40 theregister=40 huggingface=40 emollick=38 armin=32 lwn=27 una=26 react=23 infoq=15 chromedev=10 reactstatus=4 frontendfocus=4 pycoders=3
