@@ -1,11 +1,17 @@
 # CLAUDE.md
 
-This project's agent configuration lives in [AGENTS.md](./AGENTS.md). Read it before starting work.
+This file is the single source of truth for this project's agent configuration. Edit it (and the files it points at) rather than duplicating configuration elsewhere.
 
-The detailed rules it points at:
+## Agent skills
 
-- **`docs/agents/issue-tracker.md`** — where issues live and how to create/read them.
-- **`docs/agents/triage-labels.md`** — the label vocabulary for the five canonical triage roles.
-- **`docs/agents/domain.md`** — the domain-doc layout and how to consume `CONTEXT.md` / ADRs.
+### Issue tracker
 
-Keep `AGENTS.md` as the single source of truth — edit it (and the files above) rather than duplicating configuration here.
+Issues live as GitHub issues on `SaKaNa-Y/Zis`, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles, used as-is (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), as real GitHub labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` and one `docs/adr/` at the repo root. See `docs/agents/domain.md`.

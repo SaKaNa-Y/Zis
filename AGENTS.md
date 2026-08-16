@@ -1,15 +1,11 @@
 # AGENTS.md
 
-## Agent skills
+This project's agent configuration lives in [CLAUDE.md](./CLAUDE.md). Read it before starting work.
 
-### Issue tracker
+The detailed rules it points at:
 
-Issues live as markdown files under `.scratch/<feature-slug>/` in this repo — there is no remote tracker. See `docs/agents/issue-tracker.md`.
+- **`docs/agents/issue-tracker.md`** — where issues live and how to create/read them.
+- **`docs/agents/triage-labels.md`** — the label vocabulary for the five canonical triage roles.
+- **`docs/agents/domain.md`** — the domain-doc layout and how to consume `CONTEXT.md` / ADRs.
 
-### Triage labels
-
-The five canonical triage roles, used as-is (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), recorded as a `Status:` line in each issue file. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context — one `CONTEXT.md` and one `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Keep `CLAUDE.md` as the single source of truth — edit it (and the files above) rather than duplicating configuration here.

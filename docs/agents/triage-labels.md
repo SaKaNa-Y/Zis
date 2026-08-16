@@ -12,6 +12,6 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
 
-Because this repo uses a local-markdown tracker, a "label" is the value of the `Status:` line near the top of an issue file — e.g. `Status: ready-for-agent`.
+These are real GitHub labels on `SaKaNa-Y/Zis` — apply them with `gh issue edit <n> --add-label "ready-for-agent"` and remove with `--remove-label`. All five exist in the repo, so never create duplicates.
 
 Edit the right-hand column to match whatever vocabulary you actually use.
