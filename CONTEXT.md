@@ -1,0 +1,118 @@
+# Zis
+
+A personal, single-user, bounded daily brief of what actually mattered in tech.
+Sources are polled on a fixed schedule into a global corpus; URL co-citation
+detects which stories many independent voices converged on; an explicit interest
+model decides which of those reach the reader. Not an RSS reader. Not an inbox.
+
+## Language
+
+### Ingestion
+
+**Publisher**:
+A single owning voice on the web — an organization, a person, or a community —
+regardless of how many accounts or feeds it speaks through. Vercel's GitHub
+releases, YouTube channel, and Bluesky account are one Publisher.
+_Avoid_: Entity, Voice, Outlet, Actor
+
+**Source**:
+One configured pollable endpoint belonging to a Publisher. A Publisher may have
+many Sources; "HN top stories" is one Source, "Show HN" is another.
+_Avoid_: Feed, Account, Channel
+
+**Transport**:
+Which protocol a Source is polled over — RSS, the HN Firebase API, GitHub
+GraphQL, a Bluesky feed. A property of a Source, never a thing in its own right.
+_Avoid_: Adapter (that is the code implementing a Transport, not a domain term)
+
+**Item**:
+One normalized unit fetched from a Source — a blog article, a release, a forum
+thread, a social post, a video. Deliberately generic, because the corpus is
+genuinely heterogeneous.
+_Avoid_: Article, Post, Entry, Story, Document
+
+### Clustering
+
+**Link**:
+One address on the web after canonicalization, existing independently of whether
+anything was ever ingested from it. A Link may be cited by many Items and never
+be an Item itself.
+_Avoid_: CanonicalUrl, Url, Target, Reference
+
+**Citation**:
+An Item pointing at a Link — either at its own address (`self`) or at one it
+links out to (`outbound`). Citations are the provenance record: which Source,
+first seen when, via which raw address. They are also the explanation of why
+something surfaced.
+_Avoid_: Mention, Reference, Occurrence
+
+**Signal**:
+A cluster of Links judged to be one story. A Signal of a single Link cited by a
+single Publisher is an ordinary Signal, not a special case. Signals are merged
+into one another, never deleted.
+_Avoid_: Cluster, Story, Thread
+
+**Strength**:
+How many distinct **Publishers** cite a Signal's Links. Never a count of
+Citations, Items, or Sources — one loud voice must not be able to manufacture
+agreement with itself.
+_Avoid_: Score, Mentions, Popularity
+
+**Tag**:
+An extracted label attached to an Item or a Signal, used to explain and to
+retrieve. A Tag is not something a reader follows; relevance comes from the
+Interest Profile.
+_Avoid_: Entity, Topic, Keyword, Category
+
+### The brief
+
+**Brief**:
+One reader's dated, ranked selection of Signals. Persisted rather than computed,
+so that what was shown on a given day remains answerable and so that every
+rendering of it is provably the same brief. A Brief is **sealed**: once cut it
+never changes, so a reader can be finished with it. A story that grows after the
+cut leads a later Brief; it does not reopen this one. A Brief may honestly hold
+very few Signals, and says so when it does.
+_Avoid_: Digest (that is the delivery of a Brief by email, not a second thing),
+Feed, Edition
+
+**Brief Entry**:
+One Signal's place in a Brief, carrying its position and the frozen text
+explaining why it surfaced.
+_Avoid_: Slot, Card, Story
+
+### The reader
+
+**Interest Profile**:
+The complete set of a reader's Interests. The product's relevance mechanism —
+there is no second one.
+_Avoid_: Preferences, Filters, Topics
+
+**Interest**:
+One free-text statement of something the reader cares about, held in their
+Interest Profile. Each Interest stands alone: a Signal is relevant if it matches
+any single Interest, and the Interest it matched is the reason the Signal
+surfaced. A menu of suggested wordings may help a reader write one, but a
+suggestion becomes an ordinary Interest the moment it is taken — nothing records
+that it came from a menu, and nothing a reader did not choose to keep survives.
+_Avoid_: Topic, Keyword, Preference, Filter, Tag
+
+**Bookmark**:
+A Signal the reader has saved to return to.
+_Avoid_: Save, Star, Favorite, Read Later
+
+**Read State**:
+Whether a reader has read a Signal. Attaches to the Signal, not to the day it
+appeared, so a story already seen stays seen when it recurs.
+_Avoid_: Seen, Unread, Status
+
+## Terms this project does not use
+
+- **Entity** — ambiguous between an owning voice and an extracted label. Use
+  **Publisher** or **Tag**.
+- **Topic** — implies a followable subject, a second relevance mechanism
+  competing with the **Interest Profile**. Use **Tag** for labels.
+- **Digest** — reserved for email delivery of a **Brief**, never for the thing
+  itself.
+- **Article** — lies about releases, threads, posts, and videos. Use **Item**.
+- **Unread count** — deliberately absent from the product; do not model one.
