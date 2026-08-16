@@ -1,8 +1,8 @@
 {
   "itemCount": 1395,
-  "linkCount": 5336,
-  "citationCount": 6404,
-  "signalCount": 4937,
+  "linkCount": 5400,
+  "citationCount": 6468,
+  "signalCount": 4986,
   "canonCases": {
     "rows": [
       [
@@ -180,35 +180,35 @@
   "sweep": [
     {
       "w": 12,
-      "signals": 4937,
+      "signals": 4986,
       "m2": 27,
       "m3": 5,
       "refused": 0
     },
     {
       "w": 24,
-      "signals": 4937,
+      "signals": 4986,
       "m2": 27,
       "m3": 5,
       "refused": 0
     },
     {
       "w": 48,
-      "signals": 4937,
+      "signals": 4986,
       "m2": 27,
       "m3": 5,
       "refused": 0
     },
     {
       "w": 72,
-      "signals": 4937,
+      "signals": 4986,
       "m2": 27,
       "m3": 5,
       "refused": 0
     },
     {
       "w": 168,
-      "signals": 4937,
+      "signals": 4986,
       "m2": 27,
       "m3": 5,
       "refused": 0
@@ -217,48 +217,48 @@
   "ablationRows": [
     {
       "name": "all layers",
-      "links": 5336,
-      "signals": 4937,
+      "links": 5400,
+      "signals": 4986,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "no shortener unwrap",
-      "links": 5330,
-      "signals": 4931,
+      "links": 5394,
+      "signals": 4980,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "no HN discussion alias",
-      "links": 5298,
-      "signals": 5128,
+      "links": 5362,
+      "signals": 5177,
       "s2": 26,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "no rel=canonical",
-      "links": 5318,
-      "signals": 4919,
+      "links": 5382,
+      "signals": 4968,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "no github rename",
-      "links": 5336,
-      "signals": 4937,
+      "links": 5400,
+      "signals": 4986,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "no release bridge",
-      "links": 5336,
-      "signals": 4937,
+      "links": 5400,
+      "signals": 5001,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
@@ -266,15 +266,15 @@
     {
       "name": "no reference filter",
       "links": 6387,
-      "signals": 5984,
+      "signals": 5969,
       "s2": 29,
       "s3": 6,
       "maxStrength": 4
     },
     {
       "name": "no intra-publisher filter",
-      "links": 6796,
-      "signals": 6300,
+      "links": 6860,
+      "signals": 6349,
       "s2": 27,
       "s3": 5,
       "maxStrength": 4
@@ -282,23 +282,23 @@
     {
       "name": "no citation-worthiness at all",
       "links": 7969,
-      "signals": 7473,
+      "signals": 7458,
       "s2": 29,
       "s3": 6,
       "maxStrength": 4
     },
     {
       "name": "no vehicle folding",
-      "links": 5336,
-      "signals": 5107,
+      "links": 5400,
+      "signals": 5156,
       "s2": 26,
       "s3": 5,
       "maxStrength": 4
     },
     {
       "name": "pure syntactic only",
-      "links": 5274,
-      "signals": 5274,
+      "links": 5338,
+      "signals": 5338,
       "s2": 25,
       "s3": 4,
       "maxStrength": 4
@@ -1047,9 +1047,9 @@
     "canonicalCrossSite": 7,
     "ghRenames": 0,
     "hnResolved": 229,
-    "releaseBridges": 0,
+    "releaseBridges": 15,
     "droppedNonHttp": 18,
-    "referenceDropped": 1589,
+    "referenceDropped": 1525,
     "intraPublisherDropped": 2312,
     "vehicleMerges": 170
   },

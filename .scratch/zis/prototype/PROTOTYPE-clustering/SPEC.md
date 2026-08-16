@@ -176,7 +176,7 @@ grows on day 2 competes for day 2's Brief — under a closing window it could no
 | `hn-thread->target` | an HN thread is a *discussion of* a URL | 229 |
 | `hn-item-cited-by-other` | someone else citing `news.ycombinator.com/item?id=N` means the story, not the thread | (in the 229) |
 | `vehicle-post->sole-target` | a post existing to link one article is not its own story | **170** |
-| `release<->declared-announcement` | a release and the announcement its body declares | **0 — see §5** |
+| `announcement->cited-release-tag` | an announcement Item citing a `releases/tag/…` URL declares them one event | **15** (0 before the rule was reversed — see §5) |
 | github owner rename | `facebook/react` → `react/react` | 0 on this corpus |
 
 **`vehicle-post->sole-target` generalizes the HN rule** and is the highest-yield
@@ -233,6 +233,13 @@ systematically one lower than the research targets.
 | C8 (Postgres) | **ABSENT** — no Postgres source in the 30-feed list at all |
 | Negative controls | AWS **0**, Vercel **0**, Hugging Face **3** — and on inspection all three HF hits are legitimate co-citations (a DeepSeek model release cited by Simon Willison + Interconnects), so the control's premise was wrong for those items, not the algorithm. **No topic-similarity false merges. The deterministic spine did not detect anything it shouldn't.** |
 
+**SETTLED: this yield is accepted, and the source-list gaps are not this
+ticket's problem.** Postgres has no Source at all and `404media.co` failed to
+fetch — both belong to
+[Curate the initial source list](https://github.com/SaKaNa-Y/Zis/issues/11), and
+the C1–C10 target counts should be restated as origin-excluded and
+retention-aware there so future runs are judged against something reachable.
+
 **The gap between "present" and "at target" is corpus depth, not algorithm.** The
 targets assume every 30 feeds retains a week of items and every newsletter's full
 link list is available. In reality Cooper Press feeds retain **4 issues**,
@@ -249,15 +256,21 @@ turns that into a Brief, not a top-N cut.
 
 ## 5. Where the plan was wrong
 
-- **The release↔announcement bridge found nothing — 0 on real data.** The ticket
-  framed this as the alias rule with "two cases that want opposite answers", and
-  proposed *does a release exist* as the discriminator. Real GitHub release
-  bodies do not link the announcement blog post; **the blog post links the
-  release**. So the bridge is pointing the wrong way: the discriminator should be
-  **"an announcement Item cites a `releases/tag/…` URL"**, not "a release body
-  declares an announcement". Note this collides with §2, which classifies
-  `releases/tag/…` as reference-only — that exclusion must be lifted for this
-  rule to have anything to work with. **Unresolved; needs a decision.**
+- **The release↔announcement bridge pointed the wrong way — 0 matches on real
+  data.** The ticket framed this as the alias rule with "two cases that want
+  opposite answers", and proposed *does a release exist* as the discriminator,
+  reading the GitHub release body for a declared announcement URL. Real release
+  notes do not link the blog post; **the blog post links the release.**
+
+  **SETTLED: reverse the rule.** The discriminator is **"an announcement Item
+  cites exactly one `releases/tag/…` URL"** — still publisher-declared rather
+  than inferred from co-occurrence, and it gives the two cases the opposite
+  answers they needed, because a repo-root citation never bridges. The
+  "exactly one" guard excludes this-week-in-releases roundups.
+
+  This required lifting `releases/tag/…` out of the reference-only list in §2 —
+  that exclusion had severed the only edge the rule can travel on. **Measured
+  after the reversal: 15 bridges, up from 0.**
 - **GitHub owner renames: 0 rewrites.** The rule is right (the platforms research
   documents three moved slugs), the corpus just contained no stale slug this
   week. Keep it; it costs one cached API call per repo.
@@ -274,7 +287,7 @@ turns that into a Brief, not a top-N cut.
 
 ## 6. Part 3 — the embedding second pass
 
-**Recommendation: cut embeddings from v1.**
+**SETTLED: embeddings are cut from v1 detection.**
 
 Measured with a deterministic token-Jaccard over titles as a *proxy* — an upper
 bound on same-story pairs sharing no URL, not a stand-in for `bge-small` quality.

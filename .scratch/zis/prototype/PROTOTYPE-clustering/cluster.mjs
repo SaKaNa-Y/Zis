@@ -319,41 +319,46 @@ export async function buildCorpus(items, opts = {}) {
     log(`  single-citation vehicle posts folded into their target: ${notes.vehicleMerges}`);
   }
 
-  // Merge rule B — the release/announcement alias, with the discriminator the
-  // ticket asked for made explicit.
+  // Merge rule B — the release/announcement alias, REVERSED.
   //
-  // The two cases that want opposite answers:
-  //   framework release   -> github.com/o/r/releases/tag/T  ==  blog announcement
-  //   trending breakout   -> github.com/o/r                 IS the canonical thing
-  // Discriminator: does a RELEASE exist for the event? Only a releases/tag URL
-  // gets a bridge, and the bridge target must be DECLARED BY THE PUBLISHER in
-  // the release body — never inferred from co-occurrence, because a newsletter
-  // citing two URLs in one issue is not evidence they are one event.
+  // The ticket proposed "does a release exist for this event?" as the
+  // discriminator, and read the GitHub release BODY looking for a declared
+  // announcement URL. That found 0 matches on real data, because release notes
+  // do not link the blog post — THE BLOG POST LINKS THE RELEASE.
+  //
+  // So the declaration runs the other way, and it is still publisher-declared
+  // rather than inferred from co-occurrence:
+  //
+  //   framework release -> an announcement Item cites `…/releases/tag/T`, so the
+  //                        tag and the announcement are one event. Join them.
+  //   trending breakout -> no release tag is cited anywhere, so the repo root
+  //                        stands alone as the canonical thing. No bridge.
+  //
+  // "Cites a release TAG" IS the discriminator, and it gives the two cases the
+  // opposite answers they wanted: a repo-root citation never bridges.
   if (cfg.releaseBridge) {
-    for (const l of [...links.keys()]) {
-      const m = l.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/tag\/(.+)$/);
-      if (!m) continue;
-      const [, o, r, tagName] = m;
-      const res = await fetchWithPolicy(
-        `https://api.github.com/repos/${o}/${r}/releases/tags/${encodeURIComponent(tagName)}`,
-        { accept: 'application/vnd.github+json' }
-      );
-      if (!res.ok) continue;
-      let body = '';
-      try {
-        body = JSON.parse(res.body).body || '';
-      } catch {}
-      const declared = [...body.matchAll(/https?:\/\/[^\s)<>\]"']+/g)].map((x) => x[0]);
-      for (const d of declared) {
-        const c = canonicalizeSync(d);
-        if (!c) continue;
-        const t = resolveRemap(links, c.url);
-        if (safeHost(t) === 'github.com') continue; // repo-internal, not an announcement
-        if (!links.has(t)) continue; // only bridge to something the corpus knows
-        if (sig.merge(t, l, 'release<->declared-announcement', alwaysAllow)) notes.releaseBridges++;
-      }
+    for (const it of items) {
+      // Only an announcement can declare the bridge. A GitHub release Item
+      // citing its own tag is just self-citation.
+      if (it.transport === 'github-releases') continue;
+      if (!it.selfUrl) continue;
+      const self = resolveRemap(links, rawToCanonical.get(it.selfUrl) || '');
+      if (!links.has(self)) continue;
+      const tags = [
+        ...new Set(
+          (it.outbound || [])
+            .map((o) => rawToCanonical.get(o))
+            .filter((u) => u && /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/tag\//.test(u))
+            .map((u) => resolveRemap(links, u))
+            .filter((u) => links.has(u))
+        ),
+      ];
+      // Same guard as the vehicle rule: an Item citing several release tags is a
+      // roundup ("this week in releases"), not one event.
+      if (tags.length !== 1) continue;
+      if (sig.merge(self, tags[0], 'announcement->cited-release-tag', alwaysAllow)) notes.releaseBridges++;
     }
-    log(`  release<->announcement bridges: ${notes.releaseBridges}`);
+    log(`  release/announcement bridges (reversed rule): ${notes.releaseBridges}`);
   }
 
   // ---------------------------------------------------- strength & provenance
@@ -464,7 +469,9 @@ const REFERENCE_ONLY = [
   /^https:\/\/(bugs|bugzilla|bugreport)\./i,
   /^https:\/\/(crbug\.com|issues\.chromium\.org|bugs\.webkit\.org|bugzilla\.mozilla\.org)\//i,
   /^https:\/\/github\.com\/[^/]+\/[^/]+\/(pull|issues|commit|commits|compare|blob|discussions|labels|milestone|projects|wiki)\b/i,
-  /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/tag\/[^/]*$/i, // handled by the bridge, not as a vote-bearing Link
+  // NOT here: `github.com/o/r/releases/tag/T`. It was, and that severed the only
+  // edge the release alias can travel on — a release tag is a citable event, and
+  // an announcement citing it is what declares the bridge.
   /^https:\/\/[^/]+\/(docs|api|reference|guide|guides|manual|spec|schema)\//i,
   /^https:\/\/(www\.)?(youtube|youtu)\.[a-z.]+\/playlist/i, // a playlist is a shelf, not a story
   /^https:\/\/(www\.)?doi\.org\//i,

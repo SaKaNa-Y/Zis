@@ -89,35 +89,35 @@ total items: 1395
   28 pass / 0 fail
 
 === corpus build (window 72h) ===
-  links after pure cascade: 5274 (citations 6404)
+  links after pure cascade: 5338 (citations 6468)
   shorteners: 6 found, 6 hops, 0 hit the 3-hop wall
   github renames resolved: 0 links rewritten
   rel=canonical: 0 via header, 20 via <link>, 7 cross-site rejected
   HN discussion links resolved to their targets: 229
   single-citation vehicle posts folded into their target: 170
-  release<->announcement bridges: 0
-  signals: 4937  (strength>=2: 27, >=3: 5, >=5: 0)
-  merges applied: 399, refused (closed/out-of-window): 0
+  release/announcement bridges (reversed rule): 15
+  signals: 4986  (strength>=2: 27, >=3: 5, >=5: 0)
+  merges applied: 414, refused (closed/out-of-window): 0
 
 === window sweep (does the window matter?) ===
-   12h: signals 4937  s>=2 27  s>=3 5  merges refused 0
-   24h: signals 4937  s>=2 27  s>=3 5  merges refused 0
-   48h: signals 4937  s>=2 27  s>=3 5  merges refused 0
-   72h: signals 4937  s>=2 27  s>=3 5  merges refused 0
-  168h: signals 4937  s>=2 27  s>=3 5  merges refused 0
+   12h: signals 4986  s>=2 27  s>=3 5  merges refused 0
+   24h: signals 4986  s>=2 27  s>=3 5  merges refused 0
+   48h: signals 4986  s>=2 27  s>=3 5  merges refused 0
+   72h: signals 4986  s>=2 27  s>=3 5  merges refused 0
+  168h: signals 4986  s>=2 27  s>=3 5  merges refused 0
 
 === layer ablation (which layers earn their keep?) ===
-  all layers               links  5336  signals  4937  s>=2   27  s>=3    5  max 4
-  no shortener unwrap      links  5330  signals  4931  s>=2   27  s>=3    5  max 4
-  no HN discussion alias   links  5298  signals  5128  s>=2   26  s>=3    5  max 4
-  no rel=canonical         links  5318  signals  4919  s>=2   27  s>=3    5  max 4
-  no github rename         links  5336  signals  4937  s>=2   27  s>=3    5  max 4
-  no release bridge        links  5336  signals  4937  s>=2   27  s>=3    5  max 4
-  no reference filter      links  6387  signals  5984  s>=2   29  s>=3    6  max 4
-  no intra-publisher filter links  6796  signals  6300  s>=2   27  s>=3    5  max 4
-  no citation-worthiness at all links  7969  signals  7473  s>=2   29  s>=3    6  max 4
-  no vehicle folding       links  5336  signals  5107  s>=2   26  s>=3    5  max 4
-  pure syntactic only      links  5274  signals  5274  s>=2   25  s>=3    4  max 4
+  all layers               links  5400  signals  4986  s>=2   27  s>=3    5  max 4
+  no shortener unwrap      links  5394  signals  4980  s>=2   27  s>=3    5  max 4
+  no HN discussion alias   links  5362  signals  5177  s>=2   26  s>=3    5  max 4
+  no rel=canonical         links  5382  signals  4968  s>=2   27  s>=3    5  max 4
+  no github rename         links  5400  signals  4986  s>=2   27  s>=3    5  max 4
+  no release bridge        links  5400  signals  5001  s>=2   27  s>=3    5  max 4
+  no reference filter      links  6387  signals  5969  s>=2   29  s>=3    6  max 4
+  no intra-publisher filter links  6860  signals  6349  s>=2   27  s>=3    5  max 4
+  no citation-worthiness at all links  7969  signals  7458  s>=2   29  s>=3    6  max 4
+  no vehicle folding       links  5400  signals  5156  s>=2   26  s>=3    5  max 4
+  pure syntactic only      links  5338  signals  5338  s>=2   25  s>=3    4  max 4
 
 === expected clusters (C1..C10) ===
   C1   React release / React Team post            THIN (0, +origin=1, wanted >=7)
@@ -161,9 +161,9 @@ total items: 1395
   vercel         multi-publisher signals touching its hosts: 0
 
 === part 3: second-pass headroom (lexical proxy, NOT embeddings) ===
-  Signals with a title of their own (an ingested Item): 1330 / 4937
-  Signals that are cited-only (no ingested Item — the C6 shape): 3607
-  candidate cross-Signal pairs at Jaccard>=0.45: 278 (of 404550 pairs)
+  Signals with a title of their own (an ingested Item): 1330 / 4986
+  Signals that are cited-only (no ingested Item — the C6 shape): 3656
+  candidate cross-Signal pairs at Jaccard>=0.45: 279 (of 404550 pairs)
    1.00 "Now we have a timeline of the OpenAI accidental attack against Hugging Face" [3p]
         vs "Now we have a timeline of the OpenAI accidental attack against Hugging Face" [0p]
         https://news.ycombinator.com/item?id=49220609
@@ -378,11 +378,11 @@ total items: 1395
         "Qwen 3.8 27B"
         The New Stack, Hacker News | origin=Hacker News
         merged links: 2 -> https://huggingface.co/Qwen/Qwen3.8-27B-FP8
-  s= 2 score=0.60          https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+  s= 2 score=0.59          https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
         "Gemini 3.7 Flash"
         Simon Willison, Hacker News | origin=Hacker News
         merged links: 2 -> https://news.ycombinator.com/item?id=49289112
-  s= 2 score=0.55          https://deepseek.com/harness/en
+  s= 2 score=0.54          https://deepseek.com/harness/en
         "DeepSeek Harness developer preview"
         TLDR, Hacker News | origin=Hacker News
         merged links: 2 -> https://news.ycombinator.com/item?id=49285244
@@ -469,7 +469,7 @@ Review the system first: primitive"
   aggregator items: 39, hydrated with gain: 24, links gained: 820
 
 === diagnostics ===
-  {"shortenerHops":6,"shortenerExhausted":0,"ssrfRejects":0,"canonicalHeader":0,"canonicalTag":20,"canonicalCrossSite":7,"ghRenames":0,"hnResolved":229,"releaseBridges":0,"droppedNonHttp":18,"referenceDropped":1589,"intraPublisherDropped":2312,"vehicleMerges":170}
-  net: {"hits":8789,"misses":0,"errors":0,"bytes":0}
-  citations by kind: self=1395 outbound=5009
-  citations per publisher: latentspace=1205 svelte=962 twir=618 hn=438 tldr=406 interconnects=313 pragmaticengineer=191 juliaevans=175 jsweekly=167 simonwillison=145 thenewstack=144 kentcdodds=109 typescript=95 bramus=88 chriscoyier=85 aws=85 cloudflare=84 adactio=61 glyph=57 vercel=55 webkit=54 rachelandrew=51 cassidoo=50 jimnielsen=49 arstechnica=47 github=45 go=43 nextjs=40 nodejs=40 rust=40 openai=40 deepmind=40 astro=40 deno=40 bun=40 theregister=40 huggingface=40 emollick=38 armin=32 lwn=27 una=26 react=23 infoq=15 chromedev=10 reactstatus=4 frontendfocus=4 pycoders=3
+  {"shortenerHops":6,"shortenerExhausted":0,"ssrfRejects":0,"canonicalHeader":0,"canonicalTag":20,"canonicalCrossSite":7,"ghRenames":0,"hnResolved":229,"releaseBridges":15,"droppedNonHttp":18,"referenceDropped":1525,"intraPublisherDropped":2312,"vehicleMerges":170}
+  net: {"hits":9272,"misses":0,"errors":0,"bytes":0}
+  citations by kind: self=1395 outbound=5073
+  citations per publisher: latentspace=1205 svelte=966 twir=641 hn=438 tldr=406 interconnects=313 jsweekly=191 pragmaticengineer=191 juliaevans=175 simonwillison=154 thenewstack=144 kentcdodds=109 typescript=95 bramus=88 chriscoyier=85 aws=85 cloudflare=84 adactio=61 glyph=57 vercel=55 webkit=54 rachelandrew=51 cassidoo=50 jimnielsen=49 arstechnica=47 github=45 go=44 rust=42 nextjs=40 nodejs=40 openai=40 deepmind=40 astro=40 deno=40 bun=40 theregister=40 huggingface=40 emollick=38 armin=32 lwn=28 una=26 react=23 infoq=15 chromedev=10 reactstatus=4 frontendfocus=4 pycoders=3
