@@ -15,8 +15,15 @@ into every downstream reader.
 - Merges leave a `merged_into` tombstone rather than deleting a row, so
   provenance survives and every read path must resolve tombstones. Bookmarks and
   read state, which attach to Signals, resolve through them too.
-- Temporal decay is expressible as "this Signal no longer accepts merges."
-- LLM merge adjudication, if adopted, operates on Signals that already exist —
-  it decides merge or split, it never detects a cluster. This keeps the
-  invariant that detection is deterministic.
+- ~~Temporal decay is expressible as "this Signal no longer accepts merges."~~
+  **Superseded by ADR-0004**: a Signal never stops accepting merges, because
+  merges are identity resolution and identity does not age. Temporal decay lives
+  in ranking.
+- ~~LLM merge adjudication, if adopted, operates on Signals that already exist —
+  it decides merge or split, it never detects a cluster.~~ **Answered by #14: not
+  adopted.** Sealing makes reproducibility a correctness property of detection,
+  so no non-deterministic step may enter it. The invariant that detection is
+  deterministic now holds without qualification. **Embeddings are likewise out of
+  detection** (#6): they remain in the product only for matching Signals to
+  Interests, per ADR-0003.
 - Cost accepted: one Signal row per Link ever observed.
