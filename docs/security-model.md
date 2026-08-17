@@ -191,9 +191,15 @@ the invariant that makes the whole boundary structural.
 
 - **API keys live in Vercel env vars and GitHub Actions secrets.** Never in the
   repo, never in a Client Component.
-- **The cron endpoint authenticates by shared secret with a constant-time
-  comparison** (`crypto.timingSafeEqual` on equal-length buffers). It is the only
-  route besides login that is not session-gated.
+- **There is no cron endpoint.** This originally specified one authenticating by
+  shared secret, as the only route besides login that was not session-gated.
+  [Specify the ingestion pipeline](https://github.com/SaKaNa-Y/Zis/issues/8) removed
+  it: the pipeline runs as a Node script **inside the GitHub Actions runner**,
+  connecting to Neon directly, so no route exists to authenticate. The deciding
+  argument was this section's own logic — an exemption from the auth boundary is
+  the shape a bypass takes, and removing a route beats hardening one. **`login` is
+  now the only route that is not session-gated.** The runner's own credentials are
+  Actions secrets, and `safeFetch` binds it exactly as it binds the app.
 - **Login is rate-limited by Postgres**, not by Redis or a platform feature:
   `failed_attempts` and `locked_until` columns on `User`, checked and incremented
   in the same transaction as the password verify. No new infrastructure, survives
