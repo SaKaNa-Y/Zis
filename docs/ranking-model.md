@@ -204,8 +204,12 @@ surfaced, and listing three matches lets the vague one hide in the crowd.
 ## 7. Cut time
 
 One Brief per reader per local day, cut at a fixed hour in a stored
-`User.timezone`, on the 15-minute cron tick that crosses it, with a uniqueness
+`User.timezone`, on the **hourly** cron tick that crosses it, with a uniqueness
 guard on `(user_id, local_date)` so the cut is idempotent and safely retryable.
+The cadence is hourly rather than 15-minute per
+[ADR-0008](./adr/0008-the-neon-wake-is-the-unit-of-compute-cost.md), and the cut
+deliberately rides an existing ingestion wake rather than taking a schedule of its
+own — see [`docs/ingestion-pipeline.md`](./ingestion-pipeline.md) §2.
 
 Cutting lazily on first page view would make a Brief's content depend on when the
 reader looked, which is the exact property sealing exists to remove. A fixed UTC

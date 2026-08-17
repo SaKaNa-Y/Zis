@@ -25,6 +25,22 @@ Which protocol a Source is polled over — RSS, the HN Firebase API, GitHub
 GraphQL, a Bluesky feed. A property of a Source, never a thing in its own right.
 _Avoid_: Adapter (that is the code implementing a Transport, not a domain term)
 
+**Aggregator**:
+A Source whose Items exist to cite other people's work rather than to carry their
+own — a newsletter issue or a link roundup. Its value to the corpus is the list of
+addresses it points at, which is why an Aggregator whose Items are excerpts must
+have the cited list recovered before those Citations exist at all. A Publisher may
+speak through both Aggregator and ordinary Sources.
+_Avoid_: Newsletter, Roundup, Digest (that is the delivery of a Brief), Curator
+
+**Dormant**:
+A Source that answers correctly and has published nothing for a long time.
+Deliberately distinct from a failing Source: a Publisher's silence is not a fault,
+so a Dormant Source is surfaced for a human to judge rather than treated as
+broken. A Source can be Dormant indefinitely and still be worth keeping.
+_Avoid_: Dead, Stale, Inactive, Broken (a Source that errors is failing, not
+Dormant — the two are different signals with different consequences)
+
 **Item**:
 One normalized unit fetched from a Source — a blog article, a release, a forum
 thread, a social post, a video. Deliberately generic, because the corpus is
