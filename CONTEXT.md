@@ -58,6 +58,13 @@ Citations, Items, or Sources — one loud voice must not be able to manufacture
 agreement with itself.
 _Avoid_: Score, Mentions, Popularity
 
+**Text Basis**:
+Which rung of available text a Signal was embedded from — its own ingested title
+and summary, the concatenated titles of the Items citing it, or its URL slug.
+Most Signals have no ingested Item of their own, so the rung is recorded rather
+than assumed, and a Signal is re-embedded when its rung improves.
+_Avoid_: Source text, Content, Excerpt
+
 **Tag**:
 An extracted label attached to an Item or a Signal, used to explain and to
 retrieve. A Tag is not something a reader follows; relevance comes from the
@@ -78,8 +85,17 @@ Feed, Edition
 
 **Brief Entry**:
 One Signal's place in a Brief, carrying its position and the frozen text
-explaining why it surfaced.
+explaining why it surfaced. A Signal has at most one Brief Entry for a given
+reader, ever: it is never shown twice, whether or not it was read.
 _Avoid_: Slot, Card, Story
+
+**Admission**:
+Why a Signal earned its place in a Brief — because one of the reader's Interests
+matched it, or because enough Publishers converged on it without one. Every Brief
+Entry records which, and the two are the only ways in. Admission is decided by
+absolute tests a reader could check by hand; there is no score and no fixed
+number of places to compete for.
+_Avoid_: Lane, Slot, Quota, Rank, Score
 
 ### The reader
 
@@ -116,3 +132,9 @@ _Avoid_: Seen, Unread, Status
   itself.
 - **Article** — lies about releases, threads, posts, and videos. Use **Item**.
 - **Unread count** — deliberately absent from the product; do not model one.
+- **Slot** / **Quota** — imply a fixed number of places competing to be filled,
+  which is a top-N cut and would license padding. A Brief holds however many
+  Signals cleared the bar. Use **Brief Entry** and **Admission**.
+- **Score** — no single number ranks a Signal; admission is a conjunction of
+  absolute tests. Use **Strength** for convergence and **Admission** for why
+  something surfaced.
