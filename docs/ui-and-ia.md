@@ -13,15 +13,25 @@ in the prototype, and the four that lost are kept there as the record.
 
 ---
 
-## 0. What this document does not decide
+## 0. Layout customization — settled, and the answer is no
 
-**Layout customization.** Whether the reader can rearrange this surface from
-Settings is
-[#23](https://github.com/SaKaNa-Y/Zis/issues/23), deliberately deferred: every
-candidate control turns out to be a control over an invariant (the why-text, the
-`convergence` register, the measure) rather than over taste, so it needs its own
-argument. The Settings route has a **Layout** section that says so and holds
-nothing.
+This section used to defer the question. It is now closed by
+[#23](https://github.com/SaKaNa-Y/Zis/issues/23) and
+[ADR-0009](./adr/0009-a-presentation-control-changes-neither-information-nor-order.md):
+**a reader-facing presentation control is admissible only if it changes neither
+which information is rendered nor its order.** The theme passes that test (seven
+tokens redefined, no markup touched); hiding the why-text, collapsing the
+`convergence` register, a density toggle, a reader-settable entry order, and
+turning off the wide-screen zones all fail it. The surviving set is empty, so
+**there is no Layout section in Settings** — it is removed, not left empty (§8),
+on the same precedent as the reading view in §3: the answer is stated here rather
+than on the screen.
+
+Two things that ruling does *not* say. **Text size is adjustable** — through
+browser zoom and OS root-font-size, which are better than a Zis control because
+`rem`/`ch` sizing scales the type and the measure together (§9). And
+**`forced-colors` and `prefers-contrast` are honored** (§9). Adjustability is the
+platform's job here, not Settings'.
 
 ## 1. Destinations — five, and only one has permanent chrome
 
@@ -172,8 +182,12 @@ loose chrome** on the reading surface. It holds: appearance (light / dark / matc
 system), the cut hour with the stored timezone, how much (§9 of the ranking model
 is the real gate; this is a named size, never a number field, because #14 requires
 the ceiling to stay out of the interface and a free number input is how the bound
-dies), the empty **Layout** section pointing at #23, and account (change
-passphrase, sign out everywhere — which bumps `session_version`).
+dies), and account (change passphrase, sign out everywhere — which bumps
+`session_version`).
+
+**There is no Layout section** — #23 removed the empty one this document used to
+describe (§0). Appearance is the *only* presentation control in Settings, and
+ADR-0009 is why it is the only one.
 
 **The theme preference is a per-device cookie, not a `User` column.** One reader
 on a phone at night and a desktop at noon wants two answers, and a row forces one;
@@ -218,6 +232,18 @@ two or three sentences and not an essay. The reading column tops out at 38rem at
 the desktop type rung — the line length is capped, and **the width a wide screen
 has spare is spent on other content, never on a longer line** (§10).
 
+**Every size above is `rem` or `ch`, and that is a hard rule, not a habit**
+(ADR-0009). It is what makes browser zoom and OS root-font-size a *complete*
+text-size control: they scale the type and the 33rem measure together, so the line
+holds at ~60ch instead of growing type inside a fixed column. Zis therefore ships
+no font-size control of its own — the platform's is strictly better. The rule:
+**no `px` in type size, line-height, spacing, or the measure**; `px` is permitted
+for hairline borders, which should not scale with zoom. One `text-[17px]` breaks
+this silently, so it is enforced as a **CI invariant** rather than by review,
+riding the same explicit CI step #15's finding forces for #7's egress rule
+(`next lint` is removed in Next.js 16). Owned by
+[#12](https://github.com/SaKaNa-Y/Zis/issues/12).
+
 **Colour is semantic only** — `paper`, `paper-sunk`, `ink`, `ink-dim`,
 `ink-faint`, `rule`, `accent`. Dark mode redefines those seven tokens on `.dark`
 and touches no markup: there is not one `dark:` utility in the design. That is
@@ -225,6 +251,16 @@ what makes light/dark parity structural rather than a review checklist, and it i
 the one thing `antfu/design`'s language transfers (#15) — semantic tokens over raw
 colours, parity as a hard rule, `font-mono tabular-nums` for the Brief date, one
 obvious affordance rather than three competing ones.
+
+**The seven tokens carry two more obligations, both from ADR-0009**: they must
+survive **`forced-colors`** — where the OS replaces the palette outright, so
+anything the design conveys by colour alone disappears — and they must honor
+**`prefers-contrast`**, which is where `ink-dim` and `ink-faint` are at risk, since
+a deliberately quiet why-text is the first thing a high-contrast reader loses.
+This is the accessibility half of the customization question and it costs no
+schema, no cookie, and no preference state. `prefers-reduced-motion` is moot: there
+is no motion. **Verification belongs against a built page, not here** — it joins
+keyboard navigation in the map's fog on #10's own reasoning.
 
 ## 10. Three zones, appearing as the viewport earns them
 
@@ -262,3 +298,8 @@ unused: nothing in this design needed the first rung of it.
   broken-image state, because there is no image.
 - **No badge** doing the work of the section heading in §2.
 - **No shared `Card`.**
+- **No layout customization, and no Layout section in Settings** (§0, ADR-0009).
+  Not a deferral — the admissibility test leaves an empty candidate set. Text size
+  and contrast are adjustable through the platform instead.
+- **No `px`** in type size, line-height, spacing, or the measure (§9). Hairline
+  borders excepted.
