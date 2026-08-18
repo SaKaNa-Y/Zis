@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE — Zis IA + UI (#10)</title>
+
+<!--
+  THROWAWAY PROTOTYPE — issue #10 "Design the information architecture and UI".
+  Five variants of the Brief, switchable via ?variant=D|E|A|B|C. D is the chosen
+  design — A's section break for the two Admission routes, a desktop that spends
+  its width on content, a left rail and a right aside; E is the deliberate
+  counter-proposal (full-bleed, two-up). A/B/C are the first round, kept as the
+  record. States via ?state=full|short|empty|archive|signal|interests|saved|settings,
+  phone width via ?phone=1. Plain Tailwind v4 (browser build), no
+  component library, no headless primitives, no images of any kind (#17), no
+  shared Card abstraction (CONTEXT.md lists Card under *Avoid* for Brief Entry).
+  Data is fabricated but shaped from the real corpus figures in
+  docs/ranking-model.md §6. Nothing here is production code.
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<style type="text/tailwindcss">
+  /* ── The actual deliverable of question 9: the type system as @theme tokens.
+     These transfer verbatim into the real app's CSS. Four sizes, no more. ── */
+  @theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+    /* the four sizes, and there are only four */
+    --text-date: 0.8125rem;        --text-date--line-height: 1.2;
+    --text-title: 1.25rem;         --text-title--line-height: 1.3;
+    --text-body: 1.0625rem;        --text-body--line-height: 1.6;
+    --text-meta: 0.8125rem;        --text-meta--line-height: 1.5;
+
+    /* the desktop rung of the same two reading sizes — "larger content" on a wide
+       screen means bigger type, never a longer line */
+    --text-title-lg: 1.5rem;       --text-title-lg--line-height: 1.25;
+    --text-body-lg: 1.1875rem;     --text-body-lg--line-height: 1.65;
+
+    /* the single highest-leverage decision on a reading surface: the measure.
+       60ch at 17px, deliberately tighter than prose's 65ch — a summary is two
+       or three sentences, never long-form. */
+    --container-measure: 33rem;
+
+    /* vertical rhythm */
+    --spacing-entry: 2.25rem;      /* between entries in one register */
+    --spacing-register: 4rem;      /* between registers (interest ↔ convergence) */
+
+    /* semantic colour only — never a raw colour in markup (antfu/design's one
+       transferable rule, per #15). Light/dark parity is a hard requirement. */
+    --color-paper: oklch(99% 0.004 90);
+    --color-paper-sunk: oklch(96.5% 0.005 90);
+    --color-ink: oklch(24% 0.01 260);
+    --color-ink-dim: oklch(52% 0.015 260);
+    --color-ink-faint: oklch(66% 0.012 260);
+    --color-rule: oklch(90% 0.006 260);
+    --color-accent: oklch(52% 0.14 250);
+  }
+  @layer theme {
+    .dark {
+      --color-paper: oklch(17% 0.012 260);
+      --color-paper-sunk: oklch(21% 0.014 260);
+      --color-ink: oklch(93% 0.008 260);
+      --color-ink-dim: oklch(70% 0.014 260);
+      --color-ink-faint: oklch(56% 0.014 260);
+      --color-rule: oklch(29% 0.015 260);
+      --color-accent: oklch(76% 0.12 250);
+    }
+  }
+  @layer base {
+    html { color-scheme: light dark; }
+    body { background: var(--color-paper); color: var(--color-ink); }
+    a { color: inherit; }
+    /* every interactive element in the real app is <form> + Server Action;
+       here they are inert buttons. */
+    :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<div id="frame" class="mx-auto"></div>
+
+<!-- floating switcher — prototype furniture, deliberately ugly -->
+<div class="fixed bottom-3 left-1/2 z-50 -translate-x-1/2 flex flex-wrap items-center justify-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-100 shadow-lg">
+  <button data-nav="-1" class="px-2 py-1 rounded-full hover:bg-neutral-700">←</button>
+  <span id="vlabel" class="px-2 font-mono tabular-nums whitespace-nowrap"></span>
+  <button data-nav="1" class="px-2 py-1 rounded-full hover:bg-neutral-700">→</button>
+  <span class="mx-1 h-4 w-px bg-neutral-700"></span>
+  <span id="states" class="flex gap-1"></span>
+  <span class="mx-1 h-4 w-px bg-neutral-700"></span>
+  <button id="phone" class="px-2 py-1 rounded-full hover:bg-neutral-700">phone</button>
+  <button id="theme" class="px-2 py-1 rounded-full hover:bg-neutral-700">light/dark</button>
+</div>
+
+<script>
+// ───────────────────────────── fabricated brief data ─────────────────────────
+// Shapes taken from docs/ranking-model.md §6: STRENGTH is origin-EXCLUDED, the
+// origin Publisher is listed separately and labelled, publishers cap at 3 + N,
+// only the argmax Interest is named.
+const ENTRIES = [
+  { route:'interest', title:'A bound on the Riemann zeta function, found by a model and checked by hand',
+    summary:'Anthropic reports a model-assisted improvement to a known bound, with the proof reduced to steps a referee could verify independently. The write-up is explicit that the model did search, not judgement.',
+    origin:'anthropic.com', strength:3, publishers:['Hacker News','Simon Willison','The New Stack'],
+    interest:'AI systems doing real mathematics' },
+  { route:'interest', title:'Vite 8 ships Rolldown as the default bundler',
+    summary:'The Rust rewrite lands as the default rather than an opt-in flag. Migration notes cover plugin hook differences and the two config options that changed meaning.',
+    origin:'vite.dev', strength:3, publishers:['Hacker News','JavaScript Weekly','Evan You','Bytes'],
+    interest:'frontend build tooling and bundlers' },
+  { route:'interest', title:'Postgres 19 beta adds asynchronous I/O for sequential scans',
+    summary:'io_uring on Linux, with a portable worker-based fallback. Early numbers show the win concentrated on cold-cache analytical scans rather than OLTP.',
+    origin:'postgresql.org', strength:2, publishers:['Hacker News','Postgres Weekly'],
+    interest:'Postgres internals' },
+  { route:'interest', title:'Drizzle removes its own migration engine in favour of plain SQL files',
+    summary:'The generated-migration layer is deprecated; the recommended path is checked-in SQL with a thin runner. The changelog frames it as removing a thing rather than replacing it.',
+    origin:'orm.drizzle.team', strength:2, publishers:['Hacker News','Drizzle'],
+    interest:'Postgres internals' },
+  { route:'convergence', title:'A Cloudflare config push took out roughly a fifth of the web for 43 minutes',
+    summary:'A bad rule reached the edge before the staged rollout gate. The post-mortem names the missing check and the reason the rollback took 31 of the 43 minutes.',
+    origin:'blog.cloudflare.com', strength:4, publishers:['Hacker News','The Verge','Ars Technica','Simon Willison','404 Media'] },
+];
+const TODAY = 'Thursday 13 August 2026';
+const ARCHIVE = [
+  { date:'Wed 12 Aug', lead:'Vite 8 ships Rolldown as the default bundler' },
+  { date:'Tue 11 Aug', lead:'Deno 3 drops the permission prompt' },
+  { date:'Mon 10 Aug', lead:'Nothing cleared the bar' },
+  { date:'Sun 9 Aug',  lead:'The SQLite team publishes its fuzzing corpus' },
+  { date:'Sat 8 Aug',  lead:'A single maintainer takes over left-pad, again' },
+];
+const INTERESTS = [
+  'Postgres internals — query planning, storage, replication. Not hosted-Postgres marketing.',
+  'frontend build tooling and bundlers, especially anything replacing webpack',
+  'AI systems doing real mathematics, as opposed to benchmark scores',
+  'how small teams run production infrastructure cheaply',
+];
+
+// ───────────────────────────── shared helpers ────────────────────────────────
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// publishers, capped at 3 + N — ranking-model.md §6
+const pubs = e => { const p = e.publishers; return p.length <= 3 ? p.join(', ') : p.slice(0,3).join(', ') + ', +' + (p.length-3); };
+const entriesFor = state =>
+  state === 'short' ? [ENTRIES[2]] : state === 'empty' ? [] : ENTRIES;
+
+// ═════════════════════════════ VARIANT A ═════════════════════════════════════
+// "Two registers, one page." The two Admission routes are separated into two
+// SECTIONS, and the section heading carries the whole explanation — so no badge
+// is needed and no entry looks like a degraded version of another. Nav: none.
+// The date is the only orientation; archive and interests hang off the footer.
+const A = { name:'Two registers', render(state){
+  if (state === 'archive') return AShell(`
+    <h1 class="text-title font-semibold">Earlier briefs</h1>
+    <p class="mt-2 text-meta text-ink-dim">Each one is sealed. They do not change.</p>
+    <ul class="mt-8 divide-y divide-rule">
+      ${ARCHIVE.map(d => `<li class="py-4">
+        <a href="#" class="block group">
+          <span class="font-mono tabular-nums text-date text-ink-dim">${d.date}</span>
+          <span class="mt-1 block text-body group-hover:underline">${esc(d.lead)}</span>
+        </a></li>`).join('')}
+    </ul>`);
+  if (state === 'interests') return AShell(interestsEditor());
+
+  const es = entriesFor(state);
+  const interest = es.filter(e => e.route === 'interest');
+  const converged = es.filter(e => e.route === 'convergence');
+  return AShell(`
+    <header>
+      <p class="font-mono tabular-nums text-date uppercase tracking-wide text-ink-dim">${TODAY}</p>
+      <h1 class="mt-1 text-title font-semibold tracking-tight">Your brief</h1>
+    </header>
+    ${es.length === 0 ? allCaughtUp() : ''}
+    ${interest.length ? `
+      <section class="mt-register">
+        ${interest.map(e => `
+          <article class="mt-entry first:mt-0">
+            <h2 class="text-title font-medium tracking-tight"><a href="#" class="hover:underline">${esc(e.title)}</a></h2>
+            <p class="mt-2 text-body text-ink">${esc(e.summary)}</p>
+            <p class="mt-2 text-meta text-ink-dim">
+              matched <span class="text-ink">“${esc(e.interest)}”</span><br />
+              ${e.strength} Publishers converged · ${esc(pubs(e))} · origin: ${e.origin}
+            </p>
+          </article>`).join('')}
+      </section>` : ''}
+    ${converged.length ? `
+      <section class="mt-register border-t border-rule pt-6">
+        <h2 class="text-meta uppercase tracking-widest text-ink-faint">You did not ask for this</h2>
+        <p class="mt-1 text-meta text-ink-dim">Enough independent Publishers converged on it that it arrives anyway.</p>
+        ${converged.map(e => `
+          <article class="mt-6">
+            <h3 class="text-body font-semibold"><a href="#" class="hover:underline">${esc(e.title)}</a></h3>
+            <p class="mt-2 text-body text-ink-dim">${esc(e.summary)}</p>
+            <p class="mt-2 text-meta text-ink-faint">${e.strength} Publishers converged · ${esc(pubs(e))} · origin: ${e.origin}</p>
+          </article>`).join('')}
+      </section>` : ''}
+  `);
+}};
+function AShell(inner){ return `
+  <div class="min-h-screen">
+    <main class="mx-auto max-w-measure px-5 py-12">${inner}</main>
+    <footer class="mx-auto max-w-measure px-5 pb-28 pt-10 text-meta text-ink-faint">
+      <nav class="flex gap-4 border-t border-rule pt-4">
+        <a href="?variant=A&state=full" class="hover:text-ink hover:underline">Today</a>
+        <a href="?variant=A&state=archive" class="hover:text-ink hover:underline">Earlier</a>
+        <a href="?variant=A&state=full" class="hover:text-ink hover:underline">Saved</a>
+        <a href="?variant=A&state=interests" class="hover:text-ink hover:underline">Interests</a>
+      </nav>
+    </footer>
+  </div>`; }
+
+// ═════════════════════════════ VARIANT B ═════════════════════════════════════
+// "One stream, inverted heads." No sections. Every entry sits in one list, and
+// the two routes differ by INFORMATION ORDER: an interest entry leads with the
+// title (you asked for this, so the title is the point); a convergence entry
+// leads with the why-line as a kicker and sets its title smaller — the reason
+// arrives before the story, because the reason is the surprising part.
+const B = { name:'Inverted heads', render(state){
+  if (state === 'archive') return BShell(`
+    <h1 class="text-title font-semibold">Earlier</h1>
+    <ul class="mt-6">
+      ${ARCHIVE.map(d => `<li class="border-b border-rule py-4 last:border-0">
+        <a href="#" class="flex gap-4 hover:underline">
+          <span class="w-20 shrink-0 font-mono tabular-nums text-date text-ink-faint pt-1">${d.date}</span>
+          <span class="text-body">${esc(d.lead)}</span></a></li>`).join('')}
+    </ul>`, state);
+  if (state === 'interests') return BShell(interestsEditor(), state);
+
+  const es = entriesFor(state);
+  return BShell(`
+    <header class="border-b border-rule pb-5">
+      <h1 class="font-mono tabular-nums text-date uppercase tracking-widest text-ink-dim">${TODAY}</h1>
+    </header>
+    ${es.length === 0 ? allCaughtUp() : ''}
+    <div>
+      ${es.map(e => e.route === 'interest' ? `
+        <article class="border-b border-rule py-entry">
+          <h2 class="text-title font-medium tracking-tight"><a href="#" class="hover:underline">${esc(e.title)}</a></h2>
+          <p class="mt-2 text-body">${esc(e.summary)}</p>
+          <p class="mt-3 text-meta text-ink-dim">“${esc(e.interest)}” · ${e.strength} Publishers · ${esc(pubs(e))} · origin: ${e.origin}</p>
+        </article>` : `
+        <article class="border-b border-rule py-entry">
+          <p class="text-meta uppercase tracking-widest text-accent">${e.strength} Publishers converged, none of them yours</p>
+          <p class="mt-1 text-meta text-ink-dim">${esc(pubs(e))} · origin: ${e.origin}</p>
+          <h2 class="mt-3 text-body font-semibold"><a href="#" class="hover:underline">${esc(e.title)}</a></h2>
+          <p class="mt-2 text-body text-ink-dim">${esc(e.summary)}</p>
+        </article>`).join('')}
+    </div>`, state);
+}};
+function BShell(inner, state){
+  const tab = k => `<a href="?variant=B&state=${k.s}" class="flex-1 py-3 text-center text-meta ${state===k.s?'text-ink font-medium':'text-ink-faint'}">${k.t}</a>`;
+  return `
+  <div class="min-h-screen pb-28">
+    <main class="mx-auto max-w-measure px-5 py-10">${inner}</main>
+    <nav class="fixed bottom-0 left-0 right-0 flex border-t border-rule bg-paper/95 backdrop-blur sm:static sm:mx-auto sm:mt-10 sm:max-w-measure sm:border-0 sm:bg-transparent">
+      ${[{s:'full',t:'Brief'},{s:'archive',t:'Earlier'},{s:'saved',t:'Saved'},{s:'interests',t:'Interests'}].map(tab).join('')}
+    </nav>
+  </div>`; }
+
+// ═════════════════════════════ VARIANT C ═════════════════════════════════════
+// "The wire." Interest entries own the reading column; convergence entries live
+// in a separate rail — a right-hand column on desktop, a collapsed <details> at
+// the end on phone — set in the mono/meta register so it reads as wire copy
+// rather than as a weaker version of the main column. Zero nav chrome: the date
+// links to the archive, the interest quote links to the profile.
+const C = { name:'The wire', render(state){
+  if (state === 'archive') return CShell(`
+    <h1 class="font-mono tabular-nums text-date uppercase tracking-widest text-ink-dim">Sealed briefs</h1>
+    <div class="mt-8 space-y-6">
+      ${ARCHIVE.map(d => `<a href="#" class="block group">
+        <span class="font-mono tabular-nums text-title group-hover:text-accent">${d.date}</span>
+        <span class="mt-1 block text-meta text-ink-dim">${esc(d.lead)}</span></a>`).join('')}
+    </div>`);
+  if (state === 'interests') return CShell(interestsEditor());
+
+  const es = entriesFor(state);
+  const interest = es.filter(e => e.route === 'interest');
+  const converged = es.filter(e => e.route === 'convergence');
+  return CShell(`
+    <div class="lg:flex lg:gap-16">
+      <div class="max-w-measure lg:flex-1">
+        <a href="?variant=C&state=archive" class="font-mono tabular-nums text-date uppercase tracking-widest text-ink-dim hover:text-ink">${TODAY} ↓</a>
+        ${es.length === 0 ? allCaughtUp() : ''}
+        ${interest.map(e => `
+          <article class="mt-register first:mt-10">
+            <p class="text-meta text-ink-faint">because you said <a href="?variant=C&state=interests" class="text-ink-dim underline decoration-dotted hover:text-accent">“${esc(e.interest)}”</a></p>
+            <h2 class="mt-1 text-title font-medium tracking-tight"><a href="#" class="hover:underline">${esc(e.title)}</a></h2>
+            <p class="mt-2 text-body">${esc(e.summary)}</p>
+            <p class="mt-2 text-meta text-ink-faint">${e.strength} Publishers · ${esc(pubs(e))} · origin: ${e.origin}</p>
+          </article>`).join('')}
+      </div>
+      ${converged.length ? `
+      <aside class="mt-register lg:mt-10 lg:w-64 lg:shrink-0">
+        <details open>
+          <summary class="cursor-pointer font-mono text-date uppercase tracking-widest text-ink-faint lg:pointer-events-none lg:list-none">On the wire (${converged.length})</summary>
+          ${converged.map(e => `
+            <div class="mt-4 border-l-2 border-rule pl-4">
+              <h3 class="font-mono text-meta leading-snug text-ink"><a href="#" class="hover:text-accent">${esc(e.title)}</a></h3>
+              <p class="mt-2 text-meta text-ink-dim">${esc(e.summary)}</p>
+              <p class="mt-2 font-mono text-date text-ink-faint">${e.strength}× · ${esc(pubs(e))}<br/>origin: ${e.origin}</p>
+            </div>`).join('')}
+        </details>
+      </aside>` : ''}
+    </div>`);
+}};
+function CShell(inner){ return `
+  <div class="min-h-screen px-5 py-12 pb-28 lg:px-16">
+    <main class="mx-auto max-w-6xl">${inner}</main>
+    <footer class="mx-auto mt-16 max-w-6xl text-meta text-ink-faint">
+      <a href="?variant=C&state=interests" class="hover:text-ink hover:underline">interests</a> ·
+      <a href="?variant=C&state=archive" class="hover:text-ink hover:underline">earlier</a> ·
+      <a href="?variant=C&state=full" class="hover:text-ink hover:underline">saved</a>
+    </footer>
+  </div>`; }
+
+// ═════════════════════════════ VARIANT D ═════════════════════════════════════
+// The chosen graft, refined. A's section break for the two Admission routes, a
+// desktop that spends its width on CONTENT rather than a longer line, and three
+// zones that appear as the viewport earns them:
+//   lg   rail + reading column          (meta inline under the summary)
+//   xl   + marginalia gutter            (meta moves left of the title)
+//   2xl  + right aside                  (this brief's contents, and Saved)
+// On phone every rail collapses: nav to the footer, actions into <details>.
+//
+// Refinements from the second review round:
+//   · the conversational "because you said …" lead-in is GONE. The matched
+//     Interest still shows — it is the why-text and #9 requires it — but as
+//     `matched "…"`, which is A's form and reads as a citation, not a chat line.
+//   · the rail gains Tags (retrieval only — NOT topic_follow, see IA doc) and a
+//     Settings destination; Light/dark moved out of the rail into Settings.
+//   · the right aside is the "something useful": this brief's contents as jump
+//     links (which also renders the boundary — you can see where it ends), plus
+//     the last few Saved Signals.
+//   · title click is now DEFINED: the title is the link out to the origin. The
+//     Publisher line is an internal link to the Signal's provenance page.
+const D = { name:'Marginalia + rails', render(state){
+  if (state === 'settings')  return Dshell(settingsPage(), state, false);
+  if (state === 'signal')    return Dshell(signalPage(ENTRIES[0]), state, false);
+  if (state === 'archive')   return Dshell(Darchive(), state, false);
+  if (state === 'interests') return Dshell(interestsEditor(), state, false);
+  if (state === 'saved')     return Dshell(savedPage(), state, false);
+
+  const es = entriesFor(state);
+  const interest = es.filter(e => e.route === 'interest');
+  const converged = es.filter(e => e.route === 'convergence');
+  const GUT = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-10';
+  return Dshell(`
+    <header class="${GUT}">
+      <p class="font-mono tabular-nums text-date uppercase tracking-widest text-ink-dim xl:pt-2 xl:text-right">${TODAY}</p>
+      <h1 class="mt-1 text-title lg:text-title-lg font-semibold tracking-tight xl:mt-0">Your brief</h1>
+    </header>
+    ${es.length === 0 ? allCaughtUp() : ''}
+    ${interest.map(e => Dentry(e, false, GUT)).join('')}
+    ${converged.length ? `
+      <section class="mt-register border-t border-rule pt-8">
+        <div class="${GUT}">
+          <h2 class="text-meta uppercase tracking-widest text-ink-faint xl:text-right">You did not ask for this</h2>
+          <p class="mt-1 text-meta text-ink-dim xl:mt-0">Enough independent Publishers converged on it that it arrives anyway.</p>
+        </div>
+        ${converged.map(e => Dentry(e, true, GUT)).join('')}
+      </section>` : ''}
+  `, state, true);
+}};
+
+// ── shell: left rail (desktop) + content + right aside (2xl) ──────────────────
+function Dshell(inner, state, withAside){
+  return `
+    <div class="min-h-screen lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)]">
+      ${Drail(state)}
+      <div class="min-w-0 px-5 py-10 pb-28 lg:py-14 lg:pl-12 lg:pr-8 xl:pl-16">
+        <div class="${withAside ? '2xl:grid 2xl:grid-cols-[minmax(0,56rem)_17rem] 2xl:gap-x-14' : ''}">
+          <main class="min-w-0">${inner}</main>
+          ${withAside ? Daside(state) : ''}
+        </div>
+        <footer class="mt-16 border-t border-rule pt-4 text-meta text-ink-faint lg:hidden">
+          <nav class="flex flex-wrap gap-x-4 gap-y-1">
+            ${[['full','Today'],['archive','Earlier'],['saved','Saved'],['interests','Interests'],['settings','Settings']]
+              .map(([s,t]) => `<a href="?variant=D&state=${s}" class="hover:text-ink hover:underline">${t}</a>`).join('')}
+          </nav>
+        </footer>
+      </div>
+    </div>`;
+}
+
+// ── the left rail: destinations, Tags (retrieval), Settings ───────────────────
+// Desktop only. Sticky, because on a wide screen the width is already spare —
+// but it holds no counts of any kind, in any disguise (#14).
+function Drail(state){
+  const item = (s,t) => `<a href="?variant=D&state=${s}" class="block py-1 ${state===s?'text-ink':'text-ink-faint hover:text-ink-dim'}">${t}</a>`;
+  const tag  = t => `<a href="?variant=D&state=archive" class="block py-0.5 text-ink-faint hover:text-ink-dim">${t}</a>`;
+  return `
+    <aside class="hidden lg:block lg:sticky lg:top-0 lg:self-start lg:border-r lg:border-rule lg:py-14 lg:pl-10 lg:pr-6 xl:pl-16">
+      <p class="font-mono text-date uppercase tracking-[0.2em] text-ink">Zis</p>
+      <nav class="mt-10 text-meta">
+        ${item('full','Today')}${item('archive','Earlier')}${item('saved','Saved')}${item('interests','Interests')}
+      </nav>
+      <div class="mt-10">
+        <p class="text-meta uppercase tracking-widest text-ink-faint/70">Tags</p>
+        <p class="mt-1 text-date leading-snug text-ink-faint/60">searches Earlier — not a subscription</p>
+        <nav class="mt-2 text-meta">
+          ${['Postgres','Bundlers','AI research','Infrastructure','Rust'].map(tag).join('')}
+        </nav>
+      </div>
+      <nav class="mt-10 text-meta">${item('settings','Settings')}</nav>
+    </aside>`;
+}
+
+// ── the right aside: this brief's contents + Saved ────────────────────────────
+// The "something useful" on the right. A table of contents for a SEALED, bounded
+// artefact is not a count — it is the boundary made visible, which is the one
+// piece of orientation #14 actually licenses (the date, and the end).
+function Daside(state){
+  const es = entriesFor(state);
+  return `
+    <aside class="hidden 2xl:block 2xl:sticky 2xl:top-14 2xl:self-start">
+      ${es.length ? `
+        <p class="text-meta uppercase tracking-widest text-ink-faint">In this brief</p>
+        <ol class="mt-3 space-y-2">
+          ${es.map((e,i) => `<li class="flex gap-3">
+            <span class="font-mono tabular-nums text-date text-ink-faint">${String(i+1).padStart(2,'0')}</span>
+            <a href="#" class="text-meta leading-snug text-ink-dim hover:text-ink">${esc(e.title)}</a></li>`).join('')}
+        </ol>
+        <p class="mt-3 border-t border-rule pt-3 text-date text-ink-faint">That is the whole brief.</p>` : ''}
+      <p class="mt-10 text-meta uppercase tracking-widest text-ink-faint">Saved</p>
+      <ul class="mt-3 space-y-2">
+        ${['The SQLite team publishes its fuzzing corpus','Deno 3 drops the permission prompt']
+          .map(t => `<li><a href="?variant=D&state=saved" class="text-meta leading-snug text-ink-dim hover:text-ink">${esc(t)}</a></li>`).join('')}
+      </ul>
+    </aside>`;
+}
+
+// ── one Brief Entry ──────────────────────────────────────────────────────────
+// The title is the LINK OUT. The Publisher line is an internal link to the
+// Signal's provenance. No shared Card, no container, no border.
+function Dentry(e, wire, GUT){
+  const meta = `
+    ${wire ? `<span class="text-ink-faint">no Interest matched</span>`
+           : `matched <span class="text-ink-dim">“${esc(e.interest)}”</span>`}<br />
+    <a href="?variant=D&state=signal" class="underline decoration-dotted decoration-ink-faint/60 hover:text-ink">${e.strength} Publishers converged</a>
+    · ${esc(pubs(e))} · origin: ${e.origin}`;
+  return `
+  <article class="mt-register first:mt-12 ${GUT}">
+    <div class="hidden xl:block xl:pt-2.5 xl:text-right">
+      <p class="text-meta leading-relaxed text-ink-faint">${meta}</p>
+    </div>
+    <div>
+      <h2 class="${wire ? 'text-body lg:text-title font-semibold' : 'text-title lg:text-title-lg font-medium'} tracking-tight">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="hover:underline">${esc(e.title)}<span class="text-ink-faint"> ↗</span></a></h2>
+      <p class="mt-2 text-body lg:text-body-lg ${wire ? 'text-ink-dim' : ''}">${esc(e.summary)}</p>
+      <p class="mt-2 text-meta leading-relaxed text-ink-faint xl:hidden">${meta}</p>
+      ${Dactions()}
+    </div>
+  </article>`;
+}
+
+// visible on desktop, collapsed behind a native <details> on phone
+function Dactions(){
+  const btns = cls => ['Save','Mark read'].map(t => `<button class="${cls}">${t}</button>`).join('')
+    + `<a href="?variant=D&state=signal" class="${cls}">Why this?</a>`;
+  return `
+    <div class="mt-3 hidden gap-4 text-meta text-ink-faint lg:flex">${btns('hover:text-ink hover:underline')}</div>
+    <details class="mt-2 text-meta text-ink-faint lg:hidden">
+      <summary class="cursor-pointer list-none select-none">⋯</summary>
+      <div class="mt-2 flex gap-4">${btns('underline hover:text-ink')}</div>
+    </details>`;
+}
+
+function Darchive(){ return `
+  <h1 class="text-title lg:text-title-lg font-semibold">Earlier briefs</h1>
+  <p class="mt-2 text-meta text-ink-dim">Each one is sealed. They do not change.</p>
+  <ul class="mt-8 max-w-[52rem]">
+    ${ARCHIVE.map(d => `<li class="border-b border-rule last:border-0">
+      <a href="#" class="group grid grid-cols-[5.5rem_1fr] gap-4 py-4 lg:grid-cols-[8rem_1fr]">
+        <span class="font-mono tabular-nums text-date text-ink-faint lg:text-right">${d.date}</span>
+        <span class="text-body lg:text-body-lg group-hover:underline">${esc(d.lead)}</span>
+      </a></li>`).join('')}
+  </ul>`; }
+
+function savedPage(){ return `
+  <h1 class="text-title lg:text-title-lg font-semibold">Saved</h1>
+  <p class="mt-2 max-w-measure text-meta text-ink-dim">
+    Signals you kept. Saving does not put anything back into a Brief — a Signal
+    appears in at most one, ever (ADR-0007).
+  </p>
+  <ul class="mt-8 max-w-[52rem]">
+    ${['The SQLite team publishes its fuzzing corpus','Deno 3 drops the permission prompt'].map(t => `
+      <li class="border-b border-rule py-4 last:border-0">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="text-body lg:text-body-lg hover:underline">${esc(t)}<span class="text-ink-faint"> ↗</span></a>
+        <p class="mt-1 text-meta text-ink-faint">saved Tue 11 Aug · <a href="?variant=D&state=signal" class="underline decoration-dotted hover:text-ink">3 Publishers converged</a></p>
+      </li>`).join('')}
+  </ul>`; }
+
+// ── the answer to "what happens when you click a title" ──────────────────────
+// Title → the origin, external, new tab. THIS page is what the why-text links to:
+// the Signal's provenance. It is not a reading view — ADR-0005 stores no
+// publisher HTML, so Zis has nothing to read from and could never have one.
+function signalPage(e){ return `
+  <p class="text-meta text-ink-faint">
+    <a href="?variant=D&state=full" class="underline hover:text-ink">← Thursday’s brief</a>
+  </p>
+  <h1 class="mt-6 max-w-measure text-title lg:text-title-lg font-semibold tracking-tight">${esc(e.title)}</h1>
+  <p class="mt-3 max-w-measure text-body lg:text-body-lg">${esc(e.summary)}</p>
+  <p class="mt-4 text-meta text-ink-faint">
+    <a href="#" target="_blank" rel="noopener noreferrer" class="text-ink-dim underline hover:text-ink">Open ${e.origin} ↗</a>
+    · matched “${esc(e.interest)}” · admitted on interest
+  </p>
+  <h2 class="mt-register text-meta uppercase tracking-widest text-ink-faint">Who cited it, and when</h2>
+  <p class="mt-1 max-w-measure text-meta text-ink-dim">
+    Strength ${e.strength} — distinct Publishers, origin excluded and listed separately.
+    This table is the explanation; there is nothing behind it.
+  </p>
+  <ul class="mt-4 max-w-[52rem]">
+    ${[['Hacker News','A bound on the Riemann zeta function (1,204 points)','Wed 12 Aug 18:02'],
+       ['Simon Willison','Notes on Anthropic’s zeta result','Wed 12 Aug 21:40'],
+       ['The New Stack','What the zeta proof does and does not show','Thu 13 Aug 06:15'],
+       ['anthropic.com','origin — A bound on the Riemann zeta function','Wed 12 Aug 17:30']]
+      .map(([p,t,when],i) => `
+      <li class="grid grid-cols-[1fr] gap-1 border-b border-rule py-3 last:border-0 sm:grid-cols-[10rem_1fr_9rem] sm:gap-4">
+        <span class="text-meta ${i===3?'text-ink-faint':'text-ink'}">${p}</span>
+        <span class="text-meta text-ink-dim">${esc(t)}</span>
+        <span class="font-mono tabular-nums text-date text-ink-faint sm:text-right">${when}</span>
+      </li>`).join('')}
+  </ul>
+  <div class="mt-8 flex gap-4 text-meta text-ink-faint">
+    <button class="hover:text-ink hover:underline">Save</button>
+    <button class="hover:text-ink hover:underline">Mark read</button>
+    <button class="hover:text-ink hover:underline">Wrong cluster — kill this</button>
+  </div>`; }
+
+// ── Settings: everything that used to be loose chrome ────────────────────────
+function settingsPage(){ return `
+  <h1 class="text-title lg:text-title-lg font-semibold">Settings</h1>
+
+  <section class="mt-10 max-w-measure">
+    <h2 class="text-meta uppercase tracking-widest text-ink-faint">Appearance</h2>
+    <form class="mt-3 flex gap-4 text-body">
+      ${['Light','Dark','Match system'].map((t,i) => `
+        <label class="flex items-center gap-2"><input type="radio" name="theme" ${i===1?'checked':''} /> ${t}</label>`).join('')}
+    </form>
+    <p class="mt-2 text-meta text-ink-faint">
+      Stored per device, so a phone at night and a desktop at noon can disagree.
+      Rendered on the server into the initial HTML — no flash (#15).
+    </p>
+  </section>
+
+  <section class="mt-10 max-w-measure">
+    <h2 class="text-meta uppercase tracking-widest text-ink-faint">The brief</h2>
+    <label class="mt-3 block text-body">Cut at
+      <select class="ml-2 border-b border-rule bg-transparent text-body"><option>06:00</option><option>07:00</option><option>08:00</option></select>
+      <span class="text-ink-dim">Asia/Shanghai</span>
+    </label>
+    <label class="mt-3 block text-body">How much
+      <select class="ml-2 border-b border-rule bg-transparent text-body">
+        <option>Shorter</option><option selected>Standard</option><option>Longer</option>
+      </select>
+    </label>
+    <p class="mt-2 text-meta text-ink-faint">
+      Named sizes, not a number field: #14 requires the ceiling to stay out of the
+      interface, and a free number input is how the bound dies.
+      A brief is still only as long as what cleared the bar.
+    </p>
+  </section>
+
+  <section class="mt-10 max-w-measure">
+    <h2 class="text-meta uppercase tracking-widest text-ink-faint">Layout</h2>
+    <p class="mt-3 text-body text-ink-dim">
+      Whether the reader can rearrange the reading surface from here — density,
+      which rails show, where the why-text sits — is an open question on the map,
+      not a setting yet.
+    </p>
+  </section>
+
+  <section class="mt-10 max-w-measure">
+    <h2 class="text-meta uppercase tracking-widest text-ink-faint">Account</h2>
+    <p class="mt-3 text-meta text-ink-dim">Change passphrase · Sign out everywhere (bumps session_version)</p>
+  </section>`; }
+
+// ═════════════════════════════ VARIANT E ═════════════════════════════════════
+// The other way to fill a wide screen: stop centring anything. A full-width top
+// bar with the actions in it, and entries laid out two-up on desktop — each at a
+// short measure, so the whole brief fits one screen with no scroll. Included to
+// be argued with: it makes position ambiguous (does reading order go across or
+// down?) and a two-up grid of text blocks is a card grid wearing no border.
+const E = { name:'Two-up, full bleed', render(state){
+  const es = entriesFor(state);
+  const interest = es.filter(e => e.route === 'interest');
+  const converged = es.filter(e => e.route === 'convergence');
+  const inner = state === 'archive' ? `
+      <h1 class="text-title font-semibold">Earlier</h1>
+      <div class="mt-6 grid gap-x-10 gap-y-4 md:grid-cols-2 xl:grid-cols-3">
+        ${ARCHIVE.map(d => `<a href="#" class="block border-b border-rule py-3 hover:text-accent">
+          <span class="font-mono tabular-nums text-date text-ink-faint">${d.date}</span>
+          <span class="mt-1 block text-body">${esc(d.lead)}</span></a>`).join('')}
+      </div>`
+    : state === 'interests' ? interestsEditor()
+    : `
+      ${es.length === 0 ? allCaughtUp() : ''}
+      <div class="grid gap-x-16 gap-y-entry lg:grid-cols-2 2xl:grid-cols-3">
+        ${interest.map(e => `
+          <article class="max-w-[30rem]">
+            <p class="text-meta text-ink-faint">because you said <a href="?variant=E&state=interests" class="text-ink-dim underline decoration-dotted hover:text-accent">“${esc(e.interest)}”</a></p>
+            <h2 class="mt-1 text-title font-medium tracking-tight"><a href="#" class="hover:underline">${esc(e.title)}</a></h2>
+            <p class="mt-2 text-body">${esc(e.summary)}</p>
+            <p class="mt-2 text-meta text-ink-faint">${e.strength} Publishers converged · ${esc(pubs(e))} · origin: ${e.origin}</p>
+          </article>`).join('')}
+      </div>
+      ${converged.length ? `
+        <section class="mt-register border-t border-rule pt-6">
+          <h2 class="text-meta uppercase tracking-widest text-ink-faint">You did not ask for this</h2>
+          <div class="mt-4 grid gap-x-16 gap-y-entry lg:grid-cols-2">
+            ${converged.map(e => `
+              <article class="max-w-[30rem]">
+                <h3 class="text-body font-semibold"><a href="#" class="hover:underline">${esc(e.title)}</a></h3>
+                <p class="mt-2 text-body text-ink-dim">${esc(e.summary)}</p>
+                <p class="mt-2 text-meta text-ink-faint">${e.strength} Publishers converged · ${esc(pubs(e))} · origin: ${e.origin}</p>
+              </article>`).join('')}
+          </div>
+        </section>` : ''}`;
+  return `
+    <div class="min-h-screen pb-28">
+      <header class="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-rule px-5 py-4 lg:px-12">
+        <p class="font-mono tabular-nums text-date uppercase tracking-widest text-ink">${TODAY}</p>
+        <nav class="flex gap-4 text-meta text-ink-faint">
+          ${['full:Today','archive:Earlier','saved:Saved','interests:Interests'].map(x => { const [s,t] = x.split(':');
+            return `<a href="?variant=E&state=${s}" class="${state===s?'text-ink':''} hover:text-ink hover:underline">${t}</a>`; }).join('')}
+        </nav>
+        <form class="ml-auto hidden text-meta text-ink-faint lg:block"><button class="hover:text-ink">Light / dark</button></form>
+      </header>
+      <main class="px-5 py-10 lg:px-12">${inner}</main>
+    </div>`;
+}};
+
+// ───────────────────────── shared states (not a shared Layout) ───────────────
+// Deliberately designed FIRST, per #15's note: a median Brief is ~5 entries and
+// short/empty are among the most-rendered faces of the product.
+function allCaughtUp(){ return `
+  <div class="mt-16 border-t border-rule pt-8">
+    <p class="text-title font-medium">Nothing cleared the bar today.</p>
+    <p class="mt-2 max-w-measure text-body text-ink-dim">
+      Not a quiet corner of the internet — a quiet day. Zis would rather hand you
+      an empty page than pad one.
+    </p>
+    <p class="mt-6 text-meta text-ink-faint">
+      Next brief: tomorrow morning. <a href="#" class="underline hover:text-ink">Read yesterday’s</a> ·
+      <a href="#" class="underline hover:text-ink">Adjust your Interests</a>
+    </p>
+  </div>`; }
+
+function interestsEditor(){ return `
+  <h1 class="text-title font-semibold">Interests</h1>
+  <p class="mt-2 max-w-measure text-body text-ink-dim">
+    Each statement stands alone. A story surfaces if it matches any one of them,
+    and the one it matched is the reason you were shown it.
+  </p>
+  <p class="mt-3 max-w-measure text-meta text-ink-faint">
+    Today’s brief is already sealed — edits take effect on tomorrow’s.
+  </p>
+  <div class="mt-8 space-y-6">
+    ${INTERESTS.map((t,i) => `
+      <div>
+        <label class="font-mono text-date text-ink-faint">${String(i+1).padStart(2,'0')}</label>
+        <textarea rows="2" maxlength="200" class="mt-1 block w-full resize-none rounded-none border-b border-rule bg-transparent text-body leading-relaxed focus:border-accent focus:outline-none">${esc(t)}</textarea>
+        <div class="mt-1 flex justify-between text-meta text-ink-faint">
+          <button class="underline hover:text-ink">remove</button>
+          <span class="font-mono tabular-nums">${t.length}/200</span>
+        </div>
+      </div>`).join('')}
+  </div>
+  <button class="mt-8 border border-rule px-4 py-2 text-meta hover:border-accent hover:text-accent">Add an Interest</button>
+  <p class="mt-10 max-w-measure text-meta text-ink-faint">
+    Negative interests — things to keep out — sit below, and are deliberately
+    easier to trip than positive ones.
+  </p>`; }
+
+// ───────────────────────────── switcher plumbing ─────────────────────────────
+const VARIANTS = { D, E, A, B, C };   // D first — the chosen graft
+const STATES = ['full','short','empty','archive','signal','interests','saved','settings'];
+const qs = () => new URLSearchParams(location.search);
+function go(patch){ const p = qs(); Object.entries(patch).forEach(([k,v]) => p.set(k,v)); history.replaceState({},'', '?'+p); paint(); }
+function paint(){
+  const p = qs(), key = (p.get('variant')||'D').toUpperCase(), state = p.get('state')||'full';
+  const v = VARIANTS[key] || D;
+  document.getElementById('frame').innerHTML = v.render(state);
+  document.getElementById('frame').className = p.get('phone') === '1'
+    ? 'mx-auto w-[390px] border-x border-dashed border-neutral-500 min-h-screen' : 'mx-auto';
+  document.getElementById('vlabel').textContent = `${key} — ${v.name}`;
+  document.getElementById('states').innerHTML = STATES.map(s =>
+    `<button data-state="${s}" class="px-2 py-1 rounded-full ${s===state?'bg-neutral-100 text-neutral-900':'hover:bg-neutral-700'}">${s}</button>`).join('');
+}
+document.addEventListener('click', ev => {
+  const nav = ev.target.closest('[data-nav]'), st = ev.target.closest('[data-state]');
+  if (nav){ const ks = Object.keys(VARIANTS), i = ks.indexOf((qs().get('variant')||'D').toUpperCase());
+            go({variant: ks[(i + +nav.dataset.nav + ks.length) % ks.length]}); }
+  if (st) go({state: st.dataset.state});
+  if (ev.target.id === 'phone') go({phone: qs().get('phone')==='1' ? '0' : '1'});
+  if (ev.target.id === 'theme') document.documentElement.classList.toggle('dark');
+});
+addEventListener('keydown', ev => {
+  if (/INPUT|TEXTAREA/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+  if (ev.key === 'ArrowLeft')  document.querySelector('[data-nav="-1"]').click();
+  if (ev.key === 'ArrowRight') document.querySelector('[data-nav="1"]').click();
+});
+paint();
+</script>
+</body>
+</html>
