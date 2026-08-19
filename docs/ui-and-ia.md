@@ -167,6 +167,21 @@ the ~10–20 statements ADR-0003 describes. Twenty textareas is a page, not a pa
 (#14), so an edit *cannot* change it; an interface that implied otherwise would
 teach the reader that the seal is soft.
 
+**An Interest in non-Latin script carries a note, and the note is persistent**
+([#24](https://github.com/SaKaNa-Y/Zis/issues/24)). `ranking-model.md` §6
+establishes that Interests are English because `bge-small-en-v1.5` is English-only
+and a Chinese Interest embeds to a meaningless vector — it never matches anything
+and nothing else in the product would ever say so. The note reads *may not match*
+rather than *will not*, because the trigger is script detection and script
+detection is a heuristic, not the model.
+
+It is a **state, not a hint**: computed on every render from the statement's own
+text, no stored flag and no schema column, shown next to the character count. A
+transient typing-time warning was rejected — the failure is permanent, so an
+Interest written months ago must still say it is inert. This is the one element on
+this route that is not a `<textarea>`, and it is not a control: it reports a fact
+about a statement the reader wrote, which is what §7 is for.
+
 **Tags appear in the rail, and they search Earlier.** This is the one place the
 design came close to reintroducing something already cut: a browsable category
 list in primary chrome is `topic_follow` wearing a new name, and `CONTEXT.md`
@@ -226,6 +241,18 @@ made here, as Tailwind v4 `@theme` tokens.
   --spacing-register: 4rem;
 }
 ```
+
+**The measure is never asked to hold CJK, and that is structural rather than
+lucky** ([#24](https://github.com/SaKaNa-Y/Zis/issues/24)). `33rem ≈ 60ch` is
+calibrated against Latin copy, and full-width glyphs would make 60 characters a
+materially longer line — bilingual copy in one fixed measure is two typographic
+systems, the same objection ADR-0009 raises against a density toggle. The reason
+it cannot arise: the corpus is English, summaries are written in English
+(`ingestion-pipeline.md`, stage 13), and the only other rendered string a reader
+authors is an Interest — which reaches a page solely as the **argmax** why-text
+(`ranking-model.md` §6), and a Chinese Interest can never *be* the argmax under an
+English-only embedding model. So there is no path by which CJK text reaches this
+column, and no second type scale is needed.
 
 **Measure: ~60ch, deliberately tighter than `prose`'s 65ch**, because a summary is
 two or three sentences and not an essay. The reading column tops out at 38rem at
@@ -303,3 +330,11 @@ unused: nothing in this design needed the first rung of it.
   and contrast are adjustable through the platform instead.
 - **No `px`** in type size, line-height, spacing, or the measure (§9). Hairline
   borders excepted.
+- **No i18n layer, no string table, and no language control** ([#24](https://github.com/SaKaNa-Y/Zis/issues/24)).
+  Zis ships in **English only** — chrome, summaries, and Interests. Not a
+  deferral: a language toggle serves a population, and Zis has one reader with one
+  answer. A Chinese interface could not reach the parts a reader actually reads
+  anyway — titles, Publisher names, and the verbatim why-text are all outside any
+  i18n layer's reach (`ranking-model.md` §6) — so it would translate five nav
+  labels and an empty state around English content. And a *summary*-language
+  control fails ADR-0009 outright: different text is different information.

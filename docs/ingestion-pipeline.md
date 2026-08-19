@@ -133,6 +133,18 @@ required stage the ordering omitted.
 calls a day and ~1,400, and it is what makes #3's $0.40–0.63/month estimate true
 rather than aspirational.
 
+**The summary is written in English, regardless of the Item's language**
+([#24](https://github.com/SaKaNa-Y/Zis/issues/24)) — a fixed property of the
+prompt, not a reader preference. DeepSeek is strong at Chinese, so this is a
+refusal rather than a limitation, on three grounds. A Brief is **sealed** (#14), so
+summary language is baked at cut time and can never be changed for a past Brief;
+switching later would leave Earlier bilingual by accident of which day each Brief
+was cut. A translated summary whose title links out to an English origin
+(`ui-and-ia.md` §3) is a **translation layer the product never announced**, which
+cuts against #14's honesty principle in the one place it is load-bearing. And
+making it a preference fails ADR-0009's admissibility test directly: different
+summary text is different information.
+
 **No window is needed to decide what "today's Brief" contains.** ADR-0007 gives
 each Signal at most one Brief ever, and `ranking-model.md`'s 7-day cutoff handles
 staleness, so the cut considers *every un-briefed Signal that clears Admission* —

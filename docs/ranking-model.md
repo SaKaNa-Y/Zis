@@ -201,6 +201,33 @@ and only its `interest_id` is stored: ADR-0003's feedback loop works by making a
 vague Interest *visible* as the stated reason on Signals that should not have
 surfaced, and listing three matches lets the vague one hide in the crowd.
 
+### Interests are written in English
+
+A consequence of the two rules above, recorded here because it is not obvious and
+because nothing enforces it in code
+([#24](https://github.com/SaKaNa-Y/Zis/issues/24)).
+
+The matched Interest is rendered **verbatim from a stored column**, so the
+why-text's language is whichever language the reader wrote that Interest in.
+There is no translation step available: adding one would put a nondeterministic
+LLM call on the relevance path, which a sealed Brief's reproducibility
+requirement already refuses (#14).
+
+More decisively, embeddings are `bge-small-en-v1.5`, which is **English-only**
+(#3). A Chinese-language Interest therefore embeds to a meaningless vector, never
+wins the `MAX` cosine in §1, and **silently stops being part of the relevance
+mechanism** — with no error, no empty state, and nothing on the Interests page to
+say so. Since `CONTEXT.md` makes the Interest Profile the *only* relevance
+mechanism, a silently inert Interest is a hole in the whole product.
+
+So: **Interests are English.** Not enforced — script detection is a heuristic and
+would be wrong on a mixed statement like `Rust 的 async 运行时` — but surfaced, as
+a per-Interest note on the Interests route (`ui-and-ia.md` §7).
+
+One thing this constraint does **not** reach: whether a Chinese-language *Item*
+can match an English Interest. That is the map's **Multilingual relevance**
+question, it has its own trigger, and it is not this rule.
+
 ## 7. Cut time
 
 One Brief per reader per local day, cut at a fixed hour in a stored
