@@ -75,7 +75,7 @@ const dispatcher = new Agent({
   weakens it.
 - **The resolver is injected, not imported.** `safeFetch` takes a resolver as a
   dependency rather than calling `dns.lookup` directly — this is what makes the
-  rebinding test (§5, test 2) possible to write at all.
+  rebinding test (§7, test 2) possible to write at all.
 
 ### 1.3 Redirects
 
@@ -134,7 +134,7 @@ is #8's choice, since #8 decides feed parsing anyway. Whatever it picks must:
 - **Disable entity expansion**, guarding against billion-laughs.
 - **Enforce a hard byte cap before parsing**, not after.
 - Have these properties **verified against the library's current primary docs, not
-  assumed**, and locked by the tests in §5.
+  assumed**, and locked by the tests in §7.
 
 The #6 prototype hand-rolled regex parsing with zero dependencies. That is not a
 production candidate, but it does mean nothing is currently locked in.
@@ -212,7 +212,65 @@ the invariant that makes the whole boundary structural.
 
 ---
 
-## 6. Required tests
+## 6. The passphrase: a generated secret, and no in-app recovery
+
+Settled by
+[#18](https://github.com/SaKaNa-Y/Zis/issues/18). This section refines #4's
+"Argon2id passphrase" and is the whole of Zis's credential-recovery story.
+
+**Zis has no in-app credential recovery, deliberately.** There is no reset route,
+no recovery-code table, no break-glass environment variable, and no second route
+that can mint a session. §5's rule is the reason: an exemption from the auth
+boundary is the shape a bypass takes, and a mechanism that can grant a session
+without the passphrase is live on every request forever, while the loss it
+insures against costs one `UPDATE` to undo.
+
+### 6.1 The credential is generated, never chosen
+
+The passphrase is a **high-entropy random secret held in a password manager**,
+not a memorable phrase. This is what makes having no recovery flow respectable
+rather than lazy: "lost passphrase" stops being a Zis failure mode and becomes a
+password-manager failure mode, with the same blast radius as losing
+`DATABASE_URL`.
+
+**The human generates it; the seed migration only ever sees the Argon2id hash.**
+Generate in the password manager, hash locally, paste the hash into the
+migration. The plaintext never leaves the machine and never enters git.
+
+**The migration must never generate or print the plaintext.** The repo is public
+(ADR-0010) and migrations are manual (`docs/repo-and-ci.md`), so a printing
+migration puts the credential one shell history — or one accidental Actions run —
+away from a public build log.
+
+**The committed hash is not a leaked credential**, and it looks like one to the
+next reader. Argon2id at a real cost factor is what makes committing it safe.
+
+### 6.2 Recovery is a `UPDATE`, and it bumps `session_version`
+
+Recovery is the deploy path, not an app path: connect to Neon with credentials
+already held and replace the hash.
+
+**The same statement must bump `session_version`.** This is required, not
+optional. A re-seed cannot distinguish "I forgot the passphrase" from "someone
+else has it", so every live session dies.
+
+**Recovery leaves no application-side record, by construction.** It is a SQL
+statement, not an app event — Sentry and `source_fetch_log` never see it, and
+there is nothing to build. Neon's own query history is the only trace.
+
+### 6.3 The standing requirement on the operator
+
+**Neon access is the recovery path, so it must not share a failure domain with
+the Zis passphrase.** If Neon sign-in and the passphrase ever end up in the same
+vault, the recovery path is gone and nothing in the app will say so. Recovery
+codes would not fix this — stored in that same vault they die with it, which is
+insurance sharing a failure domain with what it insures. The cheap offline backup
+is to **print the passphrase**: same survival property, zero app code, no new
+route. That is a password-manager habit, not a Zis feature.
+
+---
+
+## 7. Required tests
 
 The URL validator's test suite is the most important code in the project after
 clustering. In priority order:
