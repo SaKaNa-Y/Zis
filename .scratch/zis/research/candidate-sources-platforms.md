@@ -7,18 +7,73 @@ another source on the same day.
 
 Builds on [Ticket 01](../issues/01-verify-source-api-limits.md):
 
-- YouTube channel RSS costs **zero Data API quota** and needs **no key**; the
-  Data API path is not merely expensive but impossible at a 15-min cadence.
+- ~~YouTube channel RSS costs **zero Data API quota** and needs **no key**; the
+  Data API path is not merely expensive but impossible at a 15-min cadence.~~
+  **Superseded — see the caution in §1. Zero quota is not permission (the feed path
+  is `Disallow`ed), and "impossible" was the wrong endpoint (`playlistItems.list` is
+  1 unit of a separate 10,000/day pool). YouTube is OUT of Phase 0 regardless,
+  because a channel does not vote.**
 - GitHub **GraphQL batches ~100 repos into ~1 point** of 5,000/hr, and
-  authenticated **304s cost nothing**.
+  authenticated **304s cost nothing**. **Note from
+  [#8](https://github.com/SaKaNa-Y/Zis/issues/8): releases return 403 entirely
+  without auth, so the PAT is required, not an optimization.**
 - Bluesky `public.api.bsky.app` needs **no auth at all** — verification below was
   done by direct unauthenticated fetch.
 
-Verification date: **2026-08-15**.
+Verification date: **2026-08-15**. **YouTube section re-probed and overturned
+2026-08-17 (#11); the cadence assumed throughout this document is also superseded —
+polling is hourly, not 15-minute (#8).**
 
 ---
 
 ## 1. YouTube
+
+> [!CAUTION]
+> **This entire section is superseded. YouTube is OUT of Phase 0 — do not seed any
+> of these channels.** Ruled by
+> [#11](https://github.com/SaKaNa-Y/Zis/issues/11) on two independent grounds:
+>
+> 1. **`https://www.youtube.com/robots.txt` contains `Disallow: /feeds/videos.xml`**
+>    under `User-agent: *`, served as `text/plain`, present on the apex too. It was
+>    **absent in the 2020 and 2023 Wayback snapshots and present by 2025**. The
+>    verification below fetched all 25 feeds and **never fetched `robots.txt`** — a
+>    perfect fetch of a disallowed path. The method lesson is now a project rule:
+>    **check `robots.txt` before liveness, never after**, because a liveness probe
+>    cannot fail in a way that reveals a robots problem.
+> 2. **A channel does not vote.** Strength is `COUNT(DISTINCT publisher_id)` with the
+>    self-citation guard, so a Source earns its place by citing *other* Publishers.
+>    The claim below that vendor channels are "the highest-value additions for
+>    co-citation specifically" is **backwards**: a vendor's channel, blog and GitHub
+>    release are **one Publisher wearing three hats**, so they add Sources without
+>    adding reachable Strength. Measured on the one feed body obtained (OpenAI, 15
+>    entries): every external URL in the descriptions is `openai.com` or
+>    `chatgpt.com` — **zero third-party citations**, i.e. Strength-1 only, which is
+>    [#16](https://github.com/SaKaNa-Y/Zis/issues/16)'s Bilibili arithmetic again.
+>    Creator channels fail differently: a video is more often **cited than citing**,
+>    and that citability is **already free** — the `watch?v=` URL arrives as a `Link`
+>    from whoever cites it (777,377 `youtube.com` story URLs in HN's history, per
+>    [#2](https://github.com/SaKaNa-Y/Zis/issues/2)) with no channel ingested.
+>
+> Two further findings, recorded so they are not re-derived:
+>
+> - **The Data API rescue is real and was refused anyway.** #2's "impossible at this
+>   cadence" is an artifact of the wrong endpoint: `search.list` has its own 100/day
+>   bucket, but **`playlistItems.list` costs 1 unit against a separate 10,000/day
+>   pool** and uploads live in a derivable `UC…` → `UU…` playlist — 25 channels
+>   hourly is **600 of 10,000**, and it is a sanctioned API host rather than a
+>   disallowed path. Refused on ground 2, not on cost.
+> - **The feed is unreliable from a datacenter IP regardless.** Re-probing all 25:
+>   **24 returned 404 or 500**, inconsistently across runs (Matt Pocock 200 → 404,
+>   OpenAI 200 → 500, Anthropic 404 → 200) while the channel IDs still re-resolve
+>   correctly from their handles. Since
+>   [#8](https://github.com/SaKaNa-Y/Zis/issues/8) put the pipeline in the GitHub
+>   Actions runner, that is the egress Zis actually has.
+>
+> **What survives:** the `youtube.com` path-shape allowlist entry
+> (`/watch → ['v']`, `/playlist → ['list']`) and the `youtu.be` alias rule, because
+> YouTube URLs keep arriving as **outbound Citations from other Publishers**.
+> Excluding a Source never excludes its URLs. The channel IDs below are also still
+> correct, should a later Phase revisit this via the API.
 
 Feed URL is always `https://www.youtube.com/feeds/videos.xml?channel_id=<ID>`.
 Every row below was verified by fetching that URL and confirming a 200 with Atom
