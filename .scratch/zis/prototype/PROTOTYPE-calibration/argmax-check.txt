@@ -1,0 +1,308 @@
+eligible (Strength >= 2): 27
+
+url | variant | REL+ | argmax Interest
+
+https://youtube.com/watch?v=87DyyMV0kCY   (S=4)
+  titlesOnly   0.661  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Now we have a timeline of the OpenAI accidental attack against Hugging Face. Lessons from the hacks. You may h
+  anchorsOnly  0.561  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: The video. 10:14. the next bit in full. talk. YouTube video
+  bestAnchor   0.590  #9 Open-weight and locally-runnable models — embeddings, quantizati
+               text: the next bit in full
+  merged       0.680  #16 Frontier model releases from the major AI labs — new models, wha
+               text: the next bit in full. YouTube video. The video. 10:14. talk. Now we have a timeline of the OpenAI accidental a
+  own          —
+
+https://z.ai/blog/glm-5.3   (S=3)
+  titlesOnly   0.750  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Alibaba’s new model promises Opus 4.6-level performance on your laptop. GLM-5.3 didn’t change the base model —
+  anchorsOnly  0.608  #5 Postgres — query planning, extensions, operational behaviour, an
+               text: GLM-5.3. self-reported vendor numbers. announced
+  bestAnchor   0.597  #5 Postgres — query planning, extensions, operational behaviour, an
+               text: self-reported vendor numbers
+  merged       0.702  #16 Frontier model releases from the major AI labs — new models, wha
+               text: self-reported vendor numbers. announced. GLM-5.3. Alibaba’s new model promises Opus 4.6-level performance on y
+  own          —
+
+https://anthropic.com/research/riemann-zeta   (S=3)
+  titlesOnly   0.765  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Zuckerberg's manifesto 🤖, Elon's $1T shortcut 💰, local models won't win 👨‍💻. Shipping less JavaScript with
+  anchorsOnly  0.669  #9 Open-weight and locally-runnable models — embeddings, quantizati
+               text: Learning more about Claude's mathematical capabilities (7 minute read). trying to solve the Riemann hypothesis
+  bestAnchor   0.643  #17 AI research published by the frontier labs — interpretability, a
+               text: Learning more about Claude's mathematical capabilities (7 minute read)
+  merged       0.759  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Learning more about Claude's mathematical capabilities (7 minute read). trying to solve the Riemann hypothesis
+  own          —
+
+https://simonwillison.net/2026/Aug/7/openai-timeline   (S=3)
+  titlesOnly   0.678  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Now we have a timeline of the OpenAI accidental attack against Hugging Face. Apple Watch redesign ⌚, OpenAI ha
+  anchorsOnly  0.655  #17 AI research published by the frontier labs — interpretability, a
+               text: My comment. Now we have a timeline of the OpenAI accidental attack against Hugging Face. Now we have a timelin
+  bestAnchor   0.665  #17 AI research published by the frontier labs — interpretability, a
+               text: Now we have a timeline of the OpenAI accidental attack against Hugging Face (6 minute read)
+  merged       0.625  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Now we have a timeline of the OpenAI accidental attack against Hugging Face (6 minute read). Now we have a tim
+  own          0.625  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute pres
+
+https://anthropic.com/news/fable-mythos-access   (S=3)
+  titlesOnly   0.704  #17 AI research published by the frontier labs — interpretability, a
+               text: Quoting Claude Opus 5 system prompt. Dangerous Technology For Americans Only. Welcome to the AGI era of AI gov
+  anchorsOnly  0.579  #13 RSS, feeds, and the open web — readers, aggregators, and indepen
+               text: https://www.anthropic.com/news/fable-mythos-access. suspend access to Fable and Mythos. force them to suspend 
+  bestAnchor   0.583  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: https://www.anthropic.com/news/fable-mythos-access
+  merged       0.618  #16 Frontier model releases from the major AI labs — new models, wha
+               text: https://www.anthropic.com/news/fable-mythos-access. suspend access to Fable and Mythos. force them to suspend 
+  own          —
+
+https://huggingface.co/Qwen/Qwen3.8-27B-FP8   (S=2)
+  titlesOnly   0.614  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Alibaba’s new model promises Opus 4.6-level performance on your laptop. Qwen 3.8 27B
+  anchorsOnly  0.524  #9 Open-weight and locally-runnable models — embeddings, quantizati
+               text: tends to overthink
+  bestAnchor   0.524  #9 Open-weight and locally-runnable models — embeddings, quantizati
+               text: tends to overthink
+  merged       0.622  #16 Frontier model releases from the major AI labs — new models, wha
+               text: tends to overthink. Alibaba’s new model promises Opus 4.6-level performance on your laptop. Qwen 3.8 27B
+  own          —
+
+https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash   (S=2)
+  titlesOnly   0.614  #7 Practical LLM application engineering — prompting, tool use, str
+               text: llm-gemini 0.33. Gemini 3.7 Flash
+  anchorsOnly  0.552  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: Gemini 3.7 Flash
+  bestAnchor   0.552  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: Gemini 3.7 Flash
+  merged       0.584  #7 Practical LLM application engineering — prompting, tool use, str
+               text: Gemini 3.7 Flash. llm-gemini 0.33. Gemini 3.7 Flash
+  own          —
+
+https://deepseek.com/harness/en   (S=2)
+  titlesOnly   0.699  #16 Frontier model releases from the major AI labs — new models, wha
+               text: OpenAI Ultrafast ⚡, X open sources algo 📱, DeepSeek Harness 🐋. DeepSeek Harness developer preview
+  anchorsOnly  0.630  #10 Web platform features landing in browsers — CSS, HTML elements, 
+               text: DeepSeek Harness (Website)
+  bestAnchor   0.630  #10 Web platform features landing in browsers — CSS, HTML elements, 
+               text: DeepSeek Harness (Website)
+  merged       0.632  #16 Frontier model releases from the major AI labs — new models, wha
+               text: DeepSeek Harness (Website). OpenAI Ultrafast ⚡, X open sources algo 📱, DeepSeek Harness 🐋. DeepSeek Harness 
+  own          —
+
+https://x.com/SpaceXAI/status/2087562800982077492   (S=2)
+  titlesOnly   0.677  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models set that price.. [AINews] SpaceXAI Grok 4
+  anchorsOnly  0.602  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: announced Grok 4.6. Grok 4.6
+  bestAnchor   0.599  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: announced Grok 4.6
+  merged       0.670  #16 Frontier model releases from the major AI labs — new models, wha
+               text: announced Grok 4.6. Grok 4.6. Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models set that pr
+  own          —
+
+https://x.com/kunchenguid/status/2087567139318477117   (S=2)
+  titlesOnly   0.677  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models set that price.. [AINews] SpaceXAI Grok 4
+  anchorsOnly  0.552  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and buildin
+               text: spent a day taking it apart. positive
+  bestAnchor   0.534  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and buildin
+               text: spent a day taking it apart
+  merged       0.638  #16 Frontier model releases from the major AI labs — new models, wha
+               text: spent a day taking it apart. positive. Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models se
+  own          —
+
+https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html   (S=2)
+  titlesOnly   0.621  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: Quoting Florian Herrengt. Grok 4.6 🤖, Pixel 11 📱, AI shows cracks 📉
+  anchorsOnly  0.711  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: Florian Herrengt. AI is removing the middle class of software engineering (5 minute read)
+  bestAnchor   0.729  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: AI is removing the middle class of software engineering (5 minute read)
+  merged       0.719  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: AI is removing the middle class of software engineering (5 minute read). Florian Herrengt. Quoting Florian Her
+  own          —
+
+https://x.com/bot/status/2087224798078517251   (S=2)
+  titlesOnly   0.655  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models set that price.. [AINews] How to steal a 
+  anchorsOnly  0.628  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: Grok Bot
+  bestAnchor   0.628  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: Grok Bot
+  merged       0.681  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Grok Bot. Grok 4.6 matched Fable 5 Max at an 85% discount. Downloadable models set that price.. [AINews] How t
+  own          —
+
+https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content   (S=2)
+  titlesOnly   0.683  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: Anthropic’s watermark survives copy-paste, but not the real dev workflow. [AINews] SpaceXAI Grok 4.6 and Grok 
+  anchorsOnly  0.613  #4 TypeScript language releases and type-level techniques
+               text: support document. support article
+  bestAnchor   0.619  #4 TypeScript language releases and type-level techniques
+               text: support document
+  merged       0.655  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: support document. support article. Anthropic’s watermark survives copy-paste, but not the real dev workflow. [
+  own          —
+
+https://blog.cloudflare.com/kitesurf   (S=2)
+  titlesOnly   0.720  #18 AI provider platform and API changes — tool use, MCP, context ha
+               text: OpenAI device details 🤖, AI synthetic virus 🦠, agent plugins 👨‍💻. Shipping less JavaScript with Baseline
+  anchorsOnly  0.737  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16 minute read).
+  bestAnchor   0.766  #10 Web platform features landing in browsers — CSS, HTML elements, 
+               text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16 minute read)
+  merged       0.708  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16 minute read).
+  own          0.704  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build 
+
+https://blog.modelcontextprotocol.io/posts/2026-07-28   (S=2)
+  titlesOnly   0.727  #11 Rust for tooling and systems work — the language, the ecosystem,
+               text: Shipping less JavaScript with Baseline. The next generation of MCP
+  anchorsOnly  0.579  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: the 2026-07-28 spec. 2026-07-28 specification
+  bestAnchor   0.579  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and buildin
+               text: 2026-07-28 specification
+  merged       0.630  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: 2026-07-28 specification. the 2026-07-28 spec. Shipping less JavaScript with Baseline. The next generation of 
+  own          —
+
+https://seangoedecke.com/llms-reward-expertise   (S=2)
+  titlesOnly   0.696  #16 Frontier model releases from the major AI labs — new models, wha
+               text: SpaceX buys land 🗺️, AI vertical integration 🤖, Cloudflare Computer 👨‍💻. Reimplementing htmx from scratch
+  anchorsOnly  0.727  #7 Practical LLM application engineering — prompting, tool use, str
+               text: LLMs reward expertise (5 minute read). LLMs reward expertise
+  bestAnchor   0.754  #7 Practical LLM application engineering — prompting, tool use, str
+               text: LLMs reward expertise (5 minute read)
+  merged       0.720  #16 Frontier model releases from the major AI labs — new models, wha
+               text: LLMs reward expertise (5 minute read). LLMs reward expertise. SpaceX buys land 🗺️, AI vertical integration 🤖
+  own          —
+
+https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731   (S=2)
+  titlesOnly   0.789  #16 Frontier model releases from the major AI labs — new models, wha
+               text: DeepSeek V4 Pro 0813 (on OpenRouter). Latest open artifacts (#23): Laguna S2.1, Inkling, & Kimi K3 show the ut
+  anchorsOnly  0.646  #16 Frontier model releases from the major AI labs — new models, wha
+               text: deepseek-ai/DeepSeek-V4-Flash-0731. DeepSeek-V4-Flash-0731
+  bestAnchor   0.671  #16 Frontier model releases from the major AI labs — new models, wha
+               text: deepseek-ai/DeepSeek-V4-Flash-0731
+  merged       0.731  #16 Frontier model releases from the major AI labs — new models, wha
+               text: deepseek-ai/DeepSeek-V4-Flash-0731. DeepSeek-V4-Flash-0731. DeepSeek V4 Pro 0813 (on OpenRouter). Latest open 
+  own          —
+
+https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview   (S=2)
+  titlesOnly   0.762  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Tesla SpaceX merger 🚗, OpenAI price cuts 📉, Stripe's AI knowledge platform 👨‍💻. Reimplementing htmx from s
+  anchorsOnly  0.633  #13 RSS, feeds, and the open web — readers, aggregators, and indepen
+               text: Stacked pull requests are now in public preview (3 minute read). Stacked pull requests are now in public previ
+  bestAnchor   0.670  #13 RSS, feeds, and the open web — readers, aggregators, and indepen
+               text: Stacked pull requests are now in public preview (3 minute read)
+  merged       0.722  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Stacked pull requests are now in public preview (3 minute read). Stacked pull requests are now in public previ
+  own          —
+
+https://codepen.io/2/whats-new   (S=2)
+  titlesOnly   0.629  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: MDN Traffic Browser. CodePen 2.0
+  anchorsOnly  0.652  #15 Software design writing — module boundaries, API design, and how
+               text: CodePen 2.0. What’s New?
+  bestAnchor   0.708  #15 Software design writing — module boundaries, API design, and how
+               text: CodePen 2.0
+  merged       0.653  #1 Next.js App Router internals — routing, caching, Server Actions,
+               text: CodePen 2.0. What’s New?. MDN Traffic Browser. CodePen 2.0
+  own          —
+
+https://youtube.com/watch?v=Xs-U7SY2uNE   (S=2)
+  titlesOnly   0.700  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Shipping less JavaScript with Baseline. Stop reviewing thousand-line agent diffs line by line. Review the syst
+  anchorsOnly  0.609  #7 Practical LLM application engineering — prompting, tool use, str
+               text: Stop Reviewing Diffs. Start Reviewing Systems
+  bestAnchor   0.609  #7 Practical LLM application engineering — prompting, tool use, str
+               text: Stop Reviewing Diffs. Start Reviewing Systems
+  merged       0.672  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Stop Reviewing Diffs. Start Reviewing Systems. Shipping less JavaScript with Baseline. Stop reviewing thousand
+  own          —
+
+https://huggingface.co/blog/agent-intrusion-technical-timeline   (S=2)
+  titlesOnly   0.734  #17 AI research published by the frontier labs — interpretability, a
+               text: Hugging Face just published a highly detailed technical account of OpenAI's accidental cyberattack on their sy
+  anchorsOnly  0.604  #12 Web application security — SSRF, authentication design, session 
+               text: Huggingface released a full detailed retrospective of their completely-agent-driven security incident
+  bestAnchor   0.604  #12 Web application security — SSRF, authentication design, session 
+               text: Huggingface released a full detailed retrospective of their completely-agent-driven security incident
+  merged       0.707  #17 AI research published by the frontier labs — interpretability, a
+               text: Huggingface released a full detailed retrospective of their completely-agent-driven security incident. Hugging
+  own          0.774  #17 AI research published by the frontier labs — interpretability, a
+               text: Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.
+
+https://noahpinion.blog/p/what-will-more-intelligence-actually   (S=2)
+  titlesOnly   0.705  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Nvidia's $250B OpenAI deal 💰, Meta Seller 🤝, Google Maps travel time API 👨‍💻. We already have superintelli
+  anchorsOnly  0.597  #17 AI research published by the frontier labs — interpretability, a
+               text: What will more intelligence actually do for us? (20 minute read)
+  bestAnchor   0.597  #17 AI research published by the frontier labs — interpretability, a
+               text: What will more intelligence actually do for us? (20 minute read)
+  merged       0.687  #16 Frontier model releases from the major AI labs — new models, wha
+               text: What will more intelligence actually do for us? (20 minute read). Nvidia's $250B OpenAI deal 💰, Meta Seller �
+  own          —
+
+https://simonwillison.net/2026/Jul/21/cat-and-thariq   (S=2)
+  titlesOnly   0.651  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Nvidia's new CPU ⚡, Jack Dorsey's Slack rival 💬, software factories 👨‍💻
+  anchorsOnly  0.600  #8 Coding agents and agentic developer tooling — how they are built
+               text: A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read)
+  bestAnchor   0.600  #8 Coding agents and agentic developer tooling — how they are built
+               text: A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read)
+  merged       0.650  #16 Frontier model releases from the major AI labs — new models, wha
+               text: A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read). Nvidia's new CPU ⚡, Jack Dorse
+  own          —
+
+https://x.com/Alibaba_Qwen/status/2078759124914098291   (S=2)
+  titlesOnly   0.790  #17 AI research published by the frontier labs — interpretability, a
+               text: Meta Anthropic deal 🤝, SpaceX Pentagon compute ⚡, AI code migrations 👨‍💻. Kimi K3: The open-weights escalat
+  anchorsOnly  0.644  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Qwen3.8 has launched (1 minute read). announced
+  bestAnchor   0.632  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Qwen3.8 has launched (1 minute read)
+  merged       0.732  #16 Frontier model releases from the major AI labs — new models, wha
+               text: Qwen3.8 has launched (1 minute read). announced. Meta Anthropic deal 🤝, SpaceX Pentagon compute ⚡, AI code mi
+  own          —
+
+https://bun.com/blog/bun-in-rust   (S=2)
+  titlesOnly   0.801  #11 Rust for tooling and systems work — the language, the ecosystem,
+               text: Anders Hejlsberg demos TypeScript 7's 10x speedup. The Pulse: What can we learn from Bun’s rapid Rust rewrite 
+  anchorsOnly  0.632  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: Bun's recent rewrite. post about the project.
+  bestAnchor   0.594  #14 Developer tooling and build systems — Vite, bundlers, package ma
+               text: post about the project.
+  merged       0.750  #4 TypeScript language releases and type-level techniques
+               text: post about the project.. Bun's recent rewrite. Anders Hejlsberg demos TypeScript 7's 10x speedup. The Pulse: W
+  own          0.737  #11 Rust for tooling and systems work — the language, the ecosystem,
+               text: Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust
+
+https://anthropic.com/news/claude-fable-5-mythos-5   (S=2)
+  titlesOnly   0.796  #17 AI research published by the frontier labs — interpretability, a
+               text: Gaslighting Openness. Claude Fable 5 and new AI safety fables
+  anchorsOnly  0.580  #2 Vue 3 Composition API and the Vue ecosystem — script setup, reac
+               text: Mythos and Fable. released
+  bestAnchor   0.555  #6 Drizzle and other TypeScript ORMs — schema definition, migration
+               text: Mythos and Fable
+  merged       0.705  #17 AI research published by the frontier labs — interpretability, a
+               text: Mythos and Fable. released. Gaslighting Openness. Claude Fable 5 and new AI safety fables
+  own          —
+
+https://youtube.com/watch?v=uT7MVcCQ4rw   (S=2)
+  titlesOnly   0.636  #10 Web platform features landing in browsers — CSS, HTML elements, 
+               text: What’s new in Web UI (Google I/O 2026). What's new in Web UI: 2026 Edition ✨ @bram.us and I go over 35+ new CS
+  anchorsOnly  —
+  bestAnchor   —
+  merged       0.636  #10 Web platform features landing in browsers — CSS, HTML elements, 
+               text: What’s new in Web UI (Google I/O 2026). What's new in Web UI: 2026 Edition ✨ @bram.us and I go over 35+ new CS
+  own          —
+
+argmax agreement between citing-rung definitions, over the eligible set:
+  titlesOnly vs anchorsOnly: 2/26 agree (8%)
+  anchorsOnly vs bestAnchor: 19/26 agree (73%)
+  titlesOnly vs merged: 22/27 agree (81%)
+  anchorsOnly vs merged: 4/26 agree (15%)

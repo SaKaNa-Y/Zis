@@ -1,0 +1,353 @@
+=== ingest (cached — 958 responses on disk, no network for the corpus) ===
+  simonwillison        rss               30 items
+    bsky simonwillison: dropped 6 reposts (reason field)
+  simonwillison        bluesky-author    41 items
+  tldr                 rss               20 items
+  jsweekly             rss                4 items
+  reactstatus          rss                4 items
+  frontendfocus        rss                4 items
+  twir                 rss                4 items
+  jimnielsen           rss               10 items
+  pycoders             rss                3 items
+  react                rss               23 items
+  ! gh releases facebook/react -> 403
+  react                github-releases    0 items
+  nextjs               rss               40 items
+  ! gh releases vercel/next.js -> 403
+  nextjs               github-releases    0 items
+  typescript           rss               10 items
+  ! gh releases microsoft/TypeScript -> 403
+  typescript           github-releases    0 items
+  nodejs               rss               40 items
+  ! gh releases nodejs/node -> 403
+  nodejs               github-releases    0 items
+  rust                 rss               10 items
+  ! gh releases rust-lang/rust -> 403
+  rust                 github-releases    0 items
+  go                   rss               10 items
+  cloudflare           rss               20 items
+  github               rss               10 items
+  github               rss               10 items
+  openai               rss               40 items
+  deepmind             rss               40 items
+  webkit               rss               10 items
+  chromedev            rss               10 items
+  svelte               rss               40 items
+  ! gh releases sveltejs/svelte -> 403
+  svelte               github-releases    0 items
+  astro                rss               40 items
+  ! gh releases withastro/astro -> 403
+  astro                github-releases    0 items
+  deno                 rss               40 items
+  ! gh releases denoland/deno -> 403
+  deno                 github-releases    0 items
+  bun                  rss               40 items
+  ! gh releases oven-sh/bun -> 403
+  bun                  github-releases    0 items
+  arstechnica          rss               20 items
+  theregister          rss               40 items
+  lwn                  rss               15 items
+  infoq                rss               15 items
+  ! 404media https://www.404media.co/rss/ -> 0 fetch failed
+  404media             rss                0 items
+  thenewstack          rss               26 items
+  bramus               rss               10 items
+  rachelandrew         rss               10 items
+    bsky rachelandrew: dropped 24 reposts (reason field)
+  rachelandrew         bluesky-author     9 items
+  armin                rss               10 items
+  interconnects        rss               20 items
+  latentspace          rss               20 items
+  pragmaticengineer    rss               15 items
+  chriscoyier          rss               12 items
+    bsky chriscoyier: dropped 16 reposts (reason field)
+  chriscoyier          bluesky-author    19 items
+    bsky adactio: dropped 1 reposts (reason field)
+  adactio              bluesky-author    59 items
+    bsky kentcdodds: dropped 2 reposts (reason field)
+  kentcdodds           bluesky-author    56 items
+    bsky juliaevans: dropped 23 reposts (reason field)
+  juliaevans           bluesky-author    30 items
+  juliaevans           rss               20 items
+    bsky glyph: dropped 22 reposts (reason field)
+  glyph                bluesky-author    26 items
+    bsky emollick: dropped 1 reposts (reason field)
+  emollick             bluesky-author    24 items
+    bsky una: dropped 20 reposts (reason field)
+  una                  bluesky-author    16 items
+    bsky cassidoo: dropped 17 reposts (reason field)
+  cassidoo             bluesky-author    30 items
+  hn                   hn               120 items
+  hn                   hn               120 items
+  aws                  rss               20 items
+  huggingface          rss               40 items
+  vercel               rss               40 items
+  issue-page hydration: 24 newsletter issues fetched
+total items: 1395
+items carrying extracted text (>40 chars): 751 of 1395
+injected now = 2026-08-16T07:56:13.000Z (newest Item in the corpus)
+
+=== corpus build (#6 config, unchanged) ===
+  links after pure cascade: 5338 (citations 6468)
+  shorteners: 6 found, 6 hops, 0 hit the 3-hop wall
+  github renames resolved: 0 links rewritten
+  rel=canonical: 0 via header, 20 via <link>, 7 cross-site rejected
+  HN discussion links resolved to their targets: 229
+  single-citation vehicle posts folded into their target: 170
+  release/announcement bridges (reversed rule): 15
+  signals: 4986  (strength>=2: 27, >=3: 5)
+
+=== Interest Profile ===
+  18 positive, 3 negative
+  embedding Interests (both prefix stances)
+  loading Xenova/bge-small-en-v1.5 (384-dim, local, no provider call)
+  pos↔pos    n=  153  min 0.511  p10 0.603  p25 0.627  MED 0.659  p75 0.702  p90 0.758  p95 0.778  p99 0.797  max 0.897
+
+=== text_basis over the whole corpus (final state) ===
+  own       849 signals (17.0%)  text chars: med 902 p90 1200 max 1200
+  citing   3935 signals (78.9%)  text chars: med 19 p90 75 max 202
+  slug      202 signals (4.1%)  text chars: med 47 p90 55 max 113
+  of 3935 citing-rung Signals, 3517 (89.4%) have anchor text from at least one citing Publisher
+
+=== embedding the corpus (local, ~5k texts × 2 citing variants) ===
+    signals: 32/4986
+    signals: 352/4986
+    signals: 672/4986
+    signals: 992/4986
+    signals: 1312/4986
+    signals: 1632/4986
+    signals: 1952/4986
+    signals: 2272/4986
+    signals: 2592/4986
+    signals: 2912/4986
+    signals: 3232/4986
+    signals: 3552/4986
+    signals: 3872/4986
+    signals: 4192/4986
+    signals: 4512/4986
+    signals: 4832/4986
+    titles-only: 32/4986
+    titles-only: 352/4986
+    titles-only: 672/4986
+    titles-only: 992/4986
+    titles-only: 1312/4986
+    titles-only: 1632/4986
+    titles-only: 1952/4986
+    titles-only: 2272/4986
+    titles-only: 2592/4986
+    titles-only: 2912/4986
+    titles-only: 3232/4986
+    titles-only: 3552/4986
+    titles-only: 3872/4986
+    titles-only: 4192/4986
+    titles-only: 4512/4986
+    titles-only: 4832/4986
+
+=== OUTPUT 1 — REL+ distribution per text_basis rung ===
+  (a) the whole corpus — this is the rung-scale question, not the bar question
+  own        n=  849  min 0.472  p10 0.568  p25 0.612  MED 0.656  p75 0.706  p90 0.738  p95 0.762  p99 0.794  max 0.855
+  citing     n= 3935  min 0.367  p10 0.534  p25 0.572  MED 0.617  p75 0.669  p90 0.726  p95 0.754  p99 0.809  max 0.898
+  slug       n=  202  min 0.525  p10 0.575  p25 0.589  MED 0.604  p75 0.621  p90 0.647  p95 0.674  p99 0.721  max 0.732
+  with BGE query prefix on the Interest side:
+  own        n=  849  min 0.471  p10 0.567  p25 0.611  MED 0.652  p75 0.682  p90 0.725  p95 0.755  p99 0.811  max 0.852
+  citing     n= 3935  min 0.351  p10 0.507  p25 0.544  MED 0.586  p75 0.634  p90 0.677  p95 0.706  p99 0.762  max 0.836
+  slug       n=  202  min 0.494  p10 0.546  p25 0.558  MED 0.574  p75 0.586  p90 0.622  p95 0.653  p99 0.698  max 0.724
+
+  (b) the ELIGIBLE population (Strength >= 2) — n=27, the set the bar actually acts on
+  own        n=    4  min 0.625  p10 0.625  p25 0.704  MED 0.737  p75 0.737  p90 0.774  p95 0.774  p99 0.774  max 0.774
+  citing     n=   23  min 0.524  p10 0.552  p25 0.590  MED 0.609  p75 0.663  p90 0.708  p95 0.729  p99 0.754  max 0.754
+  slug       n=    0  min   —    p10   —    p25   —    MED   —    p75   —    p90   —    p95   —    p99   —    max   —  
+
+  (c) citing rung: anchor text vs §4-as-written Item titles
+  anchors    n= 3935  min 0.367  p10 0.534  p25 0.572  MED 0.617  p75 0.669  p90 0.726  p95 0.754  p99 0.809  max 0.898
+  titles     n= 3935  min 0.367  p10 0.582  p25 0.604  MED 0.656  p75 0.713  p90 0.759  p95 0.789  p99 0.826  max 0.906
+  of 3517 anchored citing Signals, 2771 (78.8%) pick a DIFFERENT argmax Interest under the two texts
+  — the argmax IS the why-text (ADR-0003), so that percentage is the share of
+    explanations the two definitions of this rung disagree about.
+
+  every eligible Signal, sorted by REL+ — small enough to read, so read it:
+  REL+ 0.774  S=2  own     https://huggingface.co/blog/agent-intrusion-technical-timeline
+        matched: "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+        text: Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.
+  REL+ 0.754  S=2  citing  https://seangoedecke.com/llms-reward-expertise
+        matched: "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval"
+        text: LLMs reward expertise (5 minute read)
+        titles-only would have said 0.696 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.737  S=2  own     https://bun.com/blog/bun-in-rust
+        matched: "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling"
+        text: Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust
+  REL+ 0.729  S=2  citing  https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+        matched: "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+        text: AI is removing the middle class of software engineering (5 minute read)
+  REL+ 0.708  S=2  citing  https://codepen.io/2/whats-new
+        matched: "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
+        text: CodePen 2.0
+        titles-only would have said 0.629 / "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions"
+  REL+ 0.704  S=2  own     https://blog.cloudflare.com/kitesurf
+        matched: "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics"
+        text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internal
+  REL+ 0.671  S=2  citing  https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        matched: "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+        text: deepseek-ai/DeepSeek-V4-Flash-0731
+  REL+ 0.670  S=2  citing  https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview
+        matched: "RSS, feeds, and the open web — readers, aggregators, and independent publishing"
+        text: Stacked pull requests are now in public preview (3 minute read)
+        titles-only would have said 0.762 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.663  S=2  citing  https://youtube.com/watch?v=uT7MVcCQ4rw
+        matched: "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability"
+        text: What's new in Web UI: 2026 Edition ✨ @bram.us and I go over 35+ new CSS, HTML, and JS features to help you build beautiful web experiences Video just went live: www.youtube.com/watch?v=uT7M...
+  REL+ 0.643  S=3  citing  https://anthropic.com/research/riemann-zeta
+        matched: "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+        text: Learning more about Claude's mathematical capabilities (7 minute read)
+        titles-only would have said 0.765 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.632  S=2  citing  https://x.com/Alibaba_Qwen/status/2078759124914098291
+        matched: "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics"
+        text: Qwen3.8 has launched (1 minute read)
+        titles-only would have said 0.790 / "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+  REL+ 0.630  S=2  citing  https://deepseek.com/harness/en
+        matched: "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability"
+        text: DeepSeek Harness (Website)
+        titles-only would have said 0.699 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.628  S=2  citing  https://x.com/bot/status/2087224798078517251
+        matched: "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+        text: Grok Bot
+        titles-only would have said 0.655 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.625  S=3  own     https://simonwillison.net/2026/Aug/7/openai-timeline
+        matched: "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+        text: Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about "the Hugging Face Incident" (<a href
+  REL+ 0.619  S=2  citing  https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content
+        matched: "TypeScript language releases and type-level techniques"
+        text: support document
+        titles-only would have said 0.683 / "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse"
+  REL+ 0.609  S=2  citing  https://youtube.com/watch?v=Xs-U7SY2uNE
+        matched: "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval"
+        text: Stop Reviewing Diffs. Start Reviewing Systems
+        titles-only would have said 0.700 / "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics"
+  REL+ 0.600  S=2  citing  https://simonwillison.net/2026/Jul/21/cat-and-thariq
+        matched: "Coding agents and agentic developer tooling — how they are built and where they fail"
+        text: A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read)
+        titles-only would have said 0.651 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.599  S=2  citing  https://x.com/SpaceXAI/status/2087562800982077492
+        matched: "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions"
+        text: announced Grok 4.6
+        titles-only would have said 0.677 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.597  S=3  citing  https://z.ai/blog/glm-5.3
+        matched: "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon"
+        text: self-reported vendor numbers
+        titles-only would have said 0.750 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.597  S=2  citing  https://noahpinion.blog/p/what-will-more-intelligence-actually
+        matched: "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+        text: What will more intelligence actually do for us? (20 minute read)
+        titles-only would have said 0.705 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.590  S=4  citing  https://youtube.com/watch?v=87DyyMV0kCY
+        matched: "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop"
+        text: the next bit in full
+        titles-only would have said 0.661 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.583  S=3  citing  https://anthropic.com/news/fable-mythos-access
+        matched: "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics"
+        text: https://www.anthropic.com/news/fable-mythos-access
+        titles-only would have said 0.704 / "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+  REL+ 0.579  S=2  citing  https://blog.modelcontextprotocol.io/posts/2026-07-28
+        matched: "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library"
+        text: 2026-07-28 specification
+        titles-only would have said 0.727 / "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling"
+  REL+ 0.555  S=2  citing  https://anthropic.com/news/claude-fable-5-mythos-5
+        matched: "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics"
+        text: Mythos and Fable
+        titles-only would have said 0.796 / "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models"
+  REL+ 0.552  S=2  citing  https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+        matched: "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse"
+        text: Gemini 3.7 Flash
+        titles-only would have said 0.614 / "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval"
+  REL+ 0.534  S=2  citing  https://x.com/kunchenguid/status/2087567139318477117
+        matched: "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library"
+        text: spent a day taking it apart
+        titles-only would have said 0.677 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+  REL+ 0.524  S=2  citing  https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+        matched: "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop"
+        text: tends to overthink
+        titles-only would have said 0.614 / "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing"
+
+=== OUTPUT 2 — REL- distribution (negative suppression) ===
+  own        n=  849  min 0.403  p10 0.509  p25 0.536  MED 0.571  p75 0.607  p90 0.642  p95 0.666  p99 0.708  max 0.786
+  citing     n= 3935  min 0.373  p10 0.486  p25 0.519  MED 0.553  p75 0.594  p90 0.636  p95 0.660  p99 0.699  max 0.770
+  slug       n=  202  min 0.447  p10 0.542  p25 0.555  MED 0.577  p75 0.598  p90 0.618  p95 0.625  p99 0.631  max 0.669
+  eligible only: all        n=   27  min 0.460  p10 0.515  p25 0.549  MED 0.567  p75 0.591  p90 0.629  p95 0.637  p99 0.682  max 0.682
+
+  eligible Signals by REL-, top 12 — the population E4 would suppress:
+  REL- 0.682  REL+ 0.729  S=2  citing  https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+  REL- 0.637  REL+ 0.704  S=2  own     https://blog.cloudflare.com/kitesurf
+        nearest negative: "Cryptocurrency, blockchain, web3, and NFTs"
+  REL- 0.630  REL+ 0.609  S=2  citing  https://youtube.com/watch?v=Xs-U7SY2uNE
+        nearest negative: "Consumer gadget launches — phones, laptops, wearables, and their reviews"
+  REL- 0.629  REL+ 0.754  S=2  citing  https://seangoedecke.com/llms-reward-expertise
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+  REL- 0.623  REL+ 0.625  S=3  own     https://simonwillison.net/2026/Aug/7/openai-timeline
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+  REL- 0.610  REL+ 0.774  S=2  own     https://huggingface.co/blog/agent-intrusion-technical-timeline
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+  REL- 0.591  REL+ 0.630  S=2  citing  https://deepseek.com/harness/en
+        nearest negative: "Cryptocurrency, blockchain, web3, and NFTs"
+  REL- 0.589  REL+ 0.597  S=3  citing  https://z.ai/blog/glm-5.3
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+  REL- 0.587  REL+ 0.663  S=2  citing  https://youtube.com/watch?v=uT7MVcCQ4rw
+        nearest negative: "Cryptocurrency, blockchain, web3, and NFTs"
+  REL- 0.581  REL+ 0.708  S=2  citing  https://codepen.io/2/whats-new
+        nearest negative: "Consumer gadget launches — phones, laptops, wearables, and their reviews"
+  REL- 0.581  REL+ 0.643  S=3  citing  https://anthropic.com/research/riemann-zeta
+        nearest negative: "Cryptocurrency, blockchain, web3, and NFTs"
+  REL- 0.575  REL+ 0.600  S=2  citing  https://simonwillison.net/2026/Jul/21/cat-and-thariq
+        nearest negative: "AI industry business news — funding rounds, valuations, executive moves, and lawsuits"
+
+=== OUTPUT 4 — inter-citation gaps (H). MINOR: #9 found decay gates nothing ===
+  1st→2nd h  n=   27  min 0.000  p10 1.271  p25 8.854  MED 30.400  p75 91.788  p90 192.839  p95 322.019  p99 957.989  max 957.989
+  1st→Nth h  n=   27  min 0.000  p10 2.237  p25 11.039  MED 48.781  p75 107.000  p90 322.019  p95 957.989  p99 1391.527  max 1391.527
+  n=27 Signals with >=2 distinct Publishers
+
+=== OUTPUT 3 — per-day counts, replayed from Citation timestamps ===
+  citation timestamps span 2064 days (2020-12-21 → 2026-08-16)
+  median citation timestamp: 2026-07-29 — the corpus is FRONT-LOADED; days before the dense window are backfill, not steady state
+  flat T+=0.50  interest  21  convergence   0  rejected    0  trailing-14 median 1  empty days 18/30
+  flat T+=0.55  interest  19  convergence   0  rejected    5  trailing-14 median 1  empty days 18/30
+  flat T+=0.60  interest  12  convergence   2  rejected   27  trailing-14 median 1  empty days 21/30
+  flat T+=0.65  interest   6  convergence   4  rejected   45  trailing-14 median 1  empty days 21/30
+  flat T+=0.70  interest   5  convergence   4  rejected   48  trailing-14 median 1  empty days 21/30
+
+  per-day detail at the loosest bar in the grid (the eligible/rejected columns are bar-independent):
+    2026-07-18  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-19  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-20  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-07-21  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-22  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-07-23  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-24  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-25  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-26  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-27  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-07-28  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-29  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-07-30  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-07-31  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-01  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-02  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-03  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-08-04  eligible   2  interest  2  convergence  0  rejected   0  -> Brief size 2
+    2026-08-05  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-06  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-07  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-08  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-08-09  eligible   1  interest  1  convergence  0  rejected   0  -> Brief size 1
+    2026-08-10  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-11  eligible   3  interest  3  convergence  0  rejected   0  -> Brief size 3
+    2026-08-12  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+    2026-08-13  eligible   3  interest  3  convergence  0  rejected   0  -> Brief size 3
+    2026-08-14  eligible   3  interest  3  convergence  0  rejected   0  -> Brief size 3
+    2026-08-15  eligible   3  interest  3  convergence  0  rejected   0  -> Brief size 3
+    2026-08-16  eligible   0  interest  0  convergence  0  rejected   0  -> Brief size 0
+
+  T- sweep (how many eligible Signals a negative bar would suppress, over the window):
+    T-=0.45  suppressed 86  interest 0  convergence 0
+    T-=0.50  suppressed 84  interest 0  convergence 0
+    T-=0.55  suppressed 60  interest 2  convergence 0
+    T-=0.60  suppressed 23  interest 7  convergence 2

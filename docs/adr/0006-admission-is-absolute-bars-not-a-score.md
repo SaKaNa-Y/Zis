@@ -24,10 +24,18 @@ otherwise have needed their own argument:
 - **A combined importance/relevance score.** It needs a weight nobody can justify,
   and it renders as "a blend scored 0.61".
 - **Subtractive negative Interests.** A strong positive can outvote a strong
-  negative, so "not crypto" silently becomes "less crypto". Negative Interests
+  negative, so "not crypto" silently becomes "less crypto". ~~Negative Interests
   suppress outright instead, across **both** admission routes — a negative that
   only filtered the interest route would fail exactly when the unwanted story is
-  widely covered.
+  widely covered.~~ **This replacement clause is superseded by
+  [Calibrate the relevance bar against the corpus](https://github.com/SaKaNa-Y/Zis/issues/21):
+  negative Interests are cut from v1 entirely, so there is no longer a suppression
+  route to argue about.** The rejection of *subtraction* stands unchanged and on
+  its own reasoning. What died is the alternative offered in its place, and it
+  died on this ADR's own rule rather than on a new one: `REL−` and `REL+` occupy
+  the same range on `bge-small-en-v1.5`, so every suppression bar below `T+` empties
+  the Brief, and "suppressed because it slightly resembled a thing you dislike" is
+  not a sentence a reader can check. See `ranking-model.md` §1.
 
 **Velocity is cut from v1 on the same rule plus a data argument.** It needs
 history the system does not have on day one; HN's Firebase publishes a current

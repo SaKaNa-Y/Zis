@@ -5,9 +5,14 @@ Settled by
 Read [`CONTEXT.md`](../CONTEXT.md) first; this document uses its terms without
 redefining them.
 
-Every number marked **provisional** is a placeholder awaiting
-[Calibrate the relevance bar against the corpus](https://github.com/SaKaNa-Y/Zis/issues/21).
-Nothing else here is provisional.
+**Nothing here is provisional any more.**
+[Calibrate the relevance bar against the corpus](https://github.com/SaKaNa-Y/Zis/issues/21)
+measured the four values this document used to mark, against the real corpus and
+a handwritten Interest Profile, and three of the four came back differently than
+the model expected: `T+` is sited per rung as designed, `H` is confirmed
+unchanged, **`T−` has no admissible value and `E4` is cut**, and the **`citing`
+rung's definition was wrong**. Those changes are written in below rather than
+appended, so this document reads as the settled model.
 
 ---
 
@@ -32,11 +37,52 @@ Computed for a reader `u` and a Signal `s` at cut time `t`.
 | `STRENGTH(s)` | `COUNT(DISTINCT publisher_id)` over `s`'s citation-worthy Citations, origin-excluded, self-citation guarded — exactly as the [clustering spec](https://github.com/SaKaNa-Y/Zis/issues/6) defines it |
 | `AGE(s)` | `t − first_citation_at(s)` |
 | `FRESH(s)` | `t − last_citation_at(s)` |
-| `DECAY(s)` | `0.5 ^ (FRESH(s) / H)`, `H` = **36h provisional** |
-| `REL+(s,u)` | `MAX` over the reader's **positive** Interests of `cos(vec(s), vec(i))` (ADR-0003) |
-| `REL−(s,u)` | `MAX` over the reader's **negative** Interests of the same |
-| `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — provisional |
-| `T−` | negative suppression bar, deliberately **lower** than `T+` — provisional |
+| `DECAY(s)` | `0.5 ^ (FRESH(s) / H)`, `H` = **36h** |
+| `REL+(s,u)` | `MAX` over the reader's Interests of `cos(vec(s), vec(i))` (ADR-0003) |
+| `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — `own` **0.70**, `citing` **0.67**, `slug` **uncalibrated** (§4) |
+
+`H` = 36h is **measured, not assumed**: on the corpus the median gap from a
+Signal's first Citation to its second distinct Publisher is **30.4h** and to its
+Nth is **48.8h**, so 36h sits between them. It orders the `convergence` route
+and gates nothing (below), so this was the cheapest of the four numbers and it
+needed no change.
+
+### There is no `REL−` and no negative Interest
+
+The model used to carry a `REL−` quantity, a `T−` bar, and an `E4` eligibility
+test suppressing Signals that matched a **negative** Interest. **All three are
+cut from v1**, on measurement rather than on argument.
+
+`T−` was specified as "deliberately **lower** than `T+`", from a sound
+asymmetric-cost argument: a false admission shows the reader the exact thing they
+wrote down that they did not want, and under sealing that is permanent. The
+argument is fine. The number does not exist. On `bge-small-en-v1.5` the `REL−`
+and `REL+` distributions are **the same distribution** — over the eligible set
+`REL−` runs 0.512–0.725 against `REL+` 0.524–0.774 — because a cosine of ~0.60
+against "cryptocurrency, blockchain, web3, and NFTs" does not mean *this is
+crypto*, it means *this is technology writing*. Measured over the replay window,
+`T−` = 0.60 suppresses 23 of 86 eligible Signal-days, 0.55 leaves **two**
+admissions standing, and 0.50 empties every Brief. **Every value below `T+`
+deletes the product**, and the one value that suppresses only the extreme tail
+sits *above* `T+`, at which point the bar is doing nothing worth a schema column.
+
+This follows [#6](https://github.com/SaKaNa-Y/Zis/issues/6)'s precedent exactly —
+it cut the embedding second pass from detection **because it measured it** — and
+it is the same shape as ADR-0006's own rule: a mechanism that cannot do the job
+it is named for is disqualified, and "suppressed because it slightly resembled a
+thing you dislike" is not a sentence a reader could check.
+
+Two consequences, both small, which is part of why the cut is cheap. **Nothing in
+the interface changes**: `ui-and-ia.md` §7 is a flat numbered list of statements
+and never had a positive/negative split to remove. And **ADR-0006's third
+rejected proposal still stands** — subtractive negative Interests were rejected
+there because a strong positive can outvote a strong negative; that reasoning is
+untouched, and the clause of ADR-0006 that replaced subtraction with *outright
+suppression across both routes* is **superseded here**, since there is now
+nothing to suppress with.
+
+**One Interest kind, not two.** An `Interest` is a statement of what the reader
+wants. A reader who wants less of something says so by not writing it down.
 
 `vec(s)` is the embedding of whatever text the Signal actually has — see §4.
 
@@ -55,9 +101,12 @@ E1  STRENGTH(s) >= 2                  convergence floor — the Brief is never
                                       about a single voice
 E2  AGE(s) <= 7 days                  hard cutoff, overrides every other test
 E3  no BriefEntry exists for (u, s)   a Signal appears in at most one Brief, ever
-E4  REL-(s,u) < T-                    negative Interest suppression
-E5  no ReadState(u, s)                already met via Bookmarks or the archive
+E4  no ReadState(u, s)                already met via Bookmarks or the archive
 ```
+
+There were five tests. The negative-Interest suppression that used to sit at
+`E4` is cut — see §1 — and the numbering closes up rather than leaving a hole,
+because a reserved gap is an invitation to refill it.
 
 `E1` is the product's thesis in one line. Without it the Brief is a
 relevance-filtered river of single-source Items — 4,910 of the 4,937 Signals in
@@ -65,9 +114,9 @@ the measured corpus are Strength 1 — which is the anxiety inbox Zis exists to
 delete, and it would leave the relevance bar discriminating over 4,937 candidates
 instead of 27, making its value arbitrary.
 
-`E4` applies to **both** admission routes (§3). A negative Interest that only
-filtered the interest route would fail precisely when the unwanted story is
-widely covered — the moment the reader would be angriest.
+`E1` is also the reason the relevance bar's exact value matters far less than the
+model assumed, and §9 has the measurement: over a 30-day replay of the corpus's
+own Citation timestamps, **18 days in 30 carry no eligible Signal at all**.
 
 ## 3. Admission — two routes, nested, not orthogonal
 
@@ -134,15 +183,84 @@ disproportionately at the high-Strength end.
 So a Signal is embedded from the best text available, and **which rung was used is
 stored** as `text_basis`:
 
-| rung | text |
-|---|---|
-| `own` | the ingested Item's title + extracted summary |
-| `citing` | the concatenated titles of the Items citing it |
-| `slug` | the canonical URL's path, tokenised |
+| rung | text | share of corpus | `T+` |
+|---|---|---|---|
+| `own` | the ingested Item's title + extracted summary | **17.0%** | **0.70** |
+| `citing` | **the citing Publisher's anchor text for that exact link** — one description, not a concatenation | **78.9%** | **0.67** |
+| `slug` | the canonical URL's path, tokenised, plus its host words | **4.1%** | **uncalibrated** |
 
-`T+` is keyed by this rung, because cosine similarity is not portable across text
-lengths — a three-word slug and a 200-word summary do not sit on the same scale,
-and one global threshold would be wrong for at least two of the three rungs.
+**The `citing` rung's definition is a correction, and it is the largest single
+finding of the calibration.** It used to read "the concatenated titles of the
+Items citing it". Measured on the eligible set, that definition and the anchor
+text agree on the argmax Interest **2 times out of 26** — and since the argmax
+*is* the why-text (§6, ADR-0003), that is the share of explanations the two
+definitions disagree about, on the rung that carries **79% of the corpus**.
+
+The reason it is wrong is specific rather than statistical: the corpus's densest
+citers are newsletters, and a newsletter Item's **title is the issue title**.
+`Zuckerberg's manifesto 🤖, Elon's $1T shortcut 💰, local models won't win` is
+about every story in that issue and therefore about none of them. Concatenating
+eight of those produces a long, confident, on-topic-*sounding* vector attached to
+the wrong subject — so it scores **higher** than the correct text:
+
+```
+anthropic.com/research/riemann-zeta       (Strength 3)
+  concatenated titles   REL+ 0.765  -> "Frontier model releases … pricing"
+  anchor text           REL+ 0.643  -> "AI research published by the frontier
+                                        labs … scientific results"
+```
+
+The second explanation is the right one and it scores 0.12 lower. **A bar on
+`REL+` over concatenated titles therefore selects for pollution**, which is the
+opposite of what a bar is for. Anchor text is also *free* — it arrives in the
+same feed body and issue page the Citation itself is harvested from, so this
+costs one extra column, not a fetch.
+
+Two clauses ride with it. **Longest anchor wins** where several Publishers cite
+the same link, because "Learning more about Claude's mathematical capabilities"
+beats "the spec" and "announced". And where a citing Publisher gives no anchor
+text — a Bluesky post, an HN submission — the **citing Item's title is used, and
+for those it genuinely is a description of the link**; only excerpt-newsletter
+titles are excluded.
+
+`T+` is keyed by rung because cosine similarity is not portable across text
+lengths. **That premise is correct, but only under the corrected definition** —
+which is worth recording, because as written the keying was pointless. Measured
+per-rung medians:
+
+| rung | as written (concatenated titles) | corrected (anchor text) |
+|---|---|---|
+| `own` | 0.656 | 0.656 |
+| `citing` | 0.656 | **0.617** |
+| `slug` | 0.604 | 0.604 |
+
+Concatenation had dragged `citing` onto `own`'s scale by making short texts long,
+so one global threshold would have been *right* — and right for the wrong reason.
+
+**`T+[slug]` is deliberately left uncalibrated, and that is a finding rather than
+an omission.** Zero of the 27 eligible Signals sit on the `slug` rung, so the
+corpus contains no evidence about where its bar belongs. Its full-corpus
+distribution is both low and narrow (median 0.604, p90 0.647, max 0.732 — against
+`own` reaching 0.855), which is what a rung with almost no information in it looks
+like. Implementations must **treat a `slug`-rung Signal as failing the interest
+route** until a corpus with eligible `slug` Signals exists to site a value
+against. Such a Signal can still be admitted by `convergence`, which reads no
+text at all.
+
+**The floor under all three numbers**, and the reason none of them is set lower:
+the reader's own Interest statements have a **median pairwise cosine of 0.659**
+with each other (n=153 pairs). A bar below that is not measuring topical match —
+it is measuring "this is writing about software", which every Item in the corpus
+is.
+
+One share to correct while it is in view. #9 recorded that 3,607 of 4,986 Signals
+have no ingested Item, implying ~28% would land on `own`; **17.0% actually do**.
+The gap is the vehicle guard: an HN thread and a single-link Bluesky post are
+Items with a `self` Citation, and after #6's merge rules their Link sits inside
+the target's Signal — but a discussion **of** a story is not the story, so they
+are excluded from `own` and their text carries the `citing` rung instead. **83.0%
+of Signals embed from something other than their own text**, against the ~73%
+this ticket assumed.
 
 **A Signal is re-embedded when its rung improves** (`slug → citing → own`), with
 `text_basis` and an `embedding_version` stored alongside the vector. The
@@ -301,23 +419,74 @@ shortening full-text retention, which is irreversible under ADR-0005, costs
 Interest-matching text, and frees storage rather than the compute that actually
 binds.
 
-## 10. What is provisional, and how it gets settled
+### The target is currently missed by a factor of five, and not by the bar
 
-`T+` per rung, `T−`, and `H` are the only unsettled values, and they are not
-settleable by argument. This follows the clustering ticket's precedent: it killed
-the embedding second pass **because it measured it**, and a threshold guessed
-here would be the same class of error.
+This is measured, and it is the most important number the calibration produced.
+Replaying the corpus's last 30 days from **Citation timestamps** — never from
+dividing 27 by anything convenient — the eligible supply is:
+
+| | |
+|---|---|
+| days with **zero** eligible Signals | **18 of 30** |
+| most eligible Signals on any one day | **3** |
+| trailing-14-day median Brief size | **1** |
+
+and that median is **1 at every bar tested, including a bar low enough to admit
+every eligible Signal**. At `T+` = 0.50 the 30 days yield 21 admissions; at 0.70
+they yield 5 interest plus 4 convergence. The trailing-14 median never moves off
+1, because it is not set by the bar — it is set by the 18 days on which `E1` has
+nothing to offer at all.
+
+So the escalation above resolves, today, entirely onto its **first** branch.
+**`T+` is not what is binding and lowering it would buy nothing**: there is no
+value of `T+` at which this corpus reaches a trailing-14 median of 5, so the
+"explicit edit to `T+`" clause is not the available lever and must not be reached
+for first. What binds is **distinct-Publisher supply**, which is
+[#11](https://github.com/SaKaNa-Y/Zis/issues/11)'s work.
+
+Two things this does **not** license. It is not a reason to raise or lower the
+ceiling (#14 upheld) and it is not a reason to weaken `E1` — a Strength-1 floor
+would admit 4,910 of the corpus's 4,937 Signals, which is the anxiety inbox the
+product exists to delete. And it is **not** evidence that the product is
+unworkable: a short Brief is honest by construction (#14), and the honest reading
+of these numbers is that Zis currently has a **source-list problem wearing a
+threshold's clothes**.
+
+## 10. How the numbers were sited, and what they are conditional on
+
+`T+` per rung, `T−`, and `H` were not settleable by argument, so they were not
+argued. This follows the clustering ticket's precedent: it killed the embedding
+second pass **because it measured it**, and a threshold guessed here would have
+been the same class of error — which is exactly what happened to `T−`, a bar
+whose specification was derived from a correct argument and whose value does not
+exist.
 
 [Calibrate the relevance bar against the corpus](https://github.com/SaKaNa-Y/Zis/issues/21)
-embeds the existing corpus against a handwritten Interest Profile and measures:
+embedded the corpus #6 measured (1,395 Items / 6,468 Citations / 4,986 Signals
+from 47 Sources) against a handwritten 18-statement Interest Profile, locally via
+`transformers.js` under #3's pin-the-model finding — no provider call, no quota,
+no key. Prototype and findings:
+[`.scratch/zis/prototype/PROTOTYPE-calibration/`](https://github.com/SaKaNa-Y/Zis/tree/main/.scratch/zis/prototype/PROTOTYPE-calibration).
 
-- the `REL+` distribution **per `text_basis` rung**, to site `T+` per rung;
-- the `REL−` distribution, to site `T−` below it;
-- the **per-day** counts of eligible, `interest`-admitted, `convergence`-admitted,
-  and the invisible `Strength == 2, no match` rejected class — the numbers §9's
-  target is judged against;
-- the inter-citation gap distribution, to site `H`.
+**Three conditions every number here is contingent on**, stated so a later
+disagreement can check them rather than re-derive them.
 
-It is cheap: the corpus exists on `prototype/clustering-spike`, and `bge-small` is
-384-dim open-weight, so it runs locally under #3's pin-the-model finding without
-a provider call.
+1. **The model.** All of it is `bge-small-en-v1.5` at 384 dimensions. Cosine
+   values are not portable across embedding models, so **changing the model
+   invalidates `T+` and `T−` together** — and per the map's multilingual-relevance
+   note, "pin the model, not the vendor" only holds *within* a fixed dimension.
+   A model swap is a re-calibration, not a config change.
+2. **The Interest Profile.** `T+` is sited relative to a floor — the median
+   pairwise similarity *between* that reader's own statements, 0.659 — so a
+   profile of broader or narrower statements moves the floor and the bar with it.
+   The bar is a property of the pair (model, profile), not of the corpus alone.
+3. **The corpus window.** The per-day counts come from the last 30 days the
+   corpus covers. The 2,064-day span behind it is **backfill**, and a rate taken
+   over that span would be the error §8 warns about.
+
+**What the calibration did not settle, and routed onward**: whether the argmax
+Interest is a good enough *explanation*. `T+` decides admission and the
+measurement says it can; §6 makes the same cosine decide the why-text, and there
+the measurement is much weaker — the argmax is visibly wrong on entries scoring
+well above any bar, and the error does not fall as `REL+` rises. That is a
+question about ADR-0003 rather than about a threshold, and it has its own ticket.
