@@ -209,8 +209,9 @@ subscriptions, bounded and sealed output instead of a firehose with a count.
 **Where NewsBlur wins.** Granularity, and it is a real win: regex, per-author and
 per-tag rules are finer instruments than an embedded sentence, and the "Test on
 this story" preview shows the reader their training working — which Zis has no
-equivalent of today (see §7 and
-[#27](https://github.com/SaKaNa-Y/Zis/issues/27)).
+equivalent of, and **will not build**: the preview is refused outright by
+[#27](https://github.com/SaKaNa-Y/Zis/issues/27) (§8.1). This row is therefore a
+standing concession, not an open question.
 
 ### Readwise Reader
 
@@ -312,7 +313,8 @@ that caused it.
   ≥2 and 5 at ≥3 — a backfill yield, not a daily rate, so steady-state daily
   supply is materially lower.
 - **Granularity.** No regex, no per-author rule, no preview of what an edit would
-  do. See the NewsBlur row.
+  do. See the NewsBlur row. The preview is refused rather than pending (§8.1), so
+  this stays a weakness permanently — which is the honest place for it.
 
 ### 6.2 Scope choices — deliberate, not deficiencies
 
@@ -352,26 +354,110 @@ the product. They belong in §5 as table stakes, never here.
 
 ## 7. What would falsify this position
 
-Stated as a condition rather than a metric, because Zis has no instrumentation and
-does not need any to observe it:
+Stated as conditions rather than metrics, because Zis has no instrumentation and
+does not need any to observe them. **There are two, and they falsify different
+things** — a distinction this section got wrong on the first pass and which
+[#27](https://github.com/SaKaNa-Y/Zis/issues/27) corrected.
+
+### 7.1 The falsifier of the claim: separability
+
+> **If the Interest Profile selects nothing that convergence would not have
+> surfaced anyway — if a reader's Briefs would be the same without their
+> Interests — then "the reason each story appears is a sentence you wrote" is
+> decoration and this position is wrong.**
+
+This one bites on the claim itself. If the `interest` route only ever admits
+Signals that the `convergence` route would have admitted regardless, then the
+sentence the reader wrote explains nothing: it is a caption on a decision
+co-citation already made, and Zis is a worse-latency Techmeme with a nicer
+why-line.
+
+It is observable by corpus replay, which is how it should be checked, and **it is
+currently not firing.** Over the 30-day replay in
+[#21](https://github.com/SaKaNa-Y/Zis/issues/21)'s calibration at the settled bar:
+**5 entries by the `interest` route, 4 by `convergence`**, and **all five
+interest-route entries are Strength 2** — below the convergence threshold, so
+co-citation alone would never have surfaced any of them. The Interest Profile is
+doing separable work today. Re-check this on any corpus replay, any bar change,
+and any embedding-model swap.
+
+### 7.2 The test of the standing assumption: reader behaviour
 
 > **If the reader stops editing Interests after the first month and never opens a
-> Signal provenance page, checkability was decoration and this position is wrong.**
+> Signal provenance page, the standing assumption is wrong: this reader does not
+> in fact care about inspectability.**
 
-That is the same shape as Feedly's real failure, and it puts the standing
-assumption the prior-art study flagged — *the user is willing to write and
-maintain the profile* — somewhere it can actually be checked, instead of leaving
-it as an assumption in the map's Notes.
+This is the same shape as Feedly's real failure, and it puts the assumption the
+prior-art study flagged — *the user is willing to write and maintain the profile*
+— somewhere it can be checked, instead of leaving it in the map's Notes.
 
-**The one candidate that aims at this falsifier** is NewsBlur's "Test on this
-story", adapted: *what would this Interest edit have done to yesterday's Brief?*
-It is the only thing that turns checkability from **passive** (inspectable if you
-go looking) into **active** (the system shows you your edit working), and a reader
-who never edits an Interest is exactly the reader it is for. It is not free — it
-needs yesterday's *candidate* set, not just the sealed Brief, which is a schema
-question — and sealing survives it, since a preview reads and never mutates.
+**It is not a falsifier of the claim, and the difference is load-bearing.** The
+claim is that the mechanism is inspectable and the arithmetic checkable. A reader
+who declines to inspect it leaves both halves true; what has failed is the
+*product's* bet on that reader, not the position. Reading it as a falsifier of the
+claim is what licensed the Interest-edit preview
+([§8](#8-refused-and-the-rule-each-fails)) — a feature whose stated job was to stop
+this observation from firing, which is adjusting the instrument rather than the
+thing being measured. **A falsifier you build a feature to prevent is not a
+falsifier.**
 
-That is a feature question, not a positioning one. It is routed to
-[Decide which differentiating features, if any, enter Phase 0](https://github.com/SaKaNa-Y/Zis/issues/27),
-whose question is narrowed to: **is the position already true, or must the preview
-ship for it to be true?** — default *already true*, burden on the preview.
+## 8. Refused, and the rule each fails
+
+`positioning.md` claims to be a refusal test; this is the list to be refused by.
+It is an **index, not a store** — one line and a pointer per row, with the
+reasoning left in the rule it cites, so nothing here can drift out of sync with
+the ADR that decides it.
+
+| Refused | The rule it fails |
+|---|---|
+| An "Everything" tab, unread counts, infinite scroll | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) — bounded output. And per §6.4 the absence *is* the product, so it is table stakes (§5), never a claimed advantage |
+| A reading view | [ADR-0005](adr/0005-no-publisher-html-is-ever-stored.md) — no publisher HTML is stored. Unavailable, not unwanted (§6.3) |
+| A follow graph | [#5](https://github.com/SaKaNa-Y/Zis/issues/5) — `Publisher` is the owning-entity dimension; there is no social graph to ride, and the Interest Profile is the only relevance mechanism |
+| Reader-tunable ranking, and layout customization | [ADR-0009](adr/0009-a-presentation-control-changes-neither-information-nor-order.md) — a control is admissible only if it changes neither which information renders nor its order |
+| Better summaries | [ADR-0011](adr/0011-a-claimed-advantage-must-cost-a-competitor-something.md) — nobody gives up anything to write a better prompt, and the commodity substitute (a chatbot with a URL pasted in, §4) is free |
+| Images and thumbnails | [#17](https://github.com/SaKaNa-Y/Zis/issues/17) — fires on ~5% of Signals, skewed away from the high-Strength end |
+| Email delivery of a Brief | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) — adds a delivery channel and a provider decision without strengthening anything |
+| Velocity scoring | [ADR-0006](adr/0006-admission-is-absolute-bars-not-a-score.md) — "unusual velocity against a baseline" cannot be rendered into a why-text from stored columns |
+| **The Interest-edit preview** — *what would this edit have done to yesterday's Brief?* | [ADR-0011](adr/0011-a-claimed-advantage-must-cost-a-competitor-something.md) and [#17](https://github.com/SaKaNa-Y/Zis/issues/17). See below |
+| **Near-miss surfacing** — *"3 Signals came close"*, or a relevance margin on the Signal page | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) and §1. See below |
+
+### 8.1 The Interest-edit preview
+
+NewsBlur's "Test on this story", adapted. Refused by
+[#27](https://github.com/SaKaNa-Y/Zis/issues/27) on three independent grounds, any
+one of which is sufficient:
+
+- **ADR-0011.** NewsBlur already ships it, so the preview buys no give-up of its
+  own. The rescue — *but Zis's preview runs over a global corpus with a bounded,
+  sealed output* — spends a give-up §3.3 **already charged** to buy §3.1. Billing
+  the same coin twice is how a list of two structural differences becomes a list of
+  six.
+- **The corpus.** Over #21's 30-day replay at the settled bar, **21 of 30 days have
+  no eligible Signal at all** and per-day eligible counts run 0–3. Two days in
+  three the preview's answer is *"nothing, still nothing"* whatever the edit — which
+  teaches the reader their Interests do not matter, the exact opposite of the job it
+  was proposed for. That is [#17](https://github.com/SaKaNa-Y/Zis/issues/17)'s
+  consistency rule.
+- **§7.2.** Its only positioning justification was defeating a reader-behaviour
+  observation that turns out not to falsify the claim.
+
+It is refused **full stop**, not deferred. Thicker supply would change the second
+ground but neither of the other two, and a Zis with a corpus dense enough for a
+preview to be informative is a different product needing a fresh position — so it
+returns, if ever, as a new effort rather than a resumption. **No candidate-set
+table enters the Phase-0 schema**; nothing else wanted one.
+
+### 8.2 Near-miss surfacing
+
+The consolation prize for 8.1 — *show the reader what nearly made it* — and it
+fails on its own terms. On Today or Interests it is an **"Everything" tab wearing a
+new name**, putting unadmitted Signals in front of the reader, which #14 bans. On
+the Signal page it fails §1 instead: **Strength is countable and a cosine is not.**
+*"Matched at 0.74, bar is 0.70"* sets an uncheckable number beside the checkable one
+on the single screen built to demonstrate that the arithmetic can be checked by
+hand. The qualitative variant — *"this nearly matched"* with no number — is
+unfalsifiable text on the provenance record, which is worse.
+
+So the Signal page ([`ui-and-ia.md`](ui-and-ia.md) §4) shows the Admission route
+and the Citation table, and **no relevance number is rendered anywhere in the
+product**.
