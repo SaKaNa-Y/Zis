@@ -1,0 +1,12 @@
+{
+  "name": "prototype-calibration",
+  "private": true,
+  "type": "module",
+  "description": "THROWAWAY. Zis issue #21 — site T+ per text_basis rung, T-, the per-day counts, and H against the real corpus.",
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.6"
+  }
+}

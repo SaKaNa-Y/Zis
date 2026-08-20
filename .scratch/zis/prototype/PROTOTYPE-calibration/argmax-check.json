@@ -1,0 +1,572 @@
+{
+  "interests": [
+    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+    "TypeScript language releases and type-level techniques",
+    "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon",
+    "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics",
+    "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
+    "Coding agents and agentic developer tooling — how they are built and where they fail",
+    "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
+    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
+    "Software design writing — module boundaries, API design, and how to keep a codebase navigable",
+    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
+    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+  ],
+  "rows": [
+    {
+      "url": "https://youtube.com/watch?v=87DyyMV0kCY",
+      "strength": 4,
+      "titlesOnly": {
+        "rel": 0.6605747751898825,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.5610307831665837,
+        "idx": 0
+      },
+      "bestAnchor": {
+        "rel": 0.5904901005046092,
+        "idx": 8
+      },
+      "merged": {
+        "rel": 0.6795077021983597,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://z.ai/blog/glm-5.3",
+      "strength": 3,
+      "titlesOnly": {
+        "rel": 0.7496881124294442,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6077964364759605,
+        "idx": 4
+      },
+      "bestAnchor": {
+        "rel": 0.5973312868389635,
+        "idx": 4
+      },
+      "merged": {
+        "rel": 0.7019137953411229,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://anthropic.com/research/riemann-zeta",
+      "strength": 3,
+      "titlesOnly": {
+        "rel": 0.7651744970472474,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.668869369382272,
+        "idx": 8
+      },
+      "bestAnchor": {
+        "rel": 0.6431503332674844,
+        "idx": 16
+      },
+      "merged": {
+        "rel": 0.7590898762567659,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
+      "strength": 3,
+      "titlesOnly": {
+        "rel": 0.6779702774497187,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6554568615364063,
+        "idx": 16
+      },
+      "bestAnchor": {
+        "rel": 0.6651979262409411,
+        "idx": 16
+      },
+      "merged": {
+        "rel": 0.6253704896202047,
+        "idx": 15
+      },
+      "own": {
+        "rel": 0.6245508142116766,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://anthropic.com/news/fable-mythos-access",
+      "strength": 3,
+      "titlesOnly": {
+        "rel": 0.7041969248229267,
+        "idx": 16
+      },
+      "anchorsOnly": {
+        "rel": 0.5788153501800708,
+        "idx": 12
+      },
+      "bestAnchor": {
+        "rel": 0.5831293672345782,
+        "idx": 5
+      },
+      "merged": {
+        "rel": 0.6177790908305586,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6138248124179944,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.5244614869434179,
+        "idx": 8
+      },
+      "bestAnchor": {
+        "rel": 0.5244614869434179,
+        "idx": 8
+      },
+      "merged": {
+        "rel": 0.6215312926149202,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6138615516038053,
+        "idx": 6
+      },
+      "anchorsOnly": {
+        "rel": 0.5515274581652404,
+        "idx": 1
+      },
+      "bestAnchor": {
+        "rel": 0.5515274581652404,
+        "idx": 1
+      },
+      "merged": {
+        "rel": 0.58406173891817,
+        "idx": 6
+      }
+    },
+    {
+      "url": "https://deepseek.com/harness/en",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6994710301468842,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6300161302079782,
+        "idx": 9
+      },
+      "bestAnchor": {
+        "rel": 0.6300161302079782,
+        "idx": 9
+      },
+      "merged": {
+        "rel": 0.6316819603826787,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6770014940315955,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6022355976579337,
+        "idx": 0
+      },
+      "bestAnchor": {
+        "rel": 0.5986366800137713,
+        "idx": 0
+      },
+      "merged": {
+        "rel": 0.6701870748297265,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://x.com/kunchenguid/status/2087567139318477117",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6770014940315955,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.5516495713538645,
+        "idx": 2
+      },
+      "bestAnchor": {
+        "rel": 0.5336911377781516,
+        "idx": 2
+      },
+      "merged": {
+        "rel": 0.6376032061090838,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6213020169361041,
+        "idx": 17
+      },
+      "anchorsOnly": {
+        "rel": 0.7105372433001439,
+        "idx": 17
+      },
+      "bestAnchor": {
+        "rel": 0.7289796833146774,
+        "idx": 17
+      },
+      "merged": {
+        "rel": 0.7185466769289044,
+        "idx": 17
+      }
+    },
+    {
+      "url": "https://x.com/bot/status/2087224798078517251",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.654539365537625,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6275147891457409,
+        "idx": 17
+      },
+      "bestAnchor": {
+        "rel": 0.6275147891457409,
+        "idx": 17
+      },
+      "merged": {
+        "rel": 0.6809846228393923,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6831212235865348,
+        "idx": 1
+      },
+      "anchorsOnly": {
+        "rel": 0.612893941461941,
+        "idx": 3
+      },
+      "bestAnchor": {
+        "rel": 0.6188998243855636,
+        "idx": 3
+      },
+      "merged": {
+        "rel": 0.654952264083332,
+        "idx": 1
+      }
+    },
+    {
+      "url": "https://blog.cloudflare.com/kitesurf",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7204174310681776,
+        "idx": 17
+      },
+      "anchorsOnly": {
+        "rel": 0.7371285750849861,
+        "idx": 5
+      },
+      "bestAnchor": {
+        "rel": 0.7656397473382672,
+        "idx": 9
+      },
+      "merged": {
+        "rel": 0.7076113358146884,
+        "idx": 5
+      },
+      "own": {
+        "rel": 0.7044133550789091,
+        "idx": 5
+      }
+    },
+    {
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-07-28",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7269734011835369,
+        "idx": 10
+      },
+      "anchorsOnly": {
+        "rel": 0.5790646978336872,
+        "idx": 0
+      },
+      "bestAnchor": {
+        "rel": 0.5791667168157334,
+        "idx": 2
+      },
+      "merged": {
+        "rel": 0.6295850904541002,
+        "idx": 0
+      }
+    },
+    {
+      "url": "https://seangoedecke.com/llms-reward-expertise",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6958853757117164,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.726514431810112,
+        "idx": 6
+      },
+      "bestAnchor": {
+        "rel": 0.7536102424975014,
+        "idx": 6
+      },
+      "merged": {
+        "rel": 0.7200889613486268,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7885279516686268,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6455615832755981,
+        "idx": 15
+      },
+      "bestAnchor": {
+        "rel": 0.6707426775156445,
+        "idx": 15
+      },
+      "merged": {
+        "rel": 0.7312372413656419,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7618841511064494,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.6327624277348306,
+        "idx": 12
+      },
+      "bestAnchor": {
+        "rel": 0.6701016359239833,
+        "idx": 12
+      },
+      "merged": {
+        "rel": 0.721561183372907,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://codepen.io/2/whats-new",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6292471662165947,
+        "idx": 0
+      },
+      "anchorsOnly": {
+        "rel": 0.652056223314604,
+        "idx": 14
+      },
+      "bestAnchor": {
+        "rel": 0.7077861282761514,
+        "idx": 14
+      },
+      "merged": {
+        "rel": 0.6528204145917449,
+        "idx": 0
+      }
+    },
+    {
+      "url": "https://youtube.com/watch?v=Xs-U7SY2uNE",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7000854113726868,
+        "idx": 5
+      },
+      "anchorsOnly": {
+        "rel": 0.608529272044477,
+        "idx": 6
+      },
+      "bestAnchor": {
+        "rel": 0.608529272044477,
+        "idx": 6
+      },
+      "merged": {
+        "rel": 0.6724721649832003,
+        "idx": 5
+      }
+    },
+    {
+      "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7340332446247453,
+        "idx": 16
+      },
+      "anchorsOnly": {
+        "rel": 0.6036356495104476,
+        "idx": 11
+      },
+      "bestAnchor": {
+        "rel": 0.6036356495104476,
+        "idx": 11
+      },
+      "merged": {
+        "rel": 0.7068110409851817,
+        "idx": 16
+      },
+      "own": {
+        "rel": 0.7738918124290181,
+        "idx": 16
+      }
+    },
+    {
+      "url": "https://noahpinion.blog/p/what-will-more-intelligence-actually",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.704905590765568,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.5968869004434535,
+        "idx": 16
+      },
+      "bestAnchor": {
+        "rel": 0.5968869004434535,
+        "idx": 16
+      },
+      "merged": {
+        "rel": 0.6866735887982516,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Jul/21/cat-and-thariq",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6508218337991247,
+        "idx": 15
+      },
+      "anchorsOnly": {
+        "rel": 0.5996276635258906,
+        "idx": 7
+      },
+      "bestAnchor": {
+        "rel": 0.5996276635258906,
+        "idx": 7
+      },
+      "merged": {
+        "rel": 0.6498279252898443,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://x.com/Alibaba_Qwen/status/2078759124914098291",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7904163636559476,
+        "idx": 16
+      },
+      "anchorsOnly": {
+        "rel": 0.6444555465281815,
+        "idx": 5
+      },
+      "bestAnchor": {
+        "rel": 0.6315799194183156,
+        "idx": 5
+      },
+      "merged": {
+        "rel": 0.7315175359988443,
+        "idx": 15
+      }
+    },
+    {
+      "url": "https://bun.com/blog/bun-in-rust",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.8008582559917294,
+        "idx": 10
+      },
+      "anchorsOnly": {
+        "rel": 0.6321525473529096,
+        "idx": 1
+      },
+      "bestAnchor": {
+        "rel": 0.5940501429609787,
+        "idx": 13
+      },
+      "merged": {
+        "rel": 0.7499655912058842,
+        "idx": 3
+      },
+      "own": {
+        "rel": 0.7373175658273193,
+        "idx": 10
+      }
+    },
+    {
+      "url": "https://anthropic.com/news/claude-fable-5-mythos-5",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.7956160873093432,
+        "idx": 16
+      },
+      "anchorsOnly": {
+        "rel": 0.5795181046964158,
+        "idx": 1
+      },
+      "bestAnchor": {
+        "rel": 0.5549935283254172,
+        "idx": 5
+      },
+      "merged": {
+        "rel": 0.7054714419321333,
+        "idx": 16
+      }
+    },
+    {
+      "url": "https://youtube.com/watch?v=uT7MVcCQ4rw",
+      "strength": 2,
+      "titlesOnly": {
+        "rel": 0.6357192449661784,
+        "idx": 9
+      },
+      "merged": {
+        "rel": 0.6357192449661784,
+        "idx": 9
+      }
+    }
+  ]
+}
