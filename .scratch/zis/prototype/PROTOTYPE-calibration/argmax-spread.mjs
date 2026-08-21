@@ -60,17 +60,36 @@ const alt = built.map((b) =>
 );
 const altVecs = await embedAll(alt.map((t) => (t && t.text) || 'untitled'), {});
 
-// My hand labels from the ticket's round 1, ratified by the reader. Recorded
-// here so the sort below is auditable rather than asserted.
+// My hand labels, ratified by the reader — **re-judged in #46** against the
+// reader's own Interest Profile. The round-1 labels were judgements about a
+// draft profile's argmax, and the argmax moved when the profile did, so they
+// could not be carried over.
+//
+// `uncovered` is GONE as a verdict, and its disappearance is the finding: on the
+// draft, three failures had no right answer anywhere in the 18 statements. On
+// the real profile every failure has a correct statement sitting in the profile
+// that the argmax passed over — a different fault, so it gets a different word.
+//
+//   RIGHT   — names the Interest the reader would have written
+//   near    — defensible; another statement fits about as well
+//   missed  — the right statement IS in the profile and the argmax did not pick it
 const LABEL = {
   'https://huggingface.co/blog/agent-intrusion-technical-timeline': 'near',
   'https://seangoedecke.com/llms-reward-expertise': 'RIGHT',
   'https://bun.com/blog/bun-in-rust': 'RIGHT',
-  'https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html': 'uncovered',
-  'https://codepen.io/2/whats-new': 'uncovered',
+  // Now WANTED — #46 deleted the negatives and the reader confirmed AI industry
+  // business news is read. Names #2; #8 (the AI industry as a business) is the
+  // right answer and loses by 0.004. Correctly admitted, wrongly explained.
+  'https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html': 'missed',
+  'https://codepen.io/2/whats-new': 'missed',
+  // New to the admitted set on the real profile — it displaced kitesurf. Names
+  // #9 (library/runtime releases); #1 (frontier model releases) is the answer.
+  'https://x.com/SpaceXAI/status/2087562800982077492': 'missed',
+  // Round-1 label, NOT re-judged: kitesurf is no longer in the admitted set
+  // (`own` 0.698 against a 0.70 bar). Kept only for the rung-precedence section.
   'https://blog.cloudflare.com/kitesurf': 'near',
   'https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731': 'RIGHT',
-  'https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview': 'uncovered',
+  'https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview': 'missed',
 };
 
 const rows = built.map((b, i) => {
@@ -114,18 +133,25 @@ log('\n\n=== a spread floor: what it keeps and what it costs ===');
 log('   n=8. This is FITTED, not validated — there is no holdout and no labelled');
 log('   corpus, which is why the prototype refuses a tuning loop. Read the');
 log('   DIRECTION, not the number.\n');
+// The denominators are counted, not hardcoded — the label set is re-judged per
+// profile now, so a literal `/3` would silently become a lie on the next re-run.
+const nRight = admitted.filter((r) => r.label === 'RIGHT').length;
+const nBad = admitted.filter((r) => r.label === 'missed' || r.label === 'near').length;
 for (const floor of [0.05, 0.06, 0.075, 0.09]) {
   const kept = admitted.filter((r) => r.spread >= floor);
   const good = kept.filter((r) => r.label === 'RIGHT').length;
-  const bad = kept.filter((r) => r.label === 'uncovered' || r.label === 'near').length;
-  log(`  floor ${floor.toFixed(3)}: keeps ${kept.length}/8  (RIGHT ${good}/3, wrong-or-near ${bad}/5)`);
+  const bad = kept.filter((r) => r.label === 'missed' || r.label === 'near').length;
+  log(
+    `  floor ${floor.toFixed(3)}: keeps ${kept.length}/${admitted.length}  (RIGHT ${good}/${nRight}, wrong-or-near ${bad}/${nBad})`,
+  );
 }
 
-// Does spread split `near` from `uncovered`? (The Q3 question.)
+// Does spread split `near` from `missed`? (The Q3 question, re-asked: on the real
+// profile the second fault is a MISSED right answer, not an absent one.)
 const near = admitted.filter((r) => r.label === 'near').map((r) => r.spread);
-const unc = admitted.filter((r) => r.label === 'uncovered').map((r) => r.spread);
+const missed = admitted.filter((r) => r.label === 'missed').map((r) => r.spread);
 log(`\n  near-miss spreads:  ${near.map((s) => s.toFixed(3)).join(' ')}`);
-log(`  uncovered spreads:  ${unc.map((s) => s.toFixed(3)).join(' ')}`);
+log(`  missed-answer spreads:  ${missed.map((s) => s.toFixed(3)).join(' ')}`);
 log('  -> if these interleave, spread does NOT split the two faults either.');
 
 // ------------------------------------------------------------ rung precedence
