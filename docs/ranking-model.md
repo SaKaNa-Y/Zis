@@ -40,6 +40,8 @@ Computed for a reader `u` and a Signal `s` at cut time `t`.
 | `DECAY(s)` | `0.5 ^ (FRESH(s) / H)`, `H` = **36h** |
 | `REL+(s,u)` | `MAX` over the reader's Interests of `cos(vec(s), vec(i))` (ADR-0003) |
 | `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — `own` **0.70**, `citing` **0.67**, `slug` **uncalibrated** (§4) |
+| `GAP(s,u)` | `REL+(s,u) − ` the **second**-highest `cos(vec(s), vec(i))`. How far the named Interest beat the runner-up (§6, ADR-0012) |
+| `T_gap` | the flatness floor, **provisional 0.038 and explicitly uncalibrated** (§6). Computed and stored; **never rendered** |
 
 `H` = 36h is **measured, not assumed**: on the corpus the median gap from a
 Signal's first Citation to its second distinct Publisher is **30.4h** and to its
@@ -124,12 +126,22 @@ An eligible Signal is admitted by exactly one route, recorded on the
 `BriefEntry` as its **Admission**:
 
 ```
-interest      REL+(s,u) >= T+[text_basis(s)]
+MATCHED(s,u)  =  REL+(s,u) >= T+[text_basis(s)]  AND  GAP(s,u) >= T_gap
 
-convergence   STRENGTH(s) >= 3  AND  REL+(s,u) < T+[text_basis(s)]
+interest      MATCHED(s,u)
 
-not admitted  STRENGTH(s) == 2  AND  REL+(s,u) < T+[text_basis(s)]
+convergence   STRENGTH(s) >= 3  AND  NOT MATCHED(s,u)
+
+not admitted  STRENGTH(s) == 2  AND  NOT MATCHED(s,u)
 ```
+
+**The `GAP` conjunct is ADR-0012 and it is not a second relevance bar.** `T+` asks
+whether the best Interest is close enough; `GAP` asks whether there *was* a best
+one, or whether every Interest scored the same and the winner is rounding noise.
+A Signal that clears `T+` on a flat ranking has no explanation to render, so it
+does not take the interest route — see §6, which is where the condition is
+justified, because it is a constraint the explanation imposes on admission rather
+than the other way round (ADR-0006).
 
 The `convergence` route is the filter-bubble puncture: *many independent voices
 converged on this and you never asked for it*. Its bar is **≥3, and ≥2 would be
@@ -270,6 +282,19 @@ its Strength. That is correct, it is bounded by `E2`, and it cannot disturb
 sealing — a cut `BriefEntry`'s why-text is frozen, so re-embedding never alters a
 Brief already cut.
 
+**The precedence itself is a measured open defect** —
+[Re-decide which text_basis rung is chosen when more than one is available](https://github.com/SaKaNa-Y/Zis/issues/42).
+It was chosen for **coverage** and never tested against the argmax it produces. On
+two of the four `own`-rung eligible Signals the losing rung scores higher *and*
+names better: `blog.cloudflare.com/kitesurf` is `own` 0.704 → *"Drizzle and other
+TypeScript ORMs"* against `citing` **0.766 → *"Web platform features landing in
+browsers"***, where the citing anchor text is a better description of the link than
+the Item's own opening. The other two rows show the precedence earning its keep,
+so this is not an inversion. It is **not fixed here** on purpose: "pick the higher
+`REL+`" compares across rungs with different bars, which is structurally the
+pollution-selecting error this section's own correction caught, and the `GAP`-based
+tiebreak decides the Cloudflare case by 0.036 against 0.035, which is noise.
+
 ## 5. Ordering
 
 `BriefEntry.position` is frozen at cut time (ADR-0002 / #5) and is a pure
@@ -315,9 +340,73 @@ decision than the one made, and the first time a reader counts the names the lin
 stops being evidence.
 
 Publisher names are capped at 3 plus `+N`. Only the **argmax** Interest is named,
-and only its `interest_id` is stored: ADR-0003's feedback loop works by making a
-vague Interest *visible* as the stated reason on Signals that should not have
-surfaced, and listing three matches lets the vague one hide in the crowd.
+and only its `interest_id` is stored — listing three matches would let a vague
+statement hide in the crowd.
+
+### The argmax alone is not a good enough explanation
+
+The justification that used to sit in the paragraph above — *ADR-0003's feedback
+loop works by making a vague Interest visible as the stated reason on Signals that
+should not have surfaced* — was **measured and withdrawn** by
+[Decide whether the argmax Interest is a good enough explanation](https://github.com/SaKaNa-Y/Zis/issues/35)
+(**ADR-0012**). Read that ADR before touching this section.
+
+`T+` decides admission and #21's measurement says it can. **The same cosine also
+decides the why-text, and there it does not hold up.** Of the 8 eligible Signals
+clearing `T+` per rung, **4 name an Interest the reader would not have written**,
+and the error does not fall as `REL+` rises — a browser announcement explained by
+*"Drizzle and other TypeScript ORMs"* at 0.704, a GitHub changelog explained by
+*"RSS, feeds, and the open web"* at 0.670.
+
+**The loop cannot repair those.** It requires the wrong winners to be the *vague*
+statements; measured against each statement's mean cosine to the reader's other 17,
+three of the four are among the **sharpest** in the profile (*"RSS, feeds, and the
+open web"* ranks 16th of 18 on vagueness). The reader is shown a tight, specific,
+well-written sentence attached to the wrong story, with nothing to edit.
+
+**So a why-text is admissible only if the ranking that produced it was not flat**
+— the `GAP` conjunct in §3. The mechanism is §10's floor taken one step further:
+the reader's statements sit at a median pairwise cosine of **0.659**, so a generic
+text scores about the same against all of them and the winner is decided by noise,
+while a specific text makes one Interest pull clear. **Flatness is the profile
+saying it has no opinion, in the only vocabulary it has.** On the admitted set the
+three unambiguously correct why-texts are the three largest gaps, with no overlap.
+
+**`T_gap` is provisional at 0.038 and uncalibrated**, on the `T+[slug]` precedent
+— fitted on 8 labelled points with no holdout, and two different quantities
+separated them equally well, which is the signature of fitting rather than
+measuring. Re-site it before quoting it as evidence. Unlike `T+[slug]`,
+"uncalibrated" cannot mean "fails the route": `slug` excluded 4% of the corpus,
+this would delete the relevance mechanism entirely.
+
+**Failing `T_gap` fails the interest route outright**, and the Signal can still
+arrive by `convergence` at Strength ≥3. There is deliberately no third state:
+[#10](https://github.com/SaKaNa-Y/Zis/issues/10) puts no badge anywhere in the
+product and makes the section heading the explanation, so *"matched, weakly"* has
+nowhere to render, and a section invented to house it is a badge under another
+name.
+
+**`GAP` is stored and never rendered.** `positioning.md` §8.2 refuses a relevance
+margin on the Signal page because *Strength is countable and a cosine is not*, and
+a difference of two cosines is doubly uncountable. That refusal stands unamended:
+what it bans is **showing** a margin, not **gating** on one.
+
+**The price, recorded rather than discovered later.** Over the 30-day replay at the
+settled bars, `T_gap` takes the interest route from **6 entries to 1**; Brief
+entries 10 → 5, trailing-14 median 1 → 0, empty days 21/30 → 25/30. No floor keeps
+more than one entry without also keeping a clearly-wrong one. This is §9's rule
+applied, not an exception to it: a bar that misses the density target is reported
+as miscalibrated, never lowered.
+
+**What `T_gap` suppresses but cannot diagnose.** Two of the four failures — a
+software-job-market essay, a GitHub product changelog — have **no right answer
+anywhere in the 18 statements**, so the argmax was not choosing badly among
+candidates; there were none. That fault is **not detectable at runtime**: both the
+gap to 2nd and the spread to 5th interleave it with genuine near-misses, and it is
+the judgement the cosine already failed at. `T_gap` suppresses both faults
+together. Coverage is
+[Decide whether the Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/41)'s
+question, not this section's.
 
 ### Interests are written in English
 
@@ -432,10 +521,31 @@ dividing 27 by anything convenient — the eligible supply is:
 | trailing-14-day median Brief size | **1** |
 
 and that median is **1 at every bar tested, including a bar low enough to admit
-every eligible Signal**. At `T+` = 0.50 the 30 days yield 21 admissions; at 0.70
-they yield 5 interest plus 4 convergence. The trailing-14 median never moves off
-1, because it is not set by the bar — it is set by the 18 days on which `E1` has
-nothing to offer at all.
+every eligible Signal**. At a flat `T+` = 0.50 the 30 days yield 21 admissions; at
+a flat 0.70, **5 interest plus 4 convergence**. At the settled **per-rung** bars —
+`own` 0.70 / `citing` 0.67 — it is **6 interest plus 4 convergence**, one more,
+because the citing bar is the lower of the two. The trailing-14 median never moves
+off 1, because it is not set by the bar — it is set by the 18 days on which `E1`
+has nothing to offer at all.
+
+**`T_gap` (§6, ADR-0012) makes this materially worse, and that is accepted rather
+than traded away.** Over the same replay it takes the interest route from **6
+entries to 1**: Brief entries 10 → 5, trailing-14 median **1 → 0**, empty days
+21/30 → 25/30. No floor tested keeps more than one interest entry without also
+keeping a why-text the reader would not have written. This section's mechanism is
+what governs that outcome — the target is missed, so the miss is **reported**, and
+neither `T+` nor `T_gap` moves to close it. A floor lowered until the Brief fills
+would be an adaptive bar reintroduced through the explanation instead of through
+the score.
+
+One consequence worth stating plainly, because no test we have written trips on
+it: with the interest route at one entry per month, **four fifths of a Brief
+arrives by `convergence` with no Interest named at all**. `positioning.md` §7.1's
+separability falsifier still does not fire — every surviving interest entry is
+Strength 2, so co-citation alone would not have surfaced it — but a claim can
+hollow out without falsifying, and the standing escalation onto
+[#11](https://github.com/SaKaNa-Y/Zis/issues/11) is now load-bearing for the
+*position*, not only for density.
 
 So the escalation above resolves, today, entirely onto its **first** branch.
 **`T+` is not what is binding and lowering it would buy nothing**: there is no
@@ -484,9 +594,21 @@ disagreement can check them rather than re-derive them.
    corpus covers. The 2,064-day span behind it is **backfill**, and a rate taken
    over that span would be the error §8 warns about.
 
-**What the calibration did not settle, and routed onward**: whether the argmax
-Interest is a good enough *explanation*. `T+` decides admission and the
-measurement says it can; §6 makes the same cosine decide the why-text, and there
-the measurement is much weaker — the argmax is visibly wrong on entries scoring
-well above any bar, and the error does not fall as `REL+` rises. That is a
-question about ADR-0003 rather than about a threshold, and it has its own ticket.
+**What the calibration did not settle, and routed onward — now settled.** Whether
+the argmax Interest is a good enough *explanation*: it is **not**, and
+[#35](https://github.com/SaKaNa-Y/Zis/issues/35) (**ADR-0012**) answered it with a
+second condition on the why-text rather than a change to `T+` or to how the winner
+is picked. `T+` decides admission and the measurement says it can; the same cosine
+also decides the why-text and there it is wrong on half the admitted set, with the
+error flat in `REL+`. The mechanism is condition 2 above, taken one step further
+than this section took it: the 0.659 floor does not only set where the *bar*
+belongs, it means a generic text scores alike against every Interest, so the
+argmax over a flat ranking is noise. See §6 for `GAP` and `T_gap`.
+
+**A fourth condition, added by that answer.** `T_gap` is conditional on the same
+`(model, profile)` pair as `T+`, and **more tightly** — it reads the profile's
+internal separation directly rather than sitting relative to it. A model swap now
+invalidates three numbers, not two. `T_gap` itself is **fitted rather than sited**:
+8 labelled points, no holdout, and two candidate quantities that separated them
+equally well. It is a placeholder with a mechanism behind it, which is a weaker
+thing than the bars above.

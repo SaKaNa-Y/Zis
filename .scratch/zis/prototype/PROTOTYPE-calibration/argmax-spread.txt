@@ -1,0 +1,75 @@
+=== does SPREAD separate a good explanation from a bad one? ===
+   the admitted-by-interest set, sorted by spread (1st minus 5th).
+
+  spread   gap2   REL+   rung    verdict     named / story
+  0.147  0.120  0.754  citing  RIGHT       #7 Practical LLM application engineering 
+                                          LLMs reward expertise (5 minute read)
+  0.096  0.060  0.737  own     RIGHT       #11 Rust for tooling and systems work — th
+                                          Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust
+  0.083  0.035  0.774  own     near        #17 AI research published by the frontier 
+                                          Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 20
+  0.081  0.040  0.671  citing  RIGHT       #16 Frontier model releases from the major
+                                          deepseek-ai/DeepSeek-V4-Flash-0731
+  0.066  0.032  0.670  citing  uncovered   #13 RSS, feeds, and the open web — readers
+                                          Stacked pull requests are now in public preview (3 minute read)
+  0.053  0.017  0.729  citing  uncovered   #18 AI provider platform and API changes —
+                                          AI is removing the middle class of software engineering (5 minute read)
+  0.035  0.022  0.704  own     near        #6 Drizzle and other TypeScript ORMs — sc
+                                          Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Clou
+  0.033  0.014  0.708  citing  uncovered   #15 Software design writing — module bound
+                                          CodePen 2.0
+
+  gap-to-2nd, same set, sorted — for comparison:
+  0.120  RIGHT       LLMs reward expertise (5 minute read)
+  0.060  RIGHT       Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to 
+  0.040  RIGHT       deepseek-ai/DeepSeek-V4-Flash-0731
+  0.035  near        Anatomy of a Frontier Lab Agent Intrusion: A Technical Timel
+  0.032  uncovered   Stacked pull requests are now in public preview (3 minute re
+  0.022  near        Introducing Kitesurf: The agent-first browser that runs in V
+  0.017  uncovered   AI is removing the middle class of software engineering (5 m
+  0.014  uncovered   CodePen 2.0
+
+
+=== a spread floor: what it keeps and what it costs ===
+   n=8. This is FITTED, not validated — there is no holdout and no labelled
+   corpus, which is why the prototype refuses a tuning loop. Read the
+   DIRECTION, not the number.
+
+  floor 0.050: keeps 6/8  (RIGHT 3/3, wrong-or-near 3/5)
+  floor 0.060: keeps 5/8  (RIGHT 3/3, wrong-or-near 2/5)
+  floor 0.075: keeps 4/8  (RIGHT 3/3, wrong-or-near 1/5)
+  floor 0.090: keeps 2/8  (RIGHT 2/3, wrong-or-near 0/5)
+
+  near-miss spreads:  0.083 0.035
+  uncovered spreads:  0.066 0.053 0.033
+  -> if these interleave, spread does NOT split the two faults either.
+
+
+=== rung precedence, three ways to choose ===
+   §4 picks `own` unconditionally. Compare against picking the higher REL+,
+   and against picking the higher SPREAD.
+
+https://simonwillison.net/2026/Aug/7/openai-timeline  (S=3)  [—]
+  own     REL+ 0.625  spread 0.059  -> #16 Frontier model releases from the major AI labs
+  citing  REL+ 0.665  spread 0.054  -> #17 AI research published by the frontier labs — i
+          citing text: Now we have a timeline of the OpenAI accidental attack against Hugging Face (6 minute read)
+  higher REL+ picks: citing    higher spread picks: own
+
+https://blog.cloudflare.com/kitesurf  (S=2)  [near]
+  own     REL+ 0.704  spread 0.035  -> #6 Drizzle and other TypeScript ORMs — schema def
+  citing  REL+ 0.766  spread 0.036  -> #10 Web platform features landing in browsers — CS
+          citing text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers
+  higher REL+ picks: citing    higher spread picks: citing
+
+https://huggingface.co/blog/agent-intrusion-technical-timeline  (S=2)  [near]
+  own     REL+ 0.774  spread 0.083  -> #17 AI research published by the frontier labs — i
+  citing  REL+ 0.604  spread 0.038  -> #12 Web application security — SSRF, authenticatio
+          citing text: Huggingface released a full detailed retrospective of their completely-agent-driven security
+  higher REL+ picks: own    higher spread picks: own
+
+https://bun.com/blog/bun-in-rust  (S=2)  [RIGHT]
+  own     REL+ 0.737  spread 0.096  -> #11 Rust for tooling and systems work — the langua
+  citing  REL+ 0.594  spread 0.022  -> #14 Developer tooling and build systems — Vite, bu
+          citing text: post about the project.
+  higher REL+ picks: own    higher spread picks: own
+

@@ -14,8 +14,11 @@ The validated *decisions* are in the resolution comment on
 
 ```sh
 pnpm install --ignore-workspace
-node run.mjs           # the four outputs
-node argmax-check.mjs  # the follow-up: is the citing rung's definition load-bearing?
+node run.mjs            # the four outputs                              (#21)
+node argmax-check.mjs   # is the citing rung's definition load-bearing?  (#21)
+node argmax-margin.mjs  # margin over 2nd, and per-Interest vagueness    (#35)
+node argmax-spread.mjs  # spread to 5th, floor sweep, rung precedence    (#35)
+node argmax-replay.mjs  # the 30-day replay under a gap floor            (#35)
 ```
 
 The corpus comes from `../PROTOTYPE-clustering/cache/` — 958 cached responses, so
@@ -40,8 +43,28 @@ weights into `node_modules`.
 | `embed.mjs` | local `bge-small`, CLS-pooled and normalised |
 | `run.mjs` | the four outputs, plus the per-day replay across a grid of candidate bars |
 | `argmax-check.mjs` | five definitions of the `citing` rung, argmax measured under each |
+| `argmax-margin.mjs` | **#35** — margin over 2nd place, and each Interest's mean cosine to the reader's *other* Interests (the vagueness proxy that killed ADR-0003's self-repair clause) |
+| `argmax-spread.mjs` | **#35** — spread to 5th place, a gap-floor sweep over the admitted set, and `own`-vs-`citing` rung precedence |
+| `argmax-replay.mjs` | **#35** — `run.mjs`'s 30-day replay re-run at the settled per-rung bars with a gap floor swept over it, for the density and separability cost |
 | `findings.txt` / `.json` | output of `run.mjs` |
 | `argmax-check.txt` / `.json` | output of `argmax-check.mjs` |
+| `argmax-margin.txt` / `.json` | output of `argmax-margin.mjs` |
+| `argmax-spread.txt` / `.json` | output of `argmax-spread.mjs` |
+| `argmax-replay.txt` / `.json` | output of `argmax-replay.mjs` |
+
+## The hand labels, and why they are in a script
+
+`argmax-spread.mjs` carries a `LABEL` map — my judgement of whether each admitted
+Signal's why-text is one the reader would have written, ratified by the reader
+during [#35](https://github.com/SaKaNa-Y/Zis/issues/35). **There is no labelled
+corpus**, so every accuracy figure in that ticket rests on 8 hand judgements. They
+live in the script rather than in prose so the sort is auditable and so a
+disagreement can be re-run rather than argued.
+
+This is also why `T_gap` is **fitted, not sited**: 8 points, no holdout, and *two*
+different quantities (gap to 2nd, spread to 5th) separated them equally well —
+which is the signature of fitting. The direction has a mechanism behind it (#21's
+0.659 floor); the number is a placeholder.
 
 ## What it deliberately does not do
 

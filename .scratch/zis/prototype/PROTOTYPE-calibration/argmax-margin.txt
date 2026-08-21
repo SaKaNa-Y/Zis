@@ -1,0 +1,127 @@
+=== per-Interest centrality (mean cosine to the reader's OTHER Interests) ===
+   the vagueness proxy: a statement close to everything is vague.
+   profile median pairwise cosine (#21): 0.659
+
+  0.712  #11 Rust for tooling and systems work — the language, the ecosystem, and Rust-base
+  0.700  #15 Software design writing — module boundaries, API design, and how to keep a cod
+  0.693  # 3 Tailwind CSS v4 — the engine rewrite, design tokens, and building a design sys
+  0.690  #14 Developer tooling and build systems — Vite, bundlers, package managers, monore
+  0.689  # 8 Coding agents and agentic developer tooling — how they are built and where the
+  0.686  #18 AI provider platform and API changes — tool use, MCP, context handling, agent 
+  0.683  # 2 Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia,
+  0.681  # 7 Practical LLM application engineering — prompting, tool use, structured output
+  0.676  #10 Web platform features landing in browsers — CSS, HTML elements, and Baseline a
+  0.675  #17 AI research published by the frontier labs — interpretability, alignment and s
+  0.669  # 4 TypeScript language releases and type-level techniques
+  0.666  # 6 Drizzle and other TypeScript ORMs — schema definition, migrations, query build
+  0.663  #16 Frontier model releases from the major AI labs — new models, what capabilities
+  0.661  # 5 Postgres — query planning, extensions, operational behaviour, and serverless P
+  0.652  #12 Web application security — SSRF, authentication design, session handling, and 
+  0.633  #13 RSS, feeds, and the open web — readers, aggregators, and independent publishin
+  0.621  # 9 Open-weight and locally-runnable models — embeddings, quantization, running in
+  0.601  # 1 Next.js App Router internals — routing, caching, Server Actions, and what chan
+
+
+=== the ADMITTED-BY-INTEREST set — REL+ >= T+[rung] — n=8 of 27 eligible ===
+   this, not the eligible set, is what a reader would actually have READ.
+
+REL+ 0.774  S=2  own     margin over 2nd: 0.035
+  https://huggingface.co/blog/agent-intrusion-technical-timeline
+  text: Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.
+   -> 0.774 (centrality 0.675)  #17 AI research published by the frontier labs — interpretability,
+      0.738 (centrality 0.663)  #16 Frontier model releases from the major AI labs — new models, w
+      0.699 (centrality 0.686)  #18 AI provider platform and API changes — tool use, MCP, context 
+      0.698 (centrality 0.652)  #12 Web application security — SSRF, authentication design, sessio
+      0.691 (centrality 0.689)  #8 Coding agents and agentic developer tooling — how they are bui
+
+REL+ 0.754  S=2  citing  margin over 2nd: 0.120
+  https://seangoedecke.com/llms-reward-expertise
+  text: LLMs reward expertise (5 minute read)
+   -> 0.754 (centrality 0.681)  #7 Practical LLM application engineering — prompting, tool use, s
+      0.633 (centrality 0.663)  #16 Frontier model releases from the major AI labs — new models, w
+      0.626 (centrality 0.675)  #17 AI research published by the frontier labs — interpretability,
+      0.611 (centrality 0.633)  #13 RSS, feeds, and the open web — readers, aggregators, and indep
+      0.606 (centrality 0.666)  #6 Drizzle and other TypeScript ORMs — schema definition, migrati
+
+REL+ 0.737  S=2  own     margin over 2nd: 0.060
+  https://bun.com/blog/bun-in-rust
+  text: Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust
+   -> 0.737 (centrality 0.712)  #11 Rust for tooling and systems work — the language, the ecosyste
+      0.677 (centrality 0.669)  #4 TypeScript language releases and type-level techniques
+      0.667 (centrality 0.693)  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and build
+      0.660 (centrality 0.666)  #6 Drizzle and other TypeScript ORMs — schema definition, migrati
+      0.641 (centrality 0.683)  #2 Vue 3 Composition API and the Vue ecosystem — script setup, re
+
+REL+ 0.729  S=2  citing  margin over 2nd: 0.017
+  https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+  text: AI is removing the middle class of software engineering (5 minute read)
+   -> 0.729 (centrality 0.686)  #18 AI provider platform and API changes — tool use, MCP, context 
+      0.712 (centrality 0.663)  #16 Frontier model releases from the major AI labs — new models, w
+      0.702 (centrality 0.675)  #17 AI research published by the frontier labs — interpretability,
+      0.689 (centrality 0.689)  #8 Coding agents and agentic developer tooling — how they are bui
+      0.676 (centrality 0.681)  #7 Practical LLM application engineering — prompting, tool use, s
+
+REL+ 0.708  S=2  citing  margin over 2nd: 0.014
+  https://codepen.io/2/whats-new
+  text: CodePen 2.0
+   -> 0.708 (centrality 0.700)  #15 Software design writing — module boundaries, API design, and h
+      0.693 (centrality 0.712)  #11 Rust for tooling and systems work — the language, the ecosyste
+      0.690 (centrality 0.689)  #8 Coding agents and agentic developer tooling — how they are bui
+      0.681 (centrality 0.690)  #14 Developer tooling and build systems — Vite, bundlers, package 
+      0.675 (centrality 0.693)  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and build
+
+REL+ 0.704  S=2  own     margin over 2nd: 0.022
+  https://blog.cloudflare.com/kitesurf
+  text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? Thi
+   -> 0.704 (centrality 0.666)  #6 Drizzle and other TypeScript ORMs — schema definition, migrati
+      0.682 (centrality 0.686)  #18 AI provider platform and API changes — tool use, MCP, context 
+      0.681 (centrality 0.689)  #8 Coding agents and agentic developer tooling — how they are bui
+      0.673 (centrality 0.693)  #3 Tailwind CSS v4 — the engine rewrite, design tokens, and build
+      0.670 (centrality 0.676)  #10 Web platform features landing in browsers — CSS, HTML elements
+
+REL+ 0.671  S=2  citing  margin over 2nd: 0.040
+  https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+  text: deepseek-ai/DeepSeek-V4-Flash-0731
+   -> 0.671 (centrality 0.663)  #16 Frontier model releases from the major AI labs — new models, w
+      0.631 (centrality 0.675)  #17 AI research published by the frontier labs — interpretability,
+      0.625 (centrality 0.686)  #18 AI provider platform and API changes — tool use, MCP, context 
+      0.592 (centrality 0.683)  #2 Vue 3 Composition API and the Vue ecosystem — script setup, re
+      0.590 (centrality 0.661)  #5 Postgres — query planning, extensions, operational behaviour, 
+
+REL+ 0.670  S=2  citing  margin over 2nd: 0.032
+  https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview
+  text: Stacked pull requests are now in public preview (3 minute read)
+   -> 0.670 (centrality 0.633)  #13 RSS, feeds, and the open web — readers, aggregators, and indep
+      0.639 (centrality 0.666)  #6 Drizzle and other TypeScript ORMs — schema definition, migrati
+      0.629 (centrality 0.669)  #4 TypeScript language releases and type-level techniques
+      0.609 (centrality 0.676)  #10 Web platform features landing in browsers — CSS, HTML elements
+      0.604 (centrality 0.601)  #1 Next.js App Router internals — routing, caching, Server Action
+
+margin over 2nd place, admitted set: min 0.014  med 0.035  max 0.120
+  — a margin near zero is a deterministic low-confidence signal available from stored columns.
+  — a wide margin on a WRONG winner means there is no confidence to render.
+
+
+=== rung precedence: does the LOSING rung score higher and name better? ===
+   §4 makes `own` beat `citing` unconditionally. Measured on `own`-rung eligible Signals.
+
+https://simonwillison.net/2026/Aug/7/openai-timeline  (S=3)
+  own    0.625  #16 Frontier model releases from the major AI labs — new model
+  citing 0.665  #17 AI research published by the frontier labs — interpretabil
+         citing text: Now we have a timeline of the OpenAI accidental attack against Hugging Face (6 minute read)
+
+https://blog.cloudflare.com/kitesurf  (S=2)
+  own    0.704  #6 Drizzle and other TypeScript ORMs — schema definition, mig
+  citing 0.766  #10 Web platform features landing in browsers — CSS, HTML elem
+         citing text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16 min
+
+https://huggingface.co/blog/agent-intrusion-technical-timeline  (S=2)
+  own    0.774  #17 AI research published by the frontier labs — interpretabil
+  citing 0.604  #12 Web application security — SSRF, authentication design, se
+         citing text: Huggingface released a full detailed retrospective of their completely-agent-driven security inciden
+
+https://bun.com/blog/bun-in-rust  (S=2)
+  own    0.737  #11 Rust for tooling and systems work — the language, the ecos
+  citing 0.594  #14 Developer tooling and build systems — Vite, bundlers, pack
+         citing text: post about the project.
+
