@@ -1,23 +1,25 @@
 {
   "interests": [
-    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
-    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
-    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
-    "TypeScript language releases and type-level techniques",
-    "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon",
-    "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics",
+    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations",
+    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
     "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
     "Coding agents and agentic developer tooling — how they are built and where they fail",
     "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
-    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
-    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
-    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
-    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out",
+    "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits",
+    "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade",
     "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
-    "Software design writing — module boundaries, API design, and how to keep a codebase navigable",
-    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
-    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
-    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+    "React itself — its release cycle, the compiler, and the ecosystem built on top of it",
+    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+    "TypeScript language releases and type-level techniques",
+    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
   ],
   "results": [
     {
@@ -242,19 +244,19 @@
         {
           "day": "2026-08-11",
           "eligible": 3,
-          "interest": 1,
+          "interest": 0,
           "convergence": 0,
           "flat": 0,
-          "rejected": 2,
-          "size": 1
+          "rejected": 3,
+          "size": 0
         },
         {
           "day": "2026-08-12",
-          "eligible": 2,
+          "eligible": 3,
           "interest": 0,
           "convergence": 1,
           "flat": 0,
-          "rejected": 1,
+          "rejected": 2,
           "size": 1
         },
         {
@@ -278,19 +280,19 @@
         {
           "day": "2026-08-15",
           "eligible": 7,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 0,
-          "rejected": 7,
-          "size": 0
+          "rejected": 6,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 7,
+          "eligible": 6,
           "interest": 0,
           "convergence": 0,
           "flat": 0,
-          "rejected": 7,
+          "rejected": 6,
           "size": 0
         }
       ],
@@ -303,7 +305,7 @@
           "gap": 0.035399997829992036,
           "basis": "own",
           "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
-          "idx": 16,
+          "idx": 2,
           "text": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident."
         },
         {
@@ -314,7 +316,7 @@
           "gap": 0.01446249937405597,
           "basis": "citing",
           "url": "https://codepen.io/2/whats-new",
-          "idx": 14,
+          "idx": 19,
           "text": "CodePen 2.0"
         },
         {
@@ -322,10 +324,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
         },
         {
@@ -333,10 +335,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.6701016359239833,
-          "gap": 0.03152261780765164,
+          "gap": 0.041494134164331564,
           "basis": "citing",
           "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
-          "idx": 12,
+          "idx": 18,
           "text": "Stacked pull requests are now in public preview (3 minute read)"
         },
         {
@@ -344,33 +346,22 @@
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
-        },
-        {
-          "day": "2026-08-11",
-          "route": "interest",
-          "strength": 2,
-          "rel": 0.7044133550789091,
-          "gap": 0.022460863351932536,
-          "basis": "own",
-          "url": "https://blog.cloudflare.com/kitesurf",
-          "idx": 5,
-          "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl"
         },
         {
           "day": "2026-08-12",
@@ -380,7 +371,7 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
@@ -388,22 +379,33 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7289796833146774,
-          "gap": 0.016905076735947433,
+          "gap": 0.004059366706153589,
           "basis": "citing",
           "url": "https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html",
-          "idx": 17,
+          "idx": 1,
           "text": "AI is removing the middle class of software engineering (5 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
       "interest": 6,
@@ -634,19 +636,19 @@
         {
           "day": "2026-08-11",
           "eligible": 3,
-          "interest": 1,
+          "interest": 0,
           "convergence": 0,
           "flat": 0,
-          "rejected": 2,
-          "size": 1
+          "rejected": 3,
+          "size": 0
         },
         {
           "day": "2026-08-12",
-          "eligible": 2,
+          "eligible": 3,
           "interest": 0,
           "convergence": 1,
           "flat": 0,
-          "rejected": 1,
+          "rejected": 2,
           "size": 1
         },
         {
@@ -670,19 +672,19 @@
         {
           "day": "2026-08-15",
           "eligible": 8,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
-          "size": 0
+          "rejected": 7,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 8,
+          "eligible": 7,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
+          "rejected": 7,
           "size": 0
         }
       ],
@@ -695,7 +697,7 @@
           "gap": 0.035399997829992036,
           "basis": "own",
           "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
-          "idx": 16,
+          "idx": 2,
           "text": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident."
         },
         {
@@ -703,10 +705,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
         },
         {
@@ -714,10 +716,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.6701016359239833,
-          "gap": 0.03152261780765164,
+          "gap": 0.041494134164331564,
           "basis": "citing",
           "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
-          "idx": 12,
+          "idx": 18,
           "text": "Stacked pull requests are now in public preview (3 minute read)"
         },
         {
@@ -725,33 +727,22 @@
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
-        },
-        {
-          "day": "2026-08-11",
-          "route": "interest",
-          "strength": 2,
-          "rel": 0.7044133550789091,
-          "gap": 0.022460863351932536,
-          "basis": "own",
-          "url": "https://blog.cloudflare.com/kitesurf",
-          "idx": 5,
-          "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl"
         },
         {
           "day": "2026-08-12",
@@ -761,19 +752,30 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
       "interest": 4,
@@ -1006,7 +1008,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 0,
-          "flat": 1,
+          "flat": 0,
           "rejected": 3,
           "size": 0
         },
@@ -1015,7 +1017,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 1,
-          "flat": 1,
+          "flat": 0,
           "rejected": 2,
           "size": 1
         },
@@ -1040,19 +1042,19 @@
         {
           "day": "2026-08-15",
           "eligible": 8,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
-          "size": 0
+          "rejected": 7,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 8,
+          "eligible": 7,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
+          "rejected": 7,
           "size": 0
         }
       ],
@@ -1065,7 +1067,7 @@
           "gap": 0.035399997829992036,
           "basis": "own",
           "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
-          "idx": 16,
+          "idx": 2,
           "text": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident."
         },
         {
@@ -1073,10 +1075,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
         },
         {
@@ -1084,10 +1086,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.6701016359239833,
-          "gap": 0.03152261780765164,
+          "gap": 0.041494134164331564,
           "basis": "citing",
           "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
-          "idx": 12,
+          "idx": 18,
           "text": "Stacked pull requests are now in public preview (3 minute read)"
         },
         {
@@ -1095,21 +1097,21 @@
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
         },
         {
@@ -1120,25 +1122,36 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
-      "interest": 3,
+      "interest": 4,
       "convergence": 4,
-      "flat": 9,
-      "emptyDays": 24,
+      "flat": 7,
+      "emptyDays": 23,
       "medianTrailing14": 1
     },
     {
@@ -1300,28 +1313,28 @@
         {
           "day": "2026-08-04",
           "eligible": 3,
-          "interest": 1,
+          "interest": 2,
           "convergence": 0,
-          "flat": 2,
-          "rejected": 2,
-          "size": 1
+          "flat": 1,
+          "rejected": 1,
+          "size": 2
         },
         {
           "day": "2026-08-05",
-          "eligible": 2,
-          "interest": 0,
-          "convergence": 0,
-          "flat": 2,
-          "rejected": 2,
-          "size": 0
-        },
-        {
-          "day": "2026-08-06",
           "eligible": 1,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
           "rejected": 1,
+          "size": 0
+        },
+        {
+          "day": "2026-08-06",
+          "eligible": 0,
+          "interest": 0,
+          "convergence": 0,
+          "flat": 0,
+          "rejected": 0,
           "size": 0
         },
         {
@@ -1365,7 +1378,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 0,
-          "flat": 1,
+          "flat": 0,
           "rejected": 3,
           "size": 0
         },
@@ -1374,7 +1387,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 1,
-          "flat": 1,
+          "flat": 0,
           "rejected": 2,
           "size": 1
         },
@@ -1399,19 +1412,19 @@
         {
           "day": "2026-08-15",
           "eligible": 8,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
-          "size": 0
+          "rejected": 7,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 8,
+          "eligible": 7,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
+          "rejected": 7,
           "size": 0
         }
       ],
@@ -1421,32 +1434,43 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
+        },
+        {
+          "day": "2026-08-04",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.6701016359239833,
+          "gap": 0.041494134164331564,
+          "basis": "citing",
+          "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
+          "idx": 18,
+          "text": "Stacked pull requests are now in public preview (3 minute read)"
         },
         {
           "day": "2026-08-09",
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
         },
         {
@@ -1457,25 +1481,36 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
-      "interest": 1,
+      "interest": 3,
       "convergence": 4,
-      "flat": 17,
-      "emptyDays": 25,
+      "flat": 12,
+      "emptyDays": 24,
       "medianTrailing14": 0
     },
     {
@@ -1702,7 +1737,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 0,
-          "flat": 1,
+          "flat": 0,
           "rejected": 3,
           "size": 0
         },
@@ -1711,7 +1746,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 1,
-          "flat": 1,
+          "flat": 0,
           "rejected": 2,
           "size": 1
         },
@@ -1736,19 +1771,19 @@
         {
           "day": "2026-08-15",
           "eligible": 8,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
-          "size": 0
+          "rejected": 7,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 8,
+          "eligible": 7,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
+          "rejected": 7,
           "size": 0
         }
       ],
@@ -1758,10 +1793,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
         },
         {
@@ -1769,21 +1804,21 @@
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
         },
         {
@@ -1794,25 +1829,36 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
-      "interest": 1,
+      "interest": 2,
       "convergence": 4,
-      "flat": 17,
-      "emptyDays": 25,
+      "flat": 15,
+      "emptyDays": 24,
       "medianTrailing14": 0
     },
     {
@@ -2039,7 +2085,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 0,
-          "flat": 1,
+          "flat": 0,
           "rejected": 3,
           "size": 0
         },
@@ -2048,7 +2094,7 @@
           "eligible": 3,
           "interest": 0,
           "convergence": 1,
-          "flat": 1,
+          "flat": 0,
           "rejected": 2,
           "size": 1
         },
@@ -2073,19 +2119,19 @@
         {
           "day": "2026-08-15",
           "eligible": 8,
-          "interest": 0,
+          "interest": 1,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
-          "size": 0
+          "rejected": 7,
+          "size": 1
         },
         {
           "day": "2026-08-16",
-          "eligible": 8,
+          "eligible": 7,
           "interest": 0,
           "convergence": 0,
           "flat": 1,
-          "rejected": 8,
+          "rejected": 7,
           "size": 0
         }
       ],
@@ -2095,10 +2141,10 @@
           "route": "interest",
           "strength": 2,
           "rel": 0.7536102424975014,
-          "gap": 0.12032536100595181,
+          "gap": 0.10836049848651486,
           "basis": "citing",
           "url": "https://seangoedecke.com/llms-reward-expertise",
-          "idx": 6,
+          "idx": 3,
           "text": "LLMs reward expertise (5 minute read)"
         },
         {
@@ -2106,21 +2152,21 @@
           "route": "convergence",
           "strength": 3,
           "rel": 0.5904901005046092,
-          "gap": 0.013555175095335104,
+          "gap": 0.013481587235432024,
           "basis": "citing",
           "url": "https://youtube.com/watch?v=87DyyMV0kCY",
-          "idx": 8,
+          "idx": 5,
           "text": "the next bit in full"
         },
         {
           "day": "2026-08-10",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.6245508142116766,
-          "gap": 0.000764973412369363,
+          "rel": 0.6694709197939694,
+          "gap": 0.04492010558229287,
           "basis": "own",
           "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
-          "idx": 15,
+          "idx": 6,
           "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7"
         },
         {
@@ -2131,25 +2177,36 @@
           "gap": 0.01037576294811493,
           "basis": "citing",
           "url": "https://anthropic.com/research/riemann-zeta",
-          "idx": 16,
+          "idx": 2,
           "text": "Learning more about Claude's mathematical capabilities (7 minute read)"
         },
         {
           "day": "2026-08-14",
           "route": "convergence",
           "strength": 3,
-          "rel": 0.5973312868389635,
-          "gap": 0.004952684065190782,
+          "rel": 0.6037822239644388,
+          "gap": 0.011403621190666069,
           "basis": "citing",
           "url": "https://z.ai/blog/glm-5.3",
-          "idx": 4,
+          "idx": 7,
           "text": "self-reported vendor numbers"
+        },
+        {
+          "day": "2026-08-15",
+          "route": "interest",
+          "strength": 2,
+          "rel": 0.68011355243838,
+          "gap": 0.08147687242460866,
+          "basis": "citing",
+          "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+          "idx": 8,
+          "text": "announced Grok 4.6"
         }
       ],
-      "interest": 1,
+      "interest": 2,
       "convergence": 4,
-      "flat": 17,
-      "emptyDays": 25,
+      "flat": 15,
+      "emptyDays": 24,
       "medianTrailing14": 0
     }
   ]

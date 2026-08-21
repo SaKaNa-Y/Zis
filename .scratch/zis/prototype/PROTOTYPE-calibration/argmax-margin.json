@@ -1,43 +1,47 @@
 {
   "interests": [
-    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
-    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
-    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
-    "TypeScript language releases and type-level techniques",
-    "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon",
-    "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics",
+    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations",
+    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
     "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
     "Coding agents and agentic developer tooling — how they are built and where they fail",
     "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
-    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
-    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
-    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
-    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out",
+    "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits",
+    "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade",
     "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
-    "Software design writing — module boundaries, API design, and how to keep a codebase navigable",
-    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
-    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
-    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+    "React itself — its release cycle, the compiler, and the ecosystem built on top of it",
+    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+    "TypeScript language releases and type-level techniques",
+    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
   ],
   "centrality": [
-    0.6011409823605832,
-    0.6829807354127844,
-    0.6930606091167857,
-    0.6691965358567632,
-    0.6610221543329656,
-    0.6657533079169893,
-    0.6808116157123603,
-    0.6889787449027106,
-    0.6214782412382444,
-    0.6764574909853532,
-    0.7116188058873549,
-    0.6519391472639705,
-    0.632769426868108,
-    0.6898465494241951,
-    0.6998479033210405,
-    0.6630107781151954,
-    0.6753814481285699,
-    0.685542709221577
+    0.6749554896945438,
+    0.6969010703365396,
+    0.683271423364519,
+    0.6774379770459005,
+    0.6952849433492977,
+    0.621509626082953,
+    0.6626183228245385,
+    0.6362203732460161,
+    0.6786853474317457,
+    0.6974572308737016,
+    0.5968748878651916,
+    0.6891978745070947,
+    0.681533165193266,
+    0.6881024331679961,
+    0.6600848708836023,
+    0.6735596682967803,
+    0.6474727752119721,
+    0.7085996745521408,
+    0.6251615000436511,
+    0.7013805903369446
   ],
   "rows": [
     {
@@ -49,29 +53,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 8,
-          "rel": 0.5904901005046092,
-          "centrality": 0.6214782412382444
-        },
-        {
-          "idx": 4,
-          "rel": 0.576934925409274,
-          "centrality": 0.6610221543329656
-        },
-        {
-          "idx": 12,
-          "rel": 0.5764743377887582,
-          "centrality": 0.632769426868108
-        },
-        {
           "idx": 5,
-          "rel": 0.5615973146017281,
-          "centrality": 0.6657533079169893
+          "rel": 0.5904901005046092,
+          "centrality": 0.621509626082953
         },
         {
-          "idx": 0,
+          "idx": 11,
+          "rel": 0.5770085132691771,
+          "centrality": 0.6891978745070947
+        },
+        {
+          "idx": 18,
+          "rel": 0.5764743377887582,
+          "centrality": 0.6251615000436511
+        },
+        {
+          "idx": 10,
           "rel": 0.5592441443415932,
-          "centrality": 0.6011409823605832
+          "centrality": 0.5968748878651916
+        },
+        {
+          "idx": 3,
+          "rel": 0.5531870958907901,
+          "centrality": 0.6774379770459005
         }
       ]
     },
@@ -80,33 +84,33 @@
       "strength": 3,
       "basis": "citing",
       "text": "self-reported vendor numbers",
-      "rel": 0.5973312868389635,
+      "rel": 0.6037822239644388,
       "admitted": false,
       "top5": [
         {
-          "idx": 4,
-          "rel": 0.5973312868389635,
-          "centrality": 0.6610221543329656
+          "idx": 7,
+          "rel": 0.6037822239644388,
+          "centrality": 0.6362203732460161
         },
         {
-          "idx": 6,
+          "idx": 3,
           "rel": 0.5923786027737727,
-          "centrality": 0.6808116157123603
+          "centrality": 0.6774379770459005
         },
         {
-          "idx": 12,
+          "idx": 18,
           "rel": 0.5915401483128627,
-          "centrality": 0.632769426868108
+          "centrality": 0.6251615000436511
+        },
+        {
+          "idx": 0,
+          "rel": 0.5886465661308887,
+          "centrality": 0.6749554896945438
         },
         {
           "idx": 15,
-          "rel": 0.5886465661308887,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 9,
           "rel": 0.5885770000947108,
-          "centrality": 0.6764574909853532
+          "centrality": 0.6735596682967803
         }
       ]
     },
@@ -119,29 +123,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 16,
-          "rel": 0.6431503332674844,
-          "centrality": 0.6753814481285699
-        },
-        {
-          "idx": 15,
-          "rel": 0.6327745703193695,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 8,
-          "rel": 0.6284481956286764,
-          "centrality": 0.6214782412382444
-        },
-        {
-          "idx": 4,
-          "rel": 0.589528569328694,
-          "centrality": 0.6610221543329656
-        },
-        {
           "idx": 2,
+          "rel": 0.6431503332674844,
+          "centrality": 0.683271423364519
+        },
+        {
+          "idx": 0,
+          "rel": 0.6327745703193695,
+          "centrality": 0.6749554896945438
+        },
+        {
+          "idx": 5,
+          "rel": 0.6284481956286764,
+          "centrality": 0.621509626082953
+        },
+        {
+          "idx": 6,
+          "rel": 0.6195351763833639,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 13,
           "rel": 0.5894335468035646,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
         }
       ]
     },
@@ -150,33 +154,33 @@
       "strength": 3,
       "basis": "own",
       "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7",
-      "rel": 0.6245508142116766,
+      "rel": 0.6694709197939694,
       "admitted": false,
       "top5": [
         {
-          "idx": 15,
+          "idx": 6,
+          "rel": 0.6694709197939694,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 0,
           "rel": 0.6245508142116766,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
+        },
+        {
+          "idx": 2,
+          "rel": 0.6237858407993072,
+          "centrality": 0.683271423364519
         },
         {
           "idx": 16,
-          "rel": 0.6237858407993072,
-          "centrality": 0.6753814481285699
-        },
-        {
-          "idx": 11,
           "rel": 0.600473078278586,
-          "centrality": 0.6519391472639705
+          "centrality": 0.6474727752119721
         },
         {
-          "idx": 17,
-          "rel": 0.5807334907206227,
-          "centrality": 0.685542709221577
-        },
-        {
-          "idx": 12,
-          "rel": 0.5655853270204841,
-          "centrality": 0.632769426868108
+          "idx": 7,
+          "rel": 0.5967007513110005,
+          "centrality": 0.6362203732460161
         }
       ]
     },
@@ -185,33 +189,33 @@
       "strength": 3,
       "basis": "citing",
       "text": "https://www.anthropic.com/news/fable-mythos-access",
-      "rel": 0.5831293672345782,
+      "rel": 0.5743694115007294,
       "admitted": false,
       "top5": [
         {
-          "idx": 5,
-          "rel": 0.5831293672345782,
-          "centrality": 0.6657533079169893
+          "idx": 18,
+          "rel": 0.5743694115007294,
+          "centrality": 0.6251615000436511
         },
         {
-          "idx": 12,
-          "rel": 0.5743694115007294,
-          "centrality": 0.632769426868108
+          "idx": 6,
+          "rel": 0.5661447428929911,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 0,
+          "rel": 0.5623476118063488,
+          "centrality": 0.6749554896945438
         },
         {
           "idx": 15,
-          "rel": 0.5623476118063488,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 9,
           "rel": 0.5501560765498805,
-          "centrality": 0.6764574909853532
+          "centrality": 0.6735596682967803
         },
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.5480872489742035,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         }
       ]
     },
@@ -224,29 +228,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 8,
+          "idx": 5,
           "rel": 0.5244614869434179,
-          "centrality": 0.6214782412382444
+          "centrality": 0.621509626082953
         },
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.5236365895186419,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         },
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.5081434544517619,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 7,
+          "idx": 6,
+          "rel": 0.4941494143791559,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 4,
           "rel": 0.490772199839361,
-          "centrality": 0.6889787449027106
-        },
-        {
-          "idx": 9,
-          "rel": 0.4755963170242654,
-          "centrality": 0.6764574909853532
+          "centrality": 0.6952849433492977
         }
       ]
     },
@@ -255,33 +259,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "Gemini 3.7 Flash",
-      "rel": 0.5515274581652404,
+      "rel": 0.5565798251411229,
       "admitted": false,
       "top5": [
         {
-          "idx": 1,
+          "idx": 8,
+          "rel": 0.5565798251411229,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 12,
           "rel": 0.5515274581652404,
-          "centrality": 0.6829807354127844
+          "centrality": 0.681533165193266
         },
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.5480232345719129,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 4,
-          "rel": 0.5218406730045981,
-          "centrality": 0.6610221543329656
-        },
-        {
-          "idx": 6,
+          "idx": 3,
           "rel": 0.5158037821956746,
-          "centrality": 0.6808116157123603
+          "centrality": 0.6774379770459005
         },
         {
-          "idx": 5,
-          "rel": 0.5112216862483117,
-          "centrality": 0.6657533079169893
+          "idx": 1,
+          "rel": 0.5036087536851617,
+          "centrality": 0.6969010703365396
         }
       ]
     },
@@ -294,29 +298,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 9,
+          "idx": 15,
           "rel": 0.6300161302079782,
-          "centrality": 0.6764574909853532
-        },
-        {
-          "idx": 2,
-          "rel": 0.6277078778305561,
-          "centrality": 0.6930606091167857
-        },
-        {
-          "idx": 12,
-          "rel": 0.6274601956520578,
-          "centrality": 0.632769426868108
+          "centrality": 0.6735596682967803
         },
         {
           "idx": 13,
-          "rel": 0.6167656586835428,
-          "centrality": 0.6898465494241951
+          "rel": 0.6277078778305561,
+          "centrality": 0.6881024331679961
         },
         {
-          "idx": 15,
+          "idx": 18,
+          "rel": 0.6274601956520578,
+          "centrality": 0.6251615000436511
+        },
+        {
+          "idx": 9,
+          "rel": 0.6167656586835428,
+          "centrality": 0.6974572308737016
+        },
+        {
+          "idx": 0,
           "rel": 0.6146000576463867,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         }
       ]
     },
@@ -325,33 +329,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "announced Grok 4.6",
-      "rel": 0.5986366800137713,
-      "admitted": false,
+      "rel": 0.68011355243838,
+      "admitted": true,
       "top5": [
         {
-          "idx": 0,
+          "idx": 8,
+          "rel": 0.68011355243838,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 10,
           "rel": 0.5986366800137713,
-          "centrality": 0.6011409823605832
+          "centrality": 0.5968748878651916
         },
         {
-          "idx": 5,
-          "rel": 0.5898174056870407,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 13,
+          "idx": 9,
           "rel": 0.5872758973729799,
-          "centrality": 0.6898465494241951
+          "centrality": 0.6974572308737016
         },
         {
-          "idx": 3,
+          "idx": 14,
           "rel": 0.5849775894400452,
-          "centrality": 0.6691965358567632
+          "centrality": 0.6600848708836023
         },
         {
-          "idx": 4,
-          "rel": 0.5783667363377354,
-          "centrality": 0.6610221543329656
+          "idx": 11,
+          "rel": 0.5789731502747851,
+          "centrality": 0.6891978745070947
         }
       ]
     },
@@ -364,29 +368,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 2,
-          "rel": 0.5336911377781516,
-          "centrality": 0.6930606091167857
-        },
-        {
-          "idx": 10,
-          "rel": 0.48604081523783627,
-          "centrality": 0.7116188058873549
-        },
-        {
-          "idx": 1,
-          "rel": 0.47062248148362196,
-          "centrality": 0.6829807354127844
-        },
-        {
           "idx": 13,
-          "rel": 0.46941991227586227,
-          "centrality": 0.6898465494241951
+          "rel": 0.5336911377781516,
+          "centrality": 0.6881024331679961
         },
         {
-          "idx": 6,
-          "rel": 0.4588343341668207,
-          "centrality": 0.6808116157123603
+          "idx": 11,
+          "rel": 0.4938929069874472,
+          "centrality": 0.6891978745070947
+        },
+        {
+          "idx": 17,
+          "rel": 0.48604081523783627,
+          "centrality": 0.7085996745521408
+        },
+        {
+          "idx": 8,
+          "rel": 0.4721707164508099,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 12,
+          "rel": 0.47062248148362196,
+          "centrality": 0.681533165193266
         }
       ]
     },
@@ -399,29 +403,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 17,
+          "idx": 1,
           "rel": 0.7289796833146774,
-          "centrality": 0.685542709221577
-        },
-        {
-          "idx": 15,
-          "rel": 0.71207460657873,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 16,
-          "rel": 0.7022303327012336,
-          "centrality": 0.6753814481285699
+          "centrality": 0.6969010703365396
         },
         {
           "idx": 7,
-          "rel": 0.6887718427182823,
-          "centrality": 0.6889787449027106
+          "rel": 0.7249203166085239,
+          "centrality": 0.6362203732460161
+        },
+        {
+          "idx": 0,
+          "rel": 0.71207460657873,
+          "centrality": 0.6749554896945438
+        },
+        {
+          "idx": 2,
+          "rel": 0.7022303327012336,
+          "centrality": 0.683271423364519
         },
         {
           "idx": 6,
-          "rel": 0.6762842950629963,
-          "centrality": 0.6808116157123603
+          "rel": 0.699601640106658,
+          "centrality": 0.6626183228245385
         }
       ]
     },
@@ -430,33 +434,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "Grok Bot",
-      "rel": 0.6275147891457409,
+      "rel": 0.6406965060091705,
       "admitted": false,
       "top5": [
         {
-          "idx": 17,
+          "idx": 6,
+          "rel": 0.6406965060091705,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 1,
           "rel": 0.6275147891457409,
-          "centrality": 0.685542709221577
+          "centrality": 0.6969010703365396
+        },
+        {
+          "idx": 2,
+          "rel": 0.602468704642763,
+          "centrality": 0.683271423364519
+        },
+        {
+          "idx": 0,
+          "rel": 0.601533473499248,
+          "centrality": 0.6749554896945438
         },
         {
           "idx": 4,
-          "rel": 0.6072542952252767,
-          "centrality": 0.6610221543329656
-        },
-        {
-          "idx": 16,
-          "rel": 0.602468704642763,
-          "centrality": 0.6753814481285699
-        },
-        {
-          "idx": 15,
-          "rel": 0.601533473499248,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 7,
           "rel": 0.593507039962199,
-          "centrality": 0.6889787449027106
+          "centrality": 0.6952849433492977
         }
       ]
     },
@@ -465,33 +469,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "support document",
-      "rel": 0.6188998243855636,
+      "rel": 0.6192742549838804,
       "admitted": false,
       "top5": [
         {
-          "idx": 3,
+          "idx": 8,
+          "rel": 0.6192742549838804,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 14,
           "rel": 0.6188998243855636,
-          "centrality": 0.6691965358567632
+          "centrality": 0.6600848708836023
+        },
+        {
+          "idx": 12,
+          "rel": 0.6164310334620043,
+          "centrality": 0.681533165193266
+        },
+        {
+          "idx": 3,
+          "rel": 0.5962700541296951,
+          "centrality": 0.6774379770459005
         },
         {
           "idx": 1,
-          "rel": 0.6164310334620043,
-          "centrality": 0.6829807354127844
-        },
-        {
-          "idx": 5,
-          "rel": 0.5995341908267852,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 6,
-          "rel": 0.5962700541296951,
-          "centrality": 0.6808116157123603
-        },
-        {
-          "idx": 17,
           "rel": 0.5869524342060216,
-          "centrality": 0.685542709221577
+          "centrality": 0.6969010703365396
         }
       ]
     },
@@ -500,33 +504,33 @@
       "strength": 2,
       "basis": "own",
       "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl",
-      "rel": 0.7044133550789091,
-      "admitted": true,
+      "rel": 0.6976977319114284,
+      "admitted": false,
       "top5": [
         {
-          "idx": 5,
-          "rel": 0.7044133550789091,
-          "centrality": 0.6657533079169893
+          "idx": 6,
+          "rel": 0.6976977319114284,
+          "centrality": 0.6626183228245385
         },
         {
-          "idx": 17,
+          "idx": 1,
           "rel": 0.6819524917269766,
-          "centrality": 0.685542709221577
+          "centrality": 0.6969010703365396
         },
         {
-          "idx": 7,
+          "idx": 4,
           "rel": 0.6813789780366889,
-          "centrality": 0.6889787449027106
+          "centrality": 0.6952849433492977
         },
         {
-          "idx": 2,
+          "idx": 13,
           "rel": 0.6728413337536003,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
         },
         {
-          "idx": 9,
-          "rel": 0.6695500735148702,
-          "centrality": 0.6764574909853532
+          "idx": 11,
+          "rel": 0.6727849650396722,
+          "centrality": 0.6891978745070947
         }
       ]
     },
@@ -539,29 +543,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 2,
+          "idx": 13,
           "rel": 0.5791667168157334,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
+        },
+        {
+          "idx": 10,
+          "rel": 0.5785669753499969,
+          "centrality": 0.5968748878651916
+        },
+        {
+          "idx": 8,
+          "rel": 0.5666995931148914,
+          "centrality": 0.6786853474317457
         },
         {
           "idx": 0,
-          "rel": 0.5785669753499969,
-          "centrality": 0.6011409823605832
-        },
-        {
-          "idx": 5,
-          "rel": 0.5729984526143895,
-          "centrality": 0.6657533079169893
+          "rel": 0.5618734202839684,
+          "centrality": 0.6749554896945438
         },
         {
           "idx": 15,
-          "rel": 0.5618734202839684,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 4,
-          "rel": 0.5611283836067508,
-          "centrality": 0.6610221543329656
+          "rel": 0.5591167750382167,
+          "centrality": 0.6735596682967803
         }
       ]
     },
@@ -574,29 +578,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 6,
+          "idx": 3,
           "rel": 0.7536102424975014,
-          "centrality": 0.6808116157123603
+          "centrality": 0.6774379770459005
         },
         {
-          "idx": 15,
+          "idx": 7,
+          "rel": 0.6452497440109866,
+          "centrality": 0.6362203732460161
+        },
+        {
+          "idx": 0,
           "rel": 0.6332848814915496,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.6263475068081357,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         },
         {
-          "idx": 12,
+          "idx": 18,
           "rel": 0.6106748662042617,
-          "centrality": 0.632769426868108
-        },
-        {
-          "idx": 5,
-          "rel": 0.606394461358269,
-          "centrality": 0.6657533079169893
+          "centrality": 0.6251615000436511
         }
       ]
     },
@@ -609,29 +613,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.6707426775156445,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 16,
+          "idx": 6,
+          "rel": 0.644419519920929,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 2,
           "rel": 0.6306133035686341,
-          "centrality": 0.6753814481285699
-        },
-        {
-          "idx": 17,
-          "rel": 0.6252479332533147,
-          "centrality": 0.685542709221577
+          "centrality": 0.683271423364519
         },
         {
           "idx": 1,
-          "rel": 0.5917055366776135,
-          "centrality": 0.6829807354127844
+          "rel": 0.6252479332533147,
+          "centrality": 0.6969010703365396
         },
         {
-          "idx": 4,
-          "rel": 0.589936555328056,
-          "centrality": 0.6610221543329656
+          "idx": 8,
+          "rel": 0.6114263826611636,
+          "centrality": 0.6786853474317457
         }
       ]
     },
@@ -644,29 +648,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 12,
+          "idx": 18,
           "rel": 0.6701016359239833,
-          "centrality": 0.632769426868108
+          "centrality": 0.6251615000436511
         },
         {
-          "idx": 5,
-          "rel": 0.6385790181163317,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 3,
+          "idx": 14,
           "rel": 0.6286075017596517,
-          "centrality": 0.6691965358567632
+          "centrality": 0.6600848708836023
         },
         {
-          "idx": 9,
+          "idx": 8,
+          "rel": 0.6277332616338945,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 15,
           "rel": 0.6093418389199723,
-          "centrality": 0.6764574909853532
+          "centrality": 0.6735596682967803
         },
         {
-          "idx": 0,
+          "idx": 10,
           "rel": 0.6044506860435643,
-          "centrality": 0.6011409823605832
+          "centrality": 0.5968748878651916
         }
       ]
     },
@@ -679,29 +683,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 14,
+          "idx": 19,
           "rel": 0.7077861282761514,
-          "centrality": 0.6998479033210405
+          "centrality": 0.7013805903369446
         },
         {
-          "idx": 10,
+          "idx": 17,
           "rel": 0.6933236289020954,
-          "centrality": 0.7116188058873549
+          "centrality": 0.7085996745521408
         },
         {
-          "idx": 7,
+          "idx": 4,
           "rel": 0.6898562433858217,
-          "centrality": 0.6889787449027106
+          "centrality": 0.6952849433492977
+        },
+        {
+          "idx": 9,
+          "rel": 0.6812193169133732,
+          "centrality": 0.6974572308737016
         },
         {
           "idx": 13,
-          "rel": 0.6812193169133732,
-          "centrality": 0.6898465494241951
-        },
-        {
-          "idx": 2,
           "rel": 0.6749223373858235,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
         }
       ]
     },
@@ -710,33 +714,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "Stop Reviewing Diffs. Start Reviewing Systems",
-      "rel": 0.608529272044477,
+      "rel": 0.6353378448541669,
       "admitted": false,
       "top5": [
         {
-          "idx": 6,
+          "idx": 8,
+          "rel": 0.6353378448541669,
+          "centrality": 0.6786853474317457
+        },
+        {
+          "idx": 11,
+          "rel": 0.617966858963518,
+          "centrality": 0.6891978745070947
+        },
+        {
+          "idx": 3,
           "rel": 0.608529272044477,
-          "centrality": 0.6808116157123603
+          "centrality": 0.6774379770459005
         },
         {
-          "idx": 5,
-          "rel": 0.5985679998746624,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 12,
+          "idx": 18,
           "rel": 0.5954548837236474,
-          "centrality": 0.632769426868108
+          "centrality": 0.6251615000436511
         },
         {
-          "idx": 13,
+          "idx": 9,
           "rel": 0.5944762175472492,
-          "centrality": 0.6898465494241951
-        },
-        {
-          "idx": 4,
-          "rel": 0.5942126298570514,
-          "centrality": 0.6610221543329656
+          "centrality": 0.6974572308737016
         }
       ]
     },
@@ -749,29 +753,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.7738918124290181,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         },
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.738491814599026,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 17,
+          "idx": 1,
           "rel": 0.6994300357148948,
-          "centrality": 0.685542709221577
+          "centrality": 0.6969010703365396
         },
         {
-          "idx": 11,
+          "idx": 16,
           "rel": 0.697936958877744,
-          "centrality": 0.6519391472639705
+          "centrality": 0.6474727752119721
         },
         {
-          "idx": 7,
+          "idx": 4,
           "rel": 0.6910900360886307,
-          "centrality": 0.6889787449027106
+          "centrality": 0.6952849433492977
         }
       ]
     },
@@ -784,29 +788,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.5968869004434535,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         },
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.5863862222081286,
-          "centrality": 0.6630107781151954
-        },
-        {
-          "idx": 17,
-          "rel": 0.560115403108317,
-          "centrality": 0.685542709221577
-        },
-        {
-          "idx": 7,
-          "rel": 0.5388981299490814,
-          "centrality": 0.6889787449027106
+          "centrality": 0.6749554896945438
         },
         {
           "idx": 6,
-          "rel": 0.5361662719774803,
-          "centrality": 0.6808116157123603
+          "rel": 0.5812269912294307,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 7,
+          "rel": 0.5703670095502186,
+          "centrality": 0.6362203732460161
+        },
+        {
+          "idx": 1,
+          "rel": 0.560115403108317,
+          "centrality": 0.6969010703365396
         }
       ]
     },
@@ -815,33 +819,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read)",
-      "rel": 0.5996276635258906,
+      "rel": 0.6006550462401491,
       "admitted": false,
       "top5": [
         {
-          "idx": 7,
-          "rel": 0.5996276635258906,
-          "centrality": 0.6889787449027106
+          "idx": 6,
+          "rel": 0.6006550462401491,
+          "centrality": 0.6626183228245385
         },
         {
           "idx": 4,
-          "rel": 0.5782665188831223,
-          "centrality": 0.6610221543329656
+          "rel": 0.5996276635258906,
+          "centrality": 0.6952849433492977
         },
         {
-          "idx": 12,
+          "idx": 18,
           "rel": 0.5719938924107616,
-          "centrality": 0.632769426868108
+          "centrality": 0.6251615000436511
         },
         {
-          "idx": 15,
+          "idx": 0,
           "rel": 0.567872722880836,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         },
         {
-          "idx": 16,
+          "idx": 2,
           "rel": 0.5649823427726343,
-          "centrality": 0.6753814481285699
+          "centrality": 0.683271423364519
         }
       ]
     },
@@ -850,33 +854,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "Qwen3.8 has launched (1 minute read)",
-      "rel": 0.6315799194183156,
+      "rel": 0.6279406898829019,
       "admitted": false,
       "top5": [
         {
-          "idx": 5,
-          "rel": 0.6315799194183156,
-          "centrality": 0.6657533079169893
+          "idx": 8,
+          "rel": 0.6279406898829019,
+          "centrality": 0.6786853474317457
         },
         {
-          "idx": 1,
+          "idx": 12,
           "rel": 0.5935331359857531,
-          "centrality": 0.6829807354127844
+          "centrality": 0.681533165193266
         },
         {
-          "idx": 3,
+          "idx": 14,
           "rel": 0.5789481382626495,
-          "centrality": 0.6691965358567632
+          "centrality": 0.6600848708836023
+        },
+        {
+          "idx": 10,
+          "rel": 0.5774063205619915,
+          "centrality": 0.5968748878651916
         },
         {
           "idx": 0,
-          "rel": 0.5774063205619915,
-          "centrality": 0.6011409823605832
-        },
-        {
-          "idx": 15,
           "rel": 0.573954013810023,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         }
       ]
     },
@@ -889,29 +893,29 @@
       "admitted": true,
       "top5": [
         {
-          "idx": 10,
+          "idx": 17,
           "rel": 0.7373175658273193,
-          "centrality": 0.7116188058873549
+          "centrality": 0.7085996745521408
         },
         {
-          "idx": 3,
+          "idx": 14,
           "rel": 0.6769797984885325,
-          "centrality": 0.6691965358567632
+          "centrality": 0.6600848708836023
         },
         {
-          "idx": 2,
+          "idx": 13,
           "rel": 0.6673468912450246,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
         },
         {
-          "idx": 5,
-          "rel": 0.6604203068908097,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 1,
+          "idx": 12,
           "rel": 0.6414834497784121,
-          "centrality": 0.6829807354127844
+          "centrality": 0.681533165193266
+        },
+        {
+          "idx": 19,
+          "rel": 0.6309879478788291,
+          "centrality": 0.7013805903369446
         }
       ]
     },
@@ -920,33 +924,33 @@
       "strength": 2,
       "basis": "citing",
       "text": "Mythos and Fable",
-      "rel": 0.5549935283254172,
+      "rel": 0.5329232121423342,
       "admitted": false,
       "top5": [
         {
-          "idx": 5,
-          "rel": 0.5549935283254172,
-          "centrality": 0.6657533079169893
-        },
-        {
-          "idx": 1,
-          "rel": 0.5329232121423342,
-          "centrality": 0.6829807354127844
-        },
-        {
-          "idx": 16,
-          "rel": 0.5186070443142232,
-          "centrality": 0.6753814481285699
-        },
-        {
           "idx": 12,
-          "rel": 0.5170270599760203,
-          "centrality": 0.632769426868108
+          "rel": 0.5329232121423342,
+          "centrality": 0.681533165193266
         },
         {
-          "idx": 15,
+          "idx": 2,
+          "rel": 0.5186070443142232,
+          "centrality": 0.683271423364519
+        },
+        {
+          "idx": 18,
+          "rel": 0.5170270599760203,
+          "centrality": 0.6251615000436511
+        },
+        {
+          "idx": 6,
+          "rel": 0.5137767260606222,
+          "centrality": 0.6626183228245385
+        },
+        {
+          "idx": 0,
           "rel": 0.5074499642036806,
-          "centrality": 0.6630107781151954
+          "centrality": 0.6749554896945438
         }
       ]
     },
@@ -959,29 +963,29 @@
       "admitted": false,
       "top5": [
         {
-          "idx": 9,
+          "idx": 15,
           "rel": 0.662726342513288,
-          "centrality": 0.6764574909853532
+          "centrality": 0.6735596682967803
         },
         {
-          "idx": 2,
+          "idx": 13,
           "rel": 0.6530311507621682,
-          "centrality": 0.6930606091167857
+          "centrality": 0.6881024331679961
         },
         {
-          "idx": 1,
+          "idx": 12,
           "rel": 0.6192487322378462,
-          "centrality": 0.6829807354127844
+          "centrality": 0.681533165193266
         },
         {
-          "idx": 0,
+          "idx": 10,
           "rel": 0.6159661680642684,
-          "centrality": 0.6011409823605832
+          "centrality": 0.5968748878651916
         },
         {
-          "idx": 5,
-          "rel": 0.5907370006099537,
-          "centrality": 0.6657533079169893
+          "idx": 18,
+          "rel": 0.5896160533739657,
+          "centrality": 0.6251615000436511
         }
       ]
     }
