@@ -31,6 +31,16 @@ export const DEFAULTS = {
   publisherCanonicalMinCites: 2,
   releaseBridge: true,
   mergeSingleCitationVehicles: true,
+  // #39 knobs. Defaults reproduce #6 exactly: `hn`+`bluesky`, guard counts
+  // distinct LINKS, no body-length test.
+  vehicleTransports: null, // null -> VEHICLE_TRANSPORTS
+  vehicleGuard: 'links', // 'links' | 'signals'
+  vehicleMaxBodyChars: null, // null -> no length test
+  // #39: read this Item's SURVIVING outbound Citations rather than its raw
+  // `outbound` array. `false` reproduces #6 — including #6's leak, where a
+  // citation dropped as intra-publisher navigation or reference-only still
+  // counts as the sole target because some OTHER publisher created the Link.
+  vehicleFromCitations: false,
   // Citation-worthiness. Both found necessary on real data, both ablatable.
   dropReferenceOnly: true,
   dropIntraPublisherLinks: true,
@@ -90,6 +100,7 @@ export async function buildCorpus(items, opts = {}) {
 
   const links = new Map(); // canonical url -> {url, host, firstSeen, lastSeen}
   const citations = []; // {itemIdx, publisherId, linkUrl, kind, rawUrl, at}
+  const vehicleMergeDetail = []; // #39: every fold, for hand-classification
   const notes = { shortenerHops: 0, shortenerExhausted: 0, ssrfRejects: 0, canonicalHeader: 0, canonicalTag: 0, canonicalCrossSite: 0, ghRenames: 0, hnResolved: 0, releaseBridges: 0, droppedNonHttp: 0, referenceDropped: 0, intraPublisherDropped: 0, vehicleMerges: 0 };
 
   const touchLink = (url, at) => {
@@ -298,23 +309,58 @@ export async function buildCorpus(items, opts = {}) {
   // roundup and genuinely is its own item, so merging it into any one target
   // would be a false merge.
   if (cfg.mergeSingleCitationVehicles) {
-    for (const it of items) {
-      if (!VEHICLE_TRANSPORTS.has(it.transport)) continue;
+    const vehicles = cfg.vehicleTransports || VEHICLE_TRANSPORTS;
+    // #39: the outbound Citations that actually survived citation-worthiness,
+    // per Item. Not the same set as `it.outbound`.
+    const survivingOutbound = new Map();
+    for (const c of citations) {
+      if (c.kind !== 'outbound') continue;
+      if (!survivingOutbound.has(c.itemIdx)) survivingOutbound.set(c.itemIdx, []);
+      survivingOutbound.get(c.itemIdx).push(c.linkUrl);
+    }
+    for (let itIdx = 0; itIdx < items.length; itIdx++) {
+      const it = items[itIdx];
+      if (!vehicles.has(it.transport)) continue;
       if (it.transport === 'hn') continue; // rule A already handled these
       if (!it.selfUrl) continue;
+      // #39: an optional "the body is a sentence and a link" test. Only applied
+      // where a length is known (RSS); undefined never fails it.
+      if (cfg.vehicleMaxBodyChars != null && it.bodyChars != null && it.bodyChars > cfg.vehicleMaxBodyChars) continue;
       const self = resolveRemap(links, rawToCanonical.get(it.selfUrl) || '');
+      const raw = cfg.vehicleFromCitations
+        ? survivingOutbound.get(itIdx) || []
+        : (it.outbound || []).map((o) => rawToCanonical.get(o));
       const targets = [
         ...new Set(
-          (it.outbound || [])
-            .map((o) => rawToCanonical.get(o))
+          raw
             .filter(Boolean)
             .map((u) => resolveRemap(links, u))
             .filter((u) => links.has(u) && u !== self)
         ),
       ];
-      if (targets.length !== 1) continue;
+      // #39: the guard counts distinct SIGNALS, not distinct Links. An outbound
+      // Citation already aliased into another of this post's targets (the
+      // article + its HN thread, the shape a link-blog produces constantly) is
+      // one vote for one story, so it must not read as a roundup.
+      const groupsOfTargets =
+        cfg.vehicleGuard === 'signals'
+          ? [...new Set(targets.map((u) => sig.find(u)))]
+          : targets;
+      if (groupsOfTargets.length !== 1) continue;
       if (!links.has(self)) continue;
-      if (sig.merge(targets[0], self, 'vehicle-post->sole-target', alwaysAllow)) notes.vehicleMerges++;
+      const into = cfg.vehicleGuard === 'signals' ? groupsOfTargets[0] : targets[0];
+      if (sig.merge(into, self, 'vehicle-post->sole-target', alwaysAllow)) {
+        notes.vehicleMerges++;
+        vehicleMergeDetail.push({
+          publisherId: it.publisherId,
+          transport: it.transport,
+          title: it.title,
+          bodyChars: it.bodyChars ?? null,
+          self,
+          targets,
+          into,
+        });
+      }
     }
     log(`  single-citation vehicle posts folded into their target: ${notes.vehicleMerges}`);
   }
@@ -419,7 +465,7 @@ export async function buildCorpus(items, opts = {}) {
     });
   }
   signals.sort((a, b) => b.strength - a.strength || b.decay - a.decay);
-  return { links, citations, signals, sig, notes, cfg, items };
+  return { links, citations, signals, sig, notes, cfg, items, vehicleMergeDetail };
 }
 
 // A remap is a canonicalization correction: the OLD url is not a separate Link,

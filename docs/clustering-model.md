@@ -240,7 +240,7 @@ merge. **Therefore temporal decay lives entirely in ranking, not in the clustere
 | `hn-thread->target` | an HN thread is a *discussion of* a URL | 229 |
 | `hn-item-cited-by-other` | someone else citing `news.ycombinator.com/item?id=N` means the story, not the thread | (within the 229) |
 | `hn-comment->story-target` | a cited HN **comment** permalink means the story it sits under | **added by #20** — see §5 |
-| `vehicle-post->sole-target` | a post existing to link one article is not its own story | **170** |
+| `vehicle-post->sole-target` | a post existing to link one article is not its own story | **149** (170 before #39 corrected the guard) |
 | `announcement->cited-release-tag` | an announcement Item citing a `releases/tag/…` URL declares them one event | **15** (0 before the rule was reversed) |
 | github owner rename | `facebook/react` → `react/react` | 0 on this corpus; keep it, one cached API call per repo |
 
@@ -251,10 +251,48 @@ post competes for a Brief slot against the article it points at. The **"exactly
 one" guard is load-bearing**: a post citing three URLs is a roundup and genuinely
 is its own Item.
 
-**Vehicle folding currently covers `hn` and `bluesky` only.** Extending it to RSS
-link-blog feeds is
-[Extend vehicle folding to RSS link-blog feeds](https://github.com/SaKaNa-Y/Zis/issues/39),
-not a settled part of this model.
+**The guard counts this Item's surviving outbound _Citations_, never its raw
+outbound links** — corrected by
+[Extend vehicle folding to RSS link-blog feeds](https://github.com/SaKaNa-Y/Zis/issues/39).
+As first written it read the raw hrefs, so a link dropped by §3's
+citation-worthiness — intra-publisher navigation, a reference-only URL — still
+counted as the sole target whenever *some other* Publisher had created that Link.
+**21 of the 170 folds were leak-driven**, and one of them manufactured a false
+Strength-2 Signal (§4's own-vote case, below). A drop that still steers a merge is
+the filter being overruled by the rule downstream of it. Corrected yield **149**,
+and it moves `s≥2` by **zero** — the rule's value is the ~150 singleton Signals it
+takes out of the pool, the same shape as §9's reading of the whole cascade.
+
+**Vehicle folding covers `hn` and `bluesky`, and that is now a decision rather
+than a gap.** Extending it to RSS link-blog feeds is **refused, full stop** (#39,
+measured over #6's corpus): adding `rss` fires **63 folds and recovers zero
+votes** — `s≥2` 27→27, `s≥3` 5→5 — while the single admission change it produces
+is a **false merge**, Vercel's essay *"Everything hackable will get hacked"* folded
+into a YouTube video it embeds, carrying TLDR's vote for the essay onto the video
+and taking the negative-control false-positive count from 3 to 4. Judged on §1's
+supply ledger the rule earns nothing and costs a control. Four things are settled
+with it, so they are not re-derived:
+
+- **#6's third true miss is real and worth zero votes.** The extension does join
+  Willison's link-blog entry to HN thread `item?id=49220609` — at Strength **3
+  before and 3 after**. §1 again: a split vote is self-suppressing, and this split
+  had nothing to recover.
+- **The `targets.length !== 1` guard needs no RSS variant.** #39 expected a
+  link-blog to cite the article *plus* its HN thread, defeating the guard. Counting
+  distinct *Signals* instead of distinct Links unlocks **0** additional folds
+  corpus-wide: only **11 of 845** RSS items cite an HN thread at all, and of the 49
+  citing exactly two surviving targets, **0** are already one Signal. The shape
+  never reaches the guard.
+- **A body-length test cannot separate a link post from a story.** True link posts
+  run 102–2,135 plain-text chars; Ars Technica's news teasers run 780–1,182 and
+  LWN's 519–599. The bands overlap almost entirely, and at ≤1,000 chars 19 folds
+  fire of which the Ars, LWN and Vercel-changelog ones are all false.
+- **A per-Publisher `is_vehicle` flag is refused too.** Of the 63 folds only ~11
+  are link-post-shaped and **all 11 are one Publisher**; they still recover zero
+  votes, and two of them fold into `github.com/simonw/…` release tags, letting that
+  Publisher vote on its own release. The other ~52 are stories folded into an
+  incidental citation — WebKit's Safari Technology Preview release notes into
+  `developer.apple.com/safari/resources`, a footer link, five times over.
 
 ### Strength
 
@@ -270,6 +308,21 @@ Publishers sharing a host silently disables the self-citation guard. `github` an
 a Map, the second registration won, and **GitHub appeared as an independent voter on
 its own changelog**. That is the vendor-manufactures-its-own-cluster failure arriving
 through a data-modelling slip rather than a rule.
+
+**The guard is keyed on a host registry, so it misses hosts a Publisher owns in
+fact but is not registered as owning — and a vehicle fold is the shape that
+weaponizes the gap.** Found by #39 while auditing the guard-leak folds above, on
+two live cases. Willison's Bluesky post citing his own article: `bsky.app` is not
+one of that Publisher's `hosts`, so his citation of his *own* vehicle post reads as
+a vote, and folding the vehicle into his article lands that vote on his own story —
+Strength 2 from one voice plus TLDR. And Cloudflare's blog post folded into its own
+investor-relations release on `cloudflare.net`, an unregistered second host,
+producing Strength 2 with Cloudflare as both `origin` and a voter. The
+Citations-not-hrefs correction above removes both instances, which is the strongest
+argument for it. **Whether the registry itself is the wrong shape is
+[Decide what the self-citation guard keys on when a Publisher's hosts are
+unregistered](https://github.com/SaKaNa-Y/Zis/issues/44)**, not settled here — the
+two cases measured are narrower than the class.
 
 **Two counts must be reported**, because the prior-art targets include the origin
 ("Cited by: react.dev (origin) · React Status · …") while `Strength` excludes it.
@@ -415,8 +468,12 @@ bound on same-story pairs sharing no URL, not a stand-in for `bge-small` quality
 **True misses (3):** the two-slug `thenewstack.io` article (§5, class 1), the HN
 comment permalink (§5, class 2 — recorded at the time as a duplicate submission,
 which #20 disproved), and a link-blog entry sitting apart from the HN thread on the
-same story (now
-[Extend vehicle folding to RSS link-blog feeds](https://github.com/SaKaNa-Y/Zis/issues/39)).
+same story — **answered by
+[Extend vehicle folding to RSS link-blog feeds](https://github.com/SaKaNa-Y/Zis/issues/39):
+the third miss is real, joinable, and worth zero votes** (Strength 3 before the join
+and 3 after), so **all three true misses are now known to cost nothing at
+Admission**. That is the strongest form of §1 — a second pass that caught every one
+of them would move the Brief by zero entries while making the false merges above.
 
 **False merges a similarity pass would make (many):**
 
@@ -507,9 +564,30 @@ because they are what Admission can reach.
 | no vehicle folding | 5,400 | 5,156 | 26 | 5 |
 | pure syntactic only | 5,338 | 5,338 | 25 | 4 |
 
-Two things to read off it before proposing a layer:
+Rows added by #39. The first is the shipped configuration **after** §4's
+Citations-not-hrefs correction and is the one to compare against; the rest are the
+refused RSS variants, kept so the extension is not re-proposed.
 
-- **The whole cascade moves s≥2 from 25 to 27 and s≥3 from 4 to 5.** Its value is
-  in the ~350 junk Links it removes from the pool, not in admitted Signals.
+| configuration | links | signals | s≥2 | s≥3 |
+|---|---|---|---|---|
+| all layers, corrected guard | 5,400 | 5,007 | **26** | **5** |
+| + `rss`, raw hrefs | 5,400 | 4,925 | 27 | 5 |
+| + `rss`, corrected guard | 5,400 | 4,943 | 27 | 5 |
+| + `rss`, corrected guard, body ≤400 chars | 5,400 | 5,006 | 26 | 5 |
+
+**The 27 in the two `+ rss` rows is not a gain**, which is why a `s≥2` column alone
+misreads them: comparing the *multiset of admitted voter-sets* rather than the count,
+the only change is `4|emollick,interconnects,simonwillison,vercel` →
+`5|emollick,interconnects,simonwillison,tldr,vercel` — one false merge, and the extra
+voter is TLDR's vote for a Vercel essay relocated onto an embedded video. The 27→26 on
+the corrected guard is the removal of a false Signal, not a lost one. **A count is not
+a ledger; check which Publishers moved.**
+
+Two things to read off the first table before proposing a layer:
+
+- **The whole cascade moves s≥2 from 25 to 27 and s≥3 from 4 to 5** — **26, not 27,
+  once #39 corrected the vehicle guard**, since one of the two was the false Signal
+  that correction removes. Its value is in the ~350 junk Links it removes from the
+  pool, not in admitted Signals.
 - **`no rel=canonical` costs nothing measurable.** That is the yield half of §5's
   refusal, and it is why growing L5 is the wrong place to spend a fetch budget.

@@ -77,6 +77,10 @@ export async function ingestRss(pub, source, log) {
       publishedAt: parseDate(date),
       outbound: extractHrefs(strip(body)),
       needsIssuePage: EXCERPT_AGGREGATORS.has(pub.id),
+      // Added for #39: the plain-text length of the feed body, so a candidate
+      // "this Item is a vehicle, not a story" test can be measured rather than
+      // asserted. Additive — nothing in the #6 cascade reads it.
+      bodyChars: strip(body).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().length,
     });
   }
   return items;
