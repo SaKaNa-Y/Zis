@@ -42,6 +42,10 @@ Thumbs.db
 # Drizzle
 /drizzle/meta
 
+# Agent-session scratch. `/wayfinder` and friends create throwaway git
+# worktrees here; the branches they carry are the durable part, not the checkout.
+.claude/worktrees/
+
 # Prototype fetch caches. The prototypes and their findings are kept as
 # primary sources; the raw HTTP bodies they cached are not.
 .scratch/**/cache/
