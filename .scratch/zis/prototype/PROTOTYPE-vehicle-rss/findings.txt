@@ -1,0 +1,499 @@
+corpus: 1395 items
+
+=== RSS population (before any rule) ===
+  publisher        items  medianBodyChars  raw-outbound: 0 / 1 / 2+
+  nextjs             40             131   40 / 0 / 0
+  nodejs             40               0   40 / 0 / 0
+  openai             40             153   40 / 0 / 0
+  deepmind           40              99   40 / 0 / 0
+  svelte             40            4907   0 / 0 / 40
+  astro              40             125   40 / 0 / 0
+  deno               40             149   40 / 0 / 0
+  bun                40             330   40 / 0 / 0
+  theregister        40            3628   40 / 0 / 0
+  huggingface        40               0   40 / 0 / 0
+  vercel             40             967   0 / 0 / 40
+  simonwillison      30            1109   0 / 0 / 30
+  thenewstack        26            6007   0 / 0 / 26
+  react              23             216   23 / 0 / 0
+  tldr               20               0   0 / 0 / 20
+  cloudflare         20            9783   0 / 0 / 20
+  github             20            3716   0 / 0 / 20
+  arstechnica        20            1088   0 / 0 / 20
+  interconnects      20           10193   0 / 0 / 20
+  latentspace        20           17553   0 / 0 / 20
+  juliaevans         20            9608   0 / 0 / 20
+  aws                20            6405   0 / 0 / 20
+  lwn                15             704   5 / 3 / 7
+  infoq              15             374   15 / 0 / 0
+  pragmaticengineer  15            6531   0 / 0 / 15
+  chriscoyier        12            2248   2 / 0 / 10
+  jimnielsen         10            2494   0 / 0 / 10
+  typescript         10           19125   0 / 0 / 10
+  rust               10            4860   0 / 1 / 9
+  go                 10           14752   0 / 0 / 10
+  webkit             10            7997   0 / 0 / 10
+  chromedev          10              88   10 / 0 / 0
+  bramus             10            3414   0 / 0 / 10
+  rachelandrew       10            2831   1 / 0 / 9
+  armin              10           10812   0 / 0 / 10
+  jsweekly            4            6705   0 / 0 / 4
+  reactstatus         4            4697   0 / 0 / 4
+  frontendfocus       4            5798   0 / 0 / 4
+  twir                4           14906   0 / 0 / 4
+  pycoders            3            5010   0 / 0 / 3
+
+=== variant grid ===
+  variant                          signals  s>=2  s>=3  max  vehicleMerges  ofWhichRSS
+  A  baseline (#6 as shipped)        4986    27     5    4            170           0
+  B  guard=signals, hn+bsky only     4986    27     5    4            170           0
+  C  +rss, guard=links               4925    27     5    5            233          63
+  D  +rss, guard=signals             4925    27     5    5            233          63
+  E  +rss, guard=signals, body<=400   4985    27     5    4            172           2
+  F  +rss, guard=signals, body<=1000   4969    27     5    4            189          19
+  G  +rss, guard=links, body<=400    4985    27     5    4            172           2
+  H  hn+bsky, from-citations         5007    26     5    4            149           0
+  I  +rss, from-citations            4943    27     5    5            217          68
+  J  +rss, from-citations, body<=400   5006    26     5    4            153           4
+  K  +rss, from-cit, sig, body<=1000   4993    26     5    4            167          18
+
+=== folds the signals-guard unlocks that the links-guard refuses: 0 ===
+
+=== every RSS fold under D (+rss, guard=signals) ===
+  [armin] body=  2612 nTargets=1 "Communities of Not"
+     https://lucumr.pocoo.org/2026/6/6/communities-of-not
+  -> https://mastodon.gamedev.place/@JeremiahFieldhaven/116654345332213390
+  [armin] body=  4138 nTargets=1 "The Tower Keeps Rising"
+     https://lucumr.pocoo.org/2026/7/13/the-tower-keeps-rising
+  -> https://biblegateway.com/passage?search=Genesis+11%3A3-6&version=KJV
+  [armin] body= 10812 nTargets=1 "Building Pi With Pi"
+     https://lucumr.pocoo.org/2026/5/24/pi-oss
+  -> https://github.com/earendil-works/pi/tree/main/.pi
+  [arstechnica] body=   780 nTargets=1 "Ukraine strikes major Russian rocket factory with cruise missile"
+     https://arstechnica.com/space/2026/08/ukraine-strikes-major-russian-rocket-factory-with-cruise-missiles
+  -> https://x.com/ZelenskyyUa/status/2088547091471614397
+  [arstechnica] body=   998 nTargets=1 "Ars Live recap: How can we stop publishers from killing their ow"
+     https://arstechnica.com/gaming/2026/08/ars-live-recap-how-can-we-stop-publishers-from-killing-their-own-games
+  -> https://youtube.com/watch?v=IxS_FIhhH28
+  [arstechnica] body=  1017 nTargets=1 "US wait times for cancer surgeries are getting longer and longer"
+     https://arstechnica.com/health/2026/08/us-wait-times-for-cancer-surgeries-are-getting-longer-and-longer
+  -> https://jamanetwork.com/journals/jamasurgery/fullarticle/2852679
+  [arstechnica] body=  1036 nTargets=1 "Taylor Farms' connections to Trump admin spurs probe into Cyclos"
+     https://arstechnica.com/health/2026/08/taylor-farms-connections-to-trump-admin-spurs-probe-into-cyclospora-response
+  -> https://warren.senate.gov/wp-content/uploads/2026/08/Final-Letter-to-RFK-on-Cyclospora-Outbreak-Response.pdf
+  [arstechnica] body=  1100 nTargets=1 "R-rated director's cut of X-Files film restores Chris Carter's o"
+     https://arstechnica.com/culture/2026/08/r-rated-directors-cut-of-x-files-film-restores-chris-carters-original-horror-vision
+  -> https://deadline.com/2026/02/ryan-coogler-x-files-reboot-hulu-pilot-order-daneille-deadwyler-1236733363
+  [arstechnica] body=  1182 nTargets=1 "Suspecting court of using AI, man injected prompts in filings to"
+     https://arstechnica.com/tech-policy/2026/08/suspecting-court-of-using-ai-man-injected-prompts-in-filings-to-try-to-win-case
+  -> https://cdn.arstechnica.net/wp-content/uploads/2026/08/Elliott-v-New-York-Bariatric-Group-Memorandum-of-Decision-8-6-26.pdf
+  [aws] body=  4470 nTargets=1 "Announcing Amazon EC2 G7 instances accelerated by NVIDIA RTX PRO"
+     https://aws.amazon.com/blogs/aws/announcing-amazon-ec2-g7-instances-accelerated-by-nvidia-rtx-pro-4500-blackwell-server-edition-gpus
+  -> https://repost.aws/tags/TAO-wqN9fYRoyrpdULLa5y7g/amazon-ec-2
+  [aws] body=  5434 nTargets=1 "Amazon SQS turns 20: Two decades of reliable messaging at scale"
+     https://aws.amazon.com/blogs/aws/amazon-sqs-turns-20-two-decades-of-reliable-messaging-at-scale
+  -> https://linkedin.com/in/esrakayabali
+  [aws] body=  5596 nTargets=1 "AWS Weekly Roundup: Agentic CX designer for Amazon Connect Custo"
+     https://aws.amazon.com/blogs/aws/aws-weekly-roundup-agentic-cx-designer-for-amazon-connect-customer-ec2-ami-watermarks-open-governance-for-mysql-and-more-june-29-2026
+  -> https://builder.aws.com/content/3FGF2bDqKm6xKGmyJqJMrcwRhE8/the-aws-all-builders-welcome-grant-an-insiders-guide-for-2026-applicants
+  [chriscoyier] body=  2628 nTargets=1 "The New Van"
+     https://chriscoyier.net/2026/06/04/the-new-van
+  -> https://winnebago.com/models/revel-series/revel
+  [cloudflare] body=  7792 nTargets=1 "Secure all your internal vibe-coded applications — in one click"
+     https://blog.cloudflare.com/workers-protected-by-access
+  -> https://github.com/cloudflare/templates/tree/main/internal-sites-template
+  [cloudflare] body= 11883 nTargets=1 "Unveiling good and bad behaviors on the Agentic Internet"
+     https://blog.cloudflare.com/good-and-bad-agentic-behaviors
+  -> https://integrityand.trust.cfdata.org/precursor-trace
+  [cloudflare] body= 17723 nTargets=1 "How we’re rethinking work at Cloudflare with Cloudflare OS"
+     https://blog.cloudflare.com/how-we-use-ai-with-cloudflare-os
+  -> https://blog.cloudflare.com/engineering-standards-enforcement
+  [github] body=  3566 nTargets=1 "Agent Plugins 1.0 in VS Code, Copilot CLI, and the Copilot app"
+     https://github.blog/changelog/2026-08-12-agent-plugins-1-0-in-vs-code-copilot-cli-and-the-copilot-app
+  -> https://agent-plugins.org/plugin-authors
+  [interconnects] body=  7868 nTargets=1 "State of the blog, mid-2026"
+     https://interconnects.ai/p/state-of-the-blog-mid-2026
+  -> https://interconnects.ai/p/farewell-ai2
+  [juliaevans] body=  6891 nTargets=1 "Notes on switching to Helix from vim"
+     https://jvns.ca/blog/2025/10/10/notes-on-switching-to-helix-from-vim
+  -> https://vimdoc.sourceforge.net/htmldoc/options.html#
+  [juliaevans] body=  9499 nTargets=1 "Some terminal frustrations"
+     https://jvns.ca/blog/2025/02/05/some-terminal-frustrations
+  -> https://github.com/jvns/classificator
+  [juliaevans] body= 12245 nTargets=1 "How to add a directory to your PATH"
+     https://jvns.ca/blog/2025/02/13/how-to-add-a-directory-to-your-path
+  -> https://blog.flowblok.id.au/2013-02/shell-startup-scripts.html
+  [lwn] body=   519 nTargets=1 "[$] BPF, continuous testing, and stable kernels"
+     https://lwn.net/Articles/1087823
+  -> https://events.linuxfoundation.org/lsfmmbpf
+  [lwn] body=   571 nTargets=1 "rsync 3.5.0 released"
+     https://lwn.net/Articles/1088759
+  -> https://download.samba.org/pub/rsync/NEWS
+  [lwn] body=   599 nTargets=1 "Bernard: GNOME Shell design dreams"
+     https://lwn.net/Articles/1088238
+  -> https://blogs.gnome.org/shell-dev/2026/08/11/gnome-shell-design-dreams
+  [rachelandrew] body=  1462 nTargets=1 "What would a 2026 CSS Anthology look like?"
+     https://rachelandrew.co.uk/archives/2026/04/23/what-would-a-2026-css-anthology-look-like
+  -> https://archive.org/details/cssanthology00rach_0/mode/2up
+  [rachelandrew] body=  3838 nTargets=1 "Over 15 years of conference speaking"
+     https://rachelandrew.co.uk/archives/2026/07/20/over-15-years-of-conference-speaking
+  -> https://flickr.com/photos/tags/atmedia2006
+  [simonwillison] body=   102 nTargets=1 "datasette-auth-tokens 0.4a13"
+     https://simonwillison.net/2026/Aug/6/datasette-auth-tokens
+  -> https://github.com/simonw/datasette-auth-tokens/releases/tag/0.4a13
+  [simonwillison] body=   365 nTargets=1 "Quoting OpenClaw (running Opus 4.6)"
+     https://simonwillison.net/2026/Aug/10/openclaw
+  -> https://abc.net.au/news/2026-08-10/ai-assistant-hacks-gym-website-aus-cyber-attack/107007986
+  [simonwillison] body=   558 nTargets=1 "Northern Gannet"
+     https://simonwillison.net/2026/Aug/15/sighting-391300422
+  -> https://baynature.org/magazine/spring2017/atlantic-bird-makes-home-california-maybe-melting-arctic-ice
+  [simonwillison] body=   640 nTargets=1 "CORS Chat"
+     https://simonwillison.net/2026/Aug/15/cors-chat
+  -> https://gist.github.com/simonw/92a1d97773744b45bf259e003013cf36
+  [simonwillison] body=   828 nTargets=1 "Quoting Florian Herrengt"
+     https://simonwillison.net/2026/Aug/12/florian-herrengt
+  -> https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+  [simonwillison] body=   863 nTargets=1 "datasette-upload-dbs 0.5a0"
+     https://simonwillison.net/2026/Aug/11/datasette-upload-dbs
+  -> https://github.com/simonw/datasette-upload-dbs/releases/tag/0.5a0
+  [simonwillison] body=  1109 nTargets=1 "Simon Willison on Technical Blogging"
+     https://simonwillison.net/2026/Aug/6/simon-willison-on-technical-blogging
+  -> https://writethatblog.substack.com/p/simon-willison-on-technical-blogging
+  [simonwillison] body=  1162 nTargets=1 "Quoting Claude Opus 5 system prompt"
+     https://simonwillison.net/2026/Aug/9/claude-opus-5-system-prompt
+  -> https://anthropic.com/news/fable-mythos-access
+  [simonwillison] body=  1205 nTargets=1 "There are no lossless transformations of natural-language text"
+     https://simonwillison.net/2026/Aug/11/there-are-no-lossless-transformations-of-natural-language-text
+  -> https://sophiebits.com/2026/06/25/there-are-no-lossless-transformations-of-natural-language-text
+  [simonwillison] body=  1381 nTargets=1 "Don't classify. Hallucinate!"
+     https://simonwillison.net/2026/Aug/14/dont-classify-hallucinate
+  -> https://softwaredoug.com/blog/2026/08/10/hypothetical-classifications
+  [simonwillison] body=  2135 nTargets=1 "Now we have a timeline of the OpenAI accidental attack against H"
+     https://simonwillison.net/2026/Aug/8/now-we-have-a-timeline-of-the-openai-accidental-attack-against-h
+  -> https://simonwillison.net/2026/Aug/7/openai-timeline
+  [svelte] body=  2470 nTargets=1 "Svelte 5 Release Candidate"
+     https://svelte.dev/blog/svelte-5-release-candidate
+  -> https://svelte-5-preview.vercel.app/docs
+  [thenewstack] body=  3301 nTargets=1 "ChatGPT can now remember what you did on your Mac — without scre"
+     https://thenewstack.io/openai-chatgpt-computer-history
+  -> https://theverge.com/2024/6/3/24170305/microsoft-windows-recall-ai-screenshots-security-privacy-issues
+  [thenewstack] body=  4735 nTargets=1 "Rubrik’s lessons from one month with Mythos Preview"
+     https://thenewstack.io/rubrik-mythos-learnings
+  -> https://linkedin.com/in/arvind-nithrakashyap-752280
+  [thenewstack] body=  6007 nTargets=1 "SpaceXAI trained Grok 4.6 on something most AI labs throw away"
+     https://thenewstack.io/grok-4-6-agent-training
+  -> https://x.com/ArtificialAnlys/status/2087564648325530099/photo/1
+  [thenewstack] body=  6009 nTargets=1 "Five European companies just agreed to buy AI compute that doesn"
+     https://thenewstack.io/mistral-third-party-open-models
+  -> https://mistral.ai/news/regional-inference-open-models-new-compute
+  [vercel] body=   487 nTargets=1 "Skill packs are now available on skills.sh"
+     https://vercel.com/changelog/skill-packs-are-now-available
+  -> https://skills.sh/packs
+  [vercel] body=   516 nTargets=1 "GLM 5.2 free for eve agents through August 27 via Blackbox on AI"
+     https://vercel.com/changelog/glm-5-2-free-for-eve-agents-through-august-27-via-blackbox-on-ai-gateway
+  -> https://vercel.com/ai-gateway
+  [vercel] body=   544 nTargets=1 "Free domain for one year, now for all Pro teams"
+     https://vercel.com/changelog/free-domain-for-one-year-now-for-all-pro-teams
+  -> https://vercel.com/changelog/free-domain-now-included-with-new-pro-subscriptions
+  [vercel] body=   615 nTargets=1 "Encrypted Client Hello (ECH) is now supported on Vercel CDN"
+     https://vercel.com/changelog/encrypted-client-hello-now-supported-on-vercel-cdn
+  -> https://support.mozilla.org/en-US/kb/understand-encrypted-client-hello
+  [vercel] body=   642 nTargets=1 "LaunchDarkly is now available on the Vercel Marketplace"
+     https://vercel.com/changelog/launchdarkly-is-now-available-on-the-vercel-marketplace
+  -> https://flags-sdk.dev/providers/launchdarkly
+  [vercel] body=   704 nTargets=1 "Introducing Agent Plugins 1.0.0"
+     https://vercel.com/changelog/introducing-agent-plugins-1-0-0
+  -> https://vercel.com/blog/introducing-agent-plugins
+  [vercel] body=   917 nTargets=1 "Simplified onboarding for deepsec"
+     https://vercel.com/changelog/simplified-onboarding-for-deepsec
+  -> https://vercel.com/ai-gateway
+  [vercel] body=   966 nTargets=1 "Grok 4.6 now available on AI Gateway"
+     https://vercel.com/changelog/grok-4-6-now-available-on-ai-gateway
+  -> https://vercel.com/ai-gateway
+  [vercel] body=  1066 nTargets=1 "Vercel AI Gateway and Vercel Sandbox now available on Hermes Age"
+     https://vercel.com/changelog/vercel-ai-gateway-and-vercel-sandbox-now-available-on-hermes-agent
+  -> https://vercel.com/ai-gateway
+  [vercel] body=  1191 nTargets=1 "Use ACP-compatible harnesses with the AI SDK harness layer"
+     https://vercel.com/changelog/use-acp-compatible-harnesses-with-the-ai-sdk-harness-layer
+  -> https://ai-sdk.dev/v7/providers/ai-sdk-harnesses/acp
+  [vercel] body=  1272 nTargets=1 "Gemini 3.7 Flash now available on AI Gateway for 50% off"
+     https://vercel.com/changelog/gemini-3-7-flash-now-available-on-ai-gateway-for-50-off
+  -> https://vercel.com/ai-gateway
+  [vercel] body=  1691 nTargets=1 "Give every agent in Herdr its own Vercel Sandbox"
+     https://vercel.com/changelog/give-every-agent-in-herdr-its-own-vercel-sandbox
+  -> https://github.com/vercel-labs/herdr-vercel-sandbox-plugin
+  [vercel] body=  7765 nTargets=1 "Everything hackable will get hacked"
+     https://vercel.com/blog/everything-hackable-will-get-hacked
+  -> https://youtube.com/watch?v=87DyyMV0kCY
+  [vercel] body=  9019 nTargets=1 "DeepSeek overtakes Google on volume, cost per token falls 13.6%"
+     https://vercel.com/blog/deepseek-overtakes-google-on-volume-cost-per-token-falls
+  -> https://vercel.com/ai-gateway
+  [vercel] body= 10096 nTargets=1 "Inside the Vercel intern experience"
+     https://vercel.com/blog/inside-the-vercel-intern-experience
+  -> https://v0.app/changelog
+  [vercel] body= 11141 nTargets=1 "How we migrated the database behind every Vercel build"
+     https://vercel.com/blog/how-we-migrated-the-database-behind-every-vercel-build
+  -> https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/howitworks-ttl.html
+  [webkit] body=  4655 nTargets=1 "Release Notes for Safari Technology Preview 250"
+     https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250
+  -> https://developer.apple.com/safari/resources
+  [webkit] body=  7898 nTargets=1 "Release Notes for Safari Technology Preview 249"
+     https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249
+  -> https://developer.apple.com/safari/resources
+  [webkit] body= 10046 nTargets=1 "Release Notes for Safari Technology Preview 247"
+     https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247
+  -> https://developer.apple.com/safari/resources
+  [webkit] body= 11982 nTargets=1 "Release Notes for Safari Technology Preview 248"
+     https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248
+  -> https://developer.apple.com/safari/resources
+  [webkit] body= 14592 nTargets=1 "Release Notes for Safari Technology Preview 246"
+     https://webkit.org/blog/18128/release-notes-for-safari-technology-preview-246
+  -> https://developer.apple.com/safari/resources
+
+=== B  guard=signals, hn+bsky only: s>=2 set vs baseline ===
+  gained 0, lost 0, strengthened 0
+
+=== C  +rss, guard=links: s>=2 set vs baseline ===
+  gained 3, lost 3, strengthened 1
+  + s=3 https://simonwillison.net/2026/Aug/8/now-we-have-a-timeline-of-the-openai-accidental-attack-against-h  [interconnects,simonwillison,tldr]
+  + s=3 https://simonwillison.net/2026/Aug/9/claude-opus-5-system-prompt  [armin,interconnects,simonwillison]
+  + s=2 https://simonwillison.net/2026/Aug/12/florian-herrengt  [simonwillison,tldr]
+  - s=3 https://news.ycombinator.com/item?id=49220609  [interconnects,simonwillison,tldr]
+  - s=3 https://anthropic.com/news/fable-mythos-access  [armin,interconnects,simonwillison]
+  - s=2 https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html  [simonwillison,tldr]
+  ^ 4->5 https://youtube.com/watch?v=87DyyMV0kCY  [emollick,interconnects,simonwillison,tldr,vercel]
+
+=== D  +rss, guard=signals: s>=2 set vs baseline ===
+  gained 3, lost 3, strengthened 1
+  + s=3 https://simonwillison.net/2026/Aug/8/now-we-have-a-timeline-of-the-openai-accidental-attack-against-h  [interconnects,simonwillison,tldr]
+  + s=3 https://simonwillison.net/2026/Aug/9/claude-opus-5-system-prompt  [armin,interconnects,simonwillison]
+  + s=2 https://simonwillison.net/2026/Aug/12/florian-herrengt  [simonwillison,tldr]
+  - s=3 https://news.ycombinator.com/item?id=49220609  [interconnects,simonwillison,tldr]
+  - s=3 https://anthropic.com/news/fable-mythos-access  [armin,interconnects,simonwillison]
+  - s=2 https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html  [simonwillison,tldr]
+  ^ 4->5 https://youtube.com/watch?v=87DyyMV0kCY  [emollick,interconnects,simonwillison,tldr,vercel]
+
+=== E  +rss, guard=signals, body<=400: s>=2 set vs baseline ===
+  gained 0, lost 0, strengthened 0
+
+=== F  +rss, guard=signals, body<=1000: s>=2 set vs baseline ===
+  gained 1, lost 1, strengthened 0
+  + s=2 https://simonwillison.net/2026/Aug/12/florian-herrengt  [simonwillison,tldr]
+  - s=2 https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html  [simonwillison,tldr]
+
+=== G  +rss, guard=links, body<=400: s>=2 set vs baseline ===
+  gained 0, lost 0, strengthened 0
+
+=== H  hn+bsky, from-citations: s>=2 set vs baseline ===
+  gained 0, lost 1, strengthened 0
+  - s=2 https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24  [simonwillison,tldr]
+
+=== I  +rss, from-citations: s>=2 set vs baseline ===
+  gained 4, lost 4, strengthened 1
+  + s=3 https://simonwillison.net/2026/Aug/8/now-we-have-a-timeline-of-the-openai-accidental-attack-against-h  [interconnects,simonwillison,tldr]
+  + s=3 https://simonwillison.net/2026/Aug/9/claude-opus-5-system-prompt  [armin,interconnects,simonwillison]
+  + s=2 https://simonwillison.net/2026/Aug/12/florian-herrengt  [simonwillison,tldr]
+  + s=2 https://blog.cloudflare.com/the-agentic-internet  [cloudflare,tldr]
+  - s=3 https://news.ycombinator.com/item?id=49220609  [interconnects,simonwillison,tldr]
+  - s=3 https://anthropic.com/news/fable-mythos-access  [armin,interconnects,simonwillison]
+  - s=2 https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html  [simonwillison,tldr]
+  - s=2 https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24  [simonwillison,tldr]
+  ^ 4->5 https://youtube.com/watch?v=87DyyMV0kCY  [emollick,interconnects,simonwillison,tldr,vercel]
+
+=== J  +rss, from-citations, body<=400: s>=2 set vs baseline ===
+  gained 0, lost 1, strengthened 0
+  - s=2 https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24  [simonwillison,tldr]
+
+=== K  +rss, from-cit, sig, body<=1000: s>=2 set vs baseline ===
+  gained 1, lost 2, strengthened 0
+  + s=2 https://simonwillison.net/2026/Aug/12/florian-herrengt  [simonwillison,tldr]
+  - s=2 https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html  [simonwillison,tldr]
+  - s=2 https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24  [simonwillison,tldr]
+
+=== acceptance clusters + negative controls, per variant ===
+  A  baseline (#6 as shipped)      C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  B  guard=signals, hn+bsky only   C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  C  +rss, guard=links             C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 4
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+        vercel s=5 https://youtube.com/watch?v=87DyyMV0kCY
+  D  +rss, guard=signals           C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 4
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+        vercel s=5 https://youtube.com/watch?v=87DyyMV0kCY
+  E  +rss, guard=signals, body<=400 C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  F  +rss, guard=signals, body<=1000 C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  G  +rss, guard=links, body<=400  C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  H  hn+bsky, from-citations       C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  I  +rss, from-citations          C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:3 C10:2  | control FPs: 4
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+        vercel s=5 https://youtube.com/watch?v=87DyyMV0kCY
+  J  +rss, from-citations, body<=400 C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  K  +rss, from-cit, sig, body<=1000 C1:1 C2:2 C3:1 C4:3 C5:1 C6:3 C7:1 C8:- C9:1 C10:2  | control FPs: 3
+        huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+
+=== the #6 true miss: does folding recover it, and is a vote recovered? ===
+  A  baseline (#6 as shipped)      joined=no   strength=3  members=3
+  B  guard=signals, hn+bsky only   joined=no   strength=3  members=3
+  C  +rss, guard=links             joined=YES  strength=3  members=4
+      voters: simonwillison, tldr, interconnects
+  D  +rss, guard=signals           joined=YES  strength=3  members=4
+      voters: simonwillison, tldr, interconnects
+  E  +rss, guard=signals, body<=400 joined=no   strength=3  members=3
+  F  +rss, guard=signals, body<=1000 joined=no   strength=3  members=3
+  G  +rss, guard=links, body<=400  joined=no   strength=3  members=3
+  H  hn+bsky, from-citations       joined=no   strength=3  members=2
+  I  +rss, from-citations          joined=YES  strength=3  members=3
+      voters: simonwillison, tldr, interconnects
+  J  +rss, from-citations, body<=400 joined=no   strength=3  members=2
+  K  +rss, from-cit, sig, body<=1000 joined=no   strength=3  members=2
+
+=== leak audit: RSS folds under D whose sole target is not a surviving Citation of that Item ===
+  D RSS folds 63, I RSS folds 68, leak-driven 10
+  [cloudflare] "How we’re rethinking work at Cloudflare with Cloudflare "  ->  https://blog.cloudflare.com/engineering-standards-enforcement
+  [interconnects] "State of the blog, mid-2026"  ->  https://interconnects.ai/p/farewell-ai2
+  [vercel] "GLM 5.2 free for eve agents through August 27 via Blackb"  ->  https://vercel.com/ai-gateway
+  [vercel] "Free domain for one year, now for all Pro teams"  ->  https://vercel.com/changelog/free-domain-now-included-with-new-pro-subscriptions
+  [vercel] "Introducing Agent Plugins 1.0.0"  ->  https://vercel.com/blog/introducing-agent-plugins
+  [vercel] "Simplified onboarding for deepsec"  ->  https://vercel.com/ai-gateway
+  [vercel] "Grok 4.6 now available on AI Gateway"  ->  https://vercel.com/ai-gateway
+  [vercel] "Vercel AI Gateway and Vercel Sandbox now available on He"  ->  https://vercel.com/ai-gateway
+  [vercel] "Gemini 3.7 Flash now available on AI Gateway for 50% off"  ->  https://vercel.com/ai-gateway
+  [vercel] "DeepSeek overtakes Google on volume, cost per token fall"  ->  https://vercel.com/ai-gateway
+  and on hn+bluesky, where the rule shipped: 21 of 170 folds are leak-driven
+
+=== supply ledger: admitted voter-sets vs baseline (labelling-artifact-free) ===
+  B  guard=signals, hn+bsky only
+     + (none)
+     - (none)
+  C  +rss, guard=links
+     + 5|emollick,interconnects,simonwillison,tldr,vercel x1
+     - 4|emollick,interconnects,simonwillison,vercel x1
+  D  +rss, guard=signals
+     + 5|emollick,interconnects,simonwillison,tldr,vercel x1
+     - 4|emollick,interconnects,simonwillison,vercel x1
+  E  +rss, guard=signals, body<=400
+     + (none)
+     - (none)
+  F  +rss, guard=signals, body<=1000
+     + (none)
+     - (none)
+  G  +rss, guard=links, body<=400
+     + (none)
+     - (none)
+  H  hn+bsky, from-citations
+     + (none)
+     - 2|simonwillison,tldr x1
+  I  +rss, from-citations
+     + 5|emollick,interconnects,simonwillison,tldr,vercel x1  2|cloudflare,tldr x1
+     - 4|emollick,interconnects,simonwillison,vercel x1  2|simonwillison,tldr x1
+  J  +rss, from-citations, body<=400
+     + (none)
+     - 2|simonwillison,tldr x1
+  K  +rss, from-cit, sig, body<=1000
+     + (none)
+     - 2|simonwillison,tldr x1
+
+=== the Signals the ledger says moved ===
+  A :: 3mr5ucqec2s24
+     strength=2 voters=simonwillison,tldr origin=-
+     member https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+     member https://simonwillison.net/2026/Jul/21/cat-and-thariq
+     cite   simonwillison    self     https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+     cite   tldr             outbound https://simonwillison.net/2026/Jul/21/cat-and-thariq
+  H :: 3mr5ucqec2s24
+     strength=1 voters=simonwillison origin=-
+     member https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+     cite   simonwillison    self     https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+  I :: 3mr5ucqec2s24
+     strength=1 voters=simonwillison origin=-
+     member https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+     cite   simonwillison    self     https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+
+  A :: watch?v=87DyyMV0kCY
+     strength=4 voters=simonwillison,interconnects,emollick,vercel origin=-
+     member https://youtube.com/watch?v=87DyyMV0kCY
+     member https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   interconnects    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   emollick         self     https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   emollick         outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   vercel           outbound https://youtube.com/watch?v=87DyyMV0kCY
+  H :: watch?v=87DyyMV0kCY
+     strength=4 voters=simonwillison,interconnects,emollick,vercel origin=-
+     member https://youtube.com/watch?v=87DyyMV0kCY
+     member https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   interconnects    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   emollick         self     https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   emollick         outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   vercel           outbound https://youtube.com/watch?v=87DyyMV0kCY
+  I :: watch?v=87DyyMV0kCY
+     strength=5 voters=simonwillison,tldr,interconnects,emollick,vercel origin=vercel
+     member https://youtube.com/watch?v=87DyyMV0kCY
+     member https://vercel.com/blog/everything-hackable-will-get-hacked
+     member https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   tldr             outbound https://vercel.com/blog/everything-hackable-will-get-hacked
+     cite   interconnects    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   emollick         self     https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite   emollick         outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite   vercel           self     https://vercel.com/blog/everything-hackable-will-get-hacked
+     cite   vercel           outbound https://youtube.com/watch?v=87DyyMV0kCY
+
+  A :: the-agentic-internet
+     strength=1 voters=tldr origin=cloudflare
+     member https://blog.cloudflare.com/the-agentic-internet
+     cite   tldr             outbound https://blog.cloudflare.com/the-agentic-internet
+     cite   cloudflare       self     https://blog.cloudflare.com/the-agentic-internet
+  H :: the-agentic-internet
+     strength=1 voters=tldr origin=cloudflare
+     member https://blog.cloudflare.com/the-agentic-internet
+     cite   tldr             outbound https://blog.cloudflare.com/the-agentic-internet
+     cite   cloudflare       self     https://blog.cloudflare.com/the-agentic-internet
+  I :: the-agentic-internet
+     strength=2 voters=tldr,cloudflare origin=cloudflare
+     member https://blog.cloudflare.com/the-agentic-internet
+     member https://cloudflare.net/news/news-details/2026/Cloudflare-Collaborates-With-Leading-Browsers-to-Develop-a-Privacy-First-Protocol-For-the-Global-Internet/default.aspx
+     cite   tldr             outbound https://blog.cloudflare.com/the-agentic-internet
+     cite   cloudflare       self     https://blog.cloudflare.com/the-agentic-internet
+     cite   cloudflare       outbound https://cloudflare.net/news/news-details/2026/Cloudflare-Collaborates-With-Leading-Browsers-to-Develop-a-Privacy-First-Protocol-For-the-Global-Internet/default.aspx
+
+
+=== does a link-blog post cite "the article + its HN thread"? ===
+  RSS items citing an HN thread at all: 11 of 845
+  RSS items with exactly 2 surviving targets: 49, of which already one Signal: 0
+  surviving-target count distribution: 0:495 1:68 2:49 3:36 4:26 5:17 6:17 7:11 8:9 9:9 10:5 11:5 12:4 13:6 14:4 15:3 16:3 17:6 18:3 19:6 20:9 21:3 22:4 23:2 24:2 25:2 27:1 28:1 30:2 31:4 32:1 33:3 35:2 37:2 38:1 40:1 41:1 42:1 44:1 46:1 47:1 50:1 53:1 55:1 61:1 62:1 64:1 70:1 73:1 79:2 80:2 83:1 102:1 132:1 139:1 145:1 146:1
