@@ -341,25 +341,83 @@ fetch, while a wrongly-permissive robots entry causes a policy violation.
 
 ```
 host           text pk
+verdict        text not null          -- 'allow' | 'disallow' | 'ambiguous'
 directives     jsonb not null
+status         int not null
 content_type   text null
+waf_action     text null              -- e.g. 'challenge', 'captcha'
 authoritative  boolean not null
 fetched_at     timestamptz not null
 expires_at     timestamptz not null   -- 24h TTL
 ```
 
-**Fail closed.** #16 found two fail-open traps a naive implementation gets wrong:
+`verdict` is **stored, not inferred from an empty `directives`** — an empty
+ruleset and no obtainable ruleset are opposite facts, and #29 found a host
+(`arstechnica.com`) that returns the first while meaning the second.
+
+**Fail closed, and the answerable responses are a positive whitelist**
+(ADR-0014). Only two responses yield a verdict; everything else is `ambiguous`:
 
 | response | verdict |
 |---|---|
-| 200 + `text/plain` | parse and obey |
-| 200 + any other content-type | **deny** — `openhome.bilibili.com/robots.txt` returns 200 with `text/html`, so a parser trusting the status code finds no `Disallow` and concludes "allowed" |
-| 404 | allow (standard) |
-| 5xx / timeout | **deny** |
+| 200 + `text/plain` | **parse and obey** |
+| **any 404** | **allow** — the file is absent, so nothing is restricted. Body and content-type are **irrelevant**: 18 of the 19 `404-ALLOWED` hosts in the corpus serve `text/html` on that 404, and one of them (`feeds.arstechnica.com`) serves 518 KB of it |
+| 200 + any other content-type | **deny** — `openhome.bilibili.com/robots.txt` returns 200 with `text/html`, so a parser trusting the status code finds no `Disallow` and concludes "allowed" (#16) |
+| 2xx other than 200, or a zero-length 2xx | **deny** — `arstechnica.com/robots.txt` answers 202, `Content-Length: 0`, `x-amzn-waf-action: challenge`, and an empty body parses as an empty ruleset, i.e. as "allowed" (#29) |
+| 4xx other than 404, 5xx, timeout, TLS failure | **deny** — `feed.infoq.com` answers 406 `application/json`; `hnrss.org` failed a TLS handshake once and allowed all on retry, so a transport error is not a verdict either |
+
+The asymmetry between the 200 and 404 rows is the whole rule: **on a 200 the body
+*is* the ruleset**, so content-type is load-bearing; on a 404 there is no ruleset
+to misparse. A soft-404 is dangerous when it returns **200** for missing content.
+
+Both directions of the parser have to be right. `hacker-news.firebaseio.com`
+serves `Allow: /*.json$` **above** `Disallow: /`, so `/v0/topstories.json` is
+allowed **only** to a parser doing `*` wildcards, `$` anchoring, and
+longest-match-wins with Allow beating Disallow on ties — a line-prefix matcher
+fails *closed* on the highest-yield Source in the corpus (#29).
 
 And separately: **HTTP 200 is necessary but not sufficient proof of content** — a
 robots-*allowed* Bilibili page returned 200 carrying a captcha interstitial. That
 applies to feed validation generally, not just to robots.
+
+### The verdict is per host, and perishable
+
+**Per host** (ADR-0014): a verdict binds the host that served it, and there is no
+Publisher-level inheritance **in either direction**. A sibling host's readable
+file cannot clear an unreadable one, and an unverifiable apex cannot condemn a
+subdomain that answered — `feeds.arstechnica.com` is allowed while
+`arstechnica.com` is not. A Source is usable when **the hosts it actually fetches**
+are cleared, which for an ordinary RSS Source is the feed host alone: stage 4 is
+the only fetch of a publisher page and it is Aggregator-only.
+
+**Perishable**: four ordinary tech hosts added a blanket `Disallow: /` inside
+three years (Lobsters 2024, Changelog late-2025, The Register 2026, YouTube's feed
+path by 2025). So the TTL expires rather than a boolean persisting, and hosts are
+re-probed — including hosts that previously yielded no verdict at all.
+
+**And obtainable by this pipeline's egress.** A file readable only from a
+workstation is state the sweep can never refresh, and a host that challenges the
+runner on `robots.txt` will challenge it on the fetch that follows.
+
+### The Source register: three states
+
+The corpus record that sits above these verdicts has **three** states, not two
+(ADR-0014):
+
+- **in** — every host the Source fetches has an `allow` verdict.
+- **excluded-on-policy** — a quoted `Disallow` or `Content-Signal` directive.
+- **`unverifiable`** — no verdict is obtainable. Carries the *evidence of
+  unanswerability* where an exclusion carries a directive.
+
+`ambiguous` is the per-response verdict above; `unverifiable` is the register word
+for a host that yields nothing else. An `unverifiable` host is **not a Source** —
+it is re-probed on the ordinary TTL and nothing waits on it.
+
+Register columns, one row per host: `host`, state, `status`, `content_type`,
+`waf_action`, `probed_at`, and the quoted directive where one exists. Populating
+it is [Curate the initial source list](https://github.com/SaKaNa-Y/Zis/issues/11)'s
+deliverable; the columns are fixed here so a host that is recorded but unused
+(`arstechnica.com`) has somewhere to live.
 
 ---
 

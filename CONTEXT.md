@@ -41,6 +41,17 @@ broken. A Source can be Dormant indefinitely and still be worth keeping.
 _Avoid_: Dead, Stale, Inactive, Broken (a Source that errors is failing, not
 Dormant — the two are different signals with different consequences)
 
+**Unverifiable**:
+A host whose crawling policy cannot be read at all, because the policy file
+itself is behind a bot defence. Deliberately distinct from a host that forbids
+crawling: one has stated a rule, the other has stated nothing, and recording the
+second as the first invents a rule that does not exist. A Source none of whose
+fetched hosts can answer is not excluded and not in — it is Unverifiable, and so
+not a Source for now. The state belongs to a **host**, never to a Publisher: one
+Publisher can own an answering host and an Unverifiable one at the same time.
+_Avoid_: Blocked, Excluded, Ambiguous (that is what one unreadable *response* is,
+not what the host becomes), Pending
+
 **Item**:
 One normalized unit fetched from a Source — a blog article, a release, a forum
 thread, a social post, a video. Deliberately generic, because the corpus is
