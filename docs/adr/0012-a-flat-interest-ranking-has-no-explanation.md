@@ -99,9 +99,30 @@ That fault is real, distinct, and **not detectable at runtime**. Both the gap to
 faults (near-miss gaps 0.035 / 0.022 against uncovered gaps 0.032 / 0.017 /
 0.014). It is the judgement the cosine already failed at, so no arithmetic over
 the same embeddings can recover it. `T_gap` suppresses both faults together, which
-is sufficient to act on and insufficient to diagnose. Coverage is
-[Decide whether the Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/41)'s
-question.
+is sufficient to act on and insufficient to diagnose.
+
+**Coverage was put to
+[Decide whether the Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/41)
+and came back undecidable rather than answered** — on a *draft* profile, which is
+the only profile any of this was measured against. `interests.draft.md` disclaims
+being the reader's in its own header, and it was never edited, so "two admissions
+have no right answer in the profile" is a fact about a draft. Put to the reader
+directly, **neither of the two was a coverage gap**: the software-job-market essay
+is actively unwanted (which makes it an *admission* fault, not an explanation
+fault) and the GitHub changelog is a matter of indifference. Nothing here is
+withdrawn — the fault remains real, distinct, and undetectable at runtime, and
+`T_gap` still suppresses it — but its *size* is unmeasured. It is re-asked against a
+real profile by
+[Decide whether a real Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/47),
+blocked on
+[Write the reader's actual Interest Profile and re-run the calibration measurement](https://github.com/SaKaNa-Y/Zis/issues/46).
+
+#41 also closed the one surface this section might have licensed: surfacing the
+**aggregate** of the undiagnosable fault is **refused full stop**, on grounds
+independent of any profile — `positioning.md` §8.3. So the honest reading of this
+section is unchanged and now load-bearing: **the system can never decline to name
+an Interest on the grounds that nothing fits, and it will never tell the reader
+that it couldn't.**
 
 ## Consequences
 

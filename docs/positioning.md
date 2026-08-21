@@ -452,6 +452,7 @@ the ADR that decides it.
 | **The Interest-edit preview** — *what would this edit have done to yesterday's Brief?* | [ADR-0011](adr/0011-a-claimed-advantage-must-cost-a-competitor-something.md) and [#17](https://github.com/SaKaNa-Y/Zis/issues/17). See below |
 | **Near-miss surfacing** — *"3 Signals came close"*, or a relevance margin on the Signal page | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) and §1. See below |
 | **A "matched, weakly" state** — naming an Interest while flagging low confidence | [ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md) and [#10](https://github.com/SaKaNa-Y/Zis/issues/10) — a flat ranking has no explanation to hedge, and there is no badge anywhere in the product; a section invented to house it is a badge renamed |
+| **An aggregate no-coverage note** — *"N Signals cleared Strength 2 and none of your statements had an opinion"* | [#41](https://github.com/SaKaNa-Y/Zis/issues/41) — §8.2 inverted, and it cannot distinguish a profile gap from thin supply. See below |
 
 ### 8.1 The Interest-edit preview
 
@@ -505,3 +506,50 @@ the reader from any other `convergence` entry. Had ADR-0012 instead proposed
 *"matched, weakly"* as a visible state, this row would have refused it — and
 [#10](https://github.com/SaKaNa-Y/Zis/issues/10)'s no-badge rule would have refused
 it independently.
+
+### 8.3 The aggregate no-coverage note
+
+ADR-0012 leaves one fault suppressed but undiagnosed: a Signal for which *nothing
+in the profile has an opinion*, indistinguishable at runtime from a genuine
+near-miss. [#41](https://github.com/SaKaNa-Y/Zis/issues/41) asked whether the
+**aggregate** of that fault could be surfaced where the per-Signal case cannot —
+*"N Signals cleared Strength 2 this month and none of your statements had an
+opinion about any of them."* It is refused on **three independent grounds**, any
+one sufficient.
+
+- **§8.2, inverted.** A count of unadmitted Signals is *"3 Signals came close"*
+  read backwards. §8.2 refuses near-miss surfacing on Today or Interests as an
+  **"Everything" tab wearing a new name** ([#14](https://github.com/SaKaNa-Y/Zis/issues/14)),
+  and a bare count does not escape that by withholding the titles — its only
+  actionable meaning is *go edit your profile*, so it invites the "show me" the row
+  exists to refuse. The qualitative variant is worse, as §8.2 already found:
+  unfalsifiable text.
+- **It cannot distinguish the two causes it appears to report.** *Your profile has
+  a gap* and *supply was thin* produce the identical number, and over #21's 30-day
+  replay **18 of 30 days have no eligible Signal at all**. So the note is
+  ADR-0012's own defect recurring one level up — a quantity that suppresses both
+  faults and diagnoses neither. Acting on it means editing the profile in response
+  to a number that was mostly about the crawl.
+- **It has no truthful denominator.** The 27-Signals-at-Strength-≥2 figure is a
+  **backfill** yield over feed windows spanning one day to several years, not a
+  monthly rate — a correction `ranking-model.md` already carries. There is no
+  per-period count to render honestly, and at the settled bars the note would read
+  *19 with no opinion against 1 with one*, permanently. That is
+  [#27](https://github.com/SaKaNa-Y/Zis/issues/27)'s ground for refusing the
+  Interest-edit preview: a surface whose answer is always *"nothing, still
+  nothing"* teaches the reader their Interests do not matter, which is the opposite
+  of the job it was proposed for.
+
+**Two rules that do *not* refuse it**, recorded so they are not miscited later.
+[ADR-0009](adr/0009-a-presentation-control-changes-neither-information-nor-order.md)
+does not apply — the note is a passive report, not a control, and it changes
+neither which information renders nor its order. And `ui-and-ia.md` §7's
+per-Interest state is a genuine precedent *for* it: a computed, persistent note
+reporting a fact about a statement the reader wrote. The refusal rests on the three
+grounds above, not on there being nowhere to put it.
+
+**Refused full stop, not deferred.** None of the three grounds is a supply
+condition or a profile condition, so neither a denser corpus nor a better-written
+profile revives it. #41 found that the uncovered cases which motivated the note
+were an artifact of an unedited draft profile and were not coverage gaps at all —
+but that finding is why the note is *unnecessary*, not why it is refused.
