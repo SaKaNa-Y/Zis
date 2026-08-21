@@ -1,0 +1,1520 @@
+{
+  "interests": [
+    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+    "TypeScript language releases and type-level techniques",
+    "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon",
+    "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics",
+    "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
+    "Coding agents and agentic developer tooling — how they are built and where they fail",
+    "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
+    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
+    "Software design writing — module boundaries, API design, and how to keep a codebase navigable",
+    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
+    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+  ],
+  "rows": [
+    {
+      "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
+      "strength": 3,
+      "tb": {
+        "basis": "own",
+        "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7",
+        "textTitlesOnly": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face (6 minute read)",
+        "textTitlesOnly": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. Apple Watch redesign ⌚, OpenAI hack timeline 🔒, agentic code quality 👨‍💻. Lessons from the hacks",
+        "anchorCount": 3,
+        "publisherId": null
+      },
+      "title": "Now we have a timeline of the OpenAI accidental attack against Hugging Face",
+      "full": {
+        "rel": 0.6245508142116766,
+        "idx": 15,
+        "gap2": 0.000764973412369363
+      },
+      "title_": {
+        "rel": 0.659645068015489,
+        "idx": 16,
+        "gap2": 0.006119215706012815
+      },
+      "altS": {
+        "rel": 0.6651979262409411,
+        "idx": 16,
+        "gap2": 0.005554777376490128
+      }
+    },
+    {
+      "url": "https://blog.cloudflare.com/kitesurf",
+      "strength": 2,
+      "tb": {
+        "basis": "own",
+        "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl",
+        "textTitlesOnly": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl",
+        "anchorCount": 0,
+        "publisherId": "cloudflare"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16 minute read)",
+        "textTitlesOnly": "OpenAI device details 🤖, AI synthetic virus 🦠, agent plugins 👨‍💻. Shipping less JavaScript with Baseline",
+        "anchorCount": 2,
+        "publisherId": null
+      },
+      "title": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers",
+      "full": {
+        "rel": 0.7044133550789091,
+        "idx": 5,
+        "gap2": 0.022460863351932536
+      },
+      "title_": {
+        "rel": 0.7505118887204933,
+        "idx": 7,
+        "gap2": 0.0007905166410270281
+      },
+      "altS": {
+        "rel": 0.7656397473382672,
+        "idx": 9,
+        "gap2": 0.021288547006393377
+      }
+    },
+    {
+      "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
+      "strength": 2,
+      "tb": {
+        "basis": "own",
+        "text": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.",
+        "textTitlesOnly": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.",
+        "anchorCount": 0,
+        "publisherId": "huggingface"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Huggingface released a full detailed retrospective of their completely-agent-driven security incident",
+        "textTitlesOnly": "Hugging Face just published a highly detailed technical account of OpenAI's accidental cyberattack on their systems - it's wild how sophisticated this was: huggingface.co/blog/agent-i... Wrote up som. [AINews] Fearing RSI: OpenAI, Anthropic, GDM, Meta, Thinky cosign letter to \"Pace\" AI development, as HuggingFace details Machine-Speed Offensive Cyberattack",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident",
+      "full": {
+        "rel": 0.7738918124290181,
+        "idx": 16,
+        "gap2": 0.035399997829992036
+      },
+      "title_": {
+        "rel": 0.7794389374783994,
+        "idx": 16,
+        "gap2": 0.03358926928282524
+      },
+      "altS": {
+        "rel": 0.6036356495104476,
+        "idx": 11,
+        "gap2": 0.018824781653218325
+      }
+    },
+    {
+      "url": "https://bun.com/blog/bun-in-rust",
+      "strength": 2,
+      "tb": {
+        "basis": "own",
+        "text": "Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust",
+        "textTitlesOnly": "Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust",
+        "anchorCount": 0,
+        "publisherId": "bun"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "post about the project.",
+        "textTitlesOnly": "Anders Hejlsberg demos TypeScript 7's 10x speedup. The Pulse: What can we learn from Bun’s rapid Rust rewrite with AI?",
+        "anchorCount": 2,
+        "publisherId": null
+      },
+      "title": "Rewriting Bun in Rust",
+      "full": {
+        "rel": 0.7373175658273193,
+        "idx": 10,
+        "gap2": 0.06033776733878682
+      },
+      "title_": {
+        "rel": 0.7009330106558911,
+        "idx": 10,
+        "gap2": 0.038556014854195575
+      },
+      "altS": {
+        "rel": 0.5940501429609787,
+        "idx": 13,
+        "gap2": 0.004180542313236946
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/13/sqlite-utils-2",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "sqlite-utils 4.2.1. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/sqlite-utils/releases/tag/4.2.1\">sqlite-utils 4.2.1</a></p> <p>Fixes a crashing bug in <a href=\"https://simonwillison.net/2026/Aug/13/sqlite-utils/\">sqlite-utils 4.2</a>. I'd introduced code that looks like this:</p> <pre><code>from typing_extensions import Self </code></pre> <p>It turned out the <a href=\"https://pypi.org/project/typing-extensions/\">typing-extensions</a> package was not listed as a dependency for <code>sqlite-utils</code> - it was installed by one of the other dependencies in the <a href=\"https://github.com/simonw/sqlite-utils/blob/56dd09702fdb9e899f577ffd51693c1f2176cb08/pyproject.toml#L34-L55\">dev dependency group</a>, but when you <code>uvx sqlite-utils</code> directly you don't get those dependencies.</p> <p>As part of fixing this I figured out how to run a smoke test to ensure the CLI tool still works even without those dev dependencies, which can be run from the project checkout:</p> <pre><code>uv run --isolated --no-default-groups sqlite-utils --help </code></pre> <p>The <code>--no-default-groups</code> argument prevents it from installing that default <code>dev</code> group,",
+        "textTitlesOnly": "sqlite-utils 4.2.1. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/sqlite-utils/releases/tag/4.2.1\">sqlite-utils 4.2.1</a></p> <p>Fixes a crashing bug in <a href=\"https://simonwillison.net/2026/Aug/13/sqlite-utils/\">sqlite-utils 4.2</a>. I'd introduced code that looks like this:</p> <pre><code>from typing_extensions import Self </code></pre> <p>It turned out the <a href=\"https://pypi.org/project/typing-extensions/\">typing-extensions</a> package was not listed as a dependency for <code>sqlite-utils</code> - it was installed by one of the other dependencies in the <a href=\"https://github.com/simonw/sqlite-utils/blob/56dd09702fdb9e899f577ffd51693c1f2176cb08/pyproject.toml#L34-L55\">dev dependency group</a>, but when you <code>uvx sqlite-utils</code> directly you don't get those dependencies.</p> <p>As part of fixing this I figured out how to run a smoke test to ensure the CLI tool still works even without those dev dependencies, which can be run from the project checkout:</p> <pre><code>uv run --isolated --no-default-groups sqlite-utils --help </code></pre> <p>The <code>--no-default-groups</code> argument prevents it from installing that default <code>dev</code> group,",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "sqlite-utils 4.2.1",
+        "textTitlesOnly": "sqlite-utils 4.2.1",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "sqlite-utils 4.2.1",
+      "full": {
+        "rel": 0.6220214218999506,
+        "idx": 3,
+        "gap2": 0.004715364047959136
+      },
+      "title_": {
+        "rel": 0.6487211426948779,
+        "idx": 5,
+        "gap2": 0.049016052451474335
+      },
+      "altS": {
+        "rel": 0.6487211426948779,
+        "idx": 5,
+        "gap2": 0.049016052451474335
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/13/sqlite-utils",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "sqlite-utils 4.2. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/sqlite-utils/releases/tag/4.2\">sqlite-utils 4.2</a></p> <p>Lots of improvements in this one relating to the <a href=\"https://sqlite-utils.datasette.io/en/stable/python-api.html#transforming-a-table\">table.transform() feature</a>, which adds support for complex alter table operations by creating a fresh table, copying across the data and then dropping and replacing the old one.</p> <p><code>transform()</code> now preserves a much larger array of edge-case schema definitions, including check constraints, unique constraints and even comments describing the columns.</p> <p>There are also <a href=\"https://sqlite-utils.datasette.io/en/stable/python-api.html#checks\">new introspection properties</a> for check constraints, and a whole lot of other smaller changes.</p> <p>Includes contributions from <a href=\"https://github.com/bunlongheng\">Bunlong Heng</a>, <a href=\"https://github.com/ethanhawkes-gif\">ethanhawkes-gif</a>, <a href=\"https://github.com/RamiNoodle733\">Rami Abdelrazzaq</a>, <a href=\"https://github.com/nyxst4ck\">nyxst4ck</a>, and <a href=\"https://github.com/ikatyal2110\">ikatyal2110</a>.</p> <p>(It la",
+        "textTitlesOnly": "sqlite-utils 4.2. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/sqlite-utils/releases/tag/4.2\">sqlite-utils 4.2</a></p> <p>Lots of improvements in this one relating to the <a href=\"https://sqlite-utils.datasette.io/en/stable/python-api.html#transforming-a-table\">table.transform() feature</a>, which adds support for complex alter table operations by creating a fresh table, copying across the data and then dropping and replacing the old one.</p> <p><code>transform()</code> now preserves a much larger array of edge-case schema definitions, including check constraints, unique constraints and even comments describing the columns.</p> <p>There are also <a href=\"https://sqlite-utils.datasette.io/en/stable/python-api.html#checks\">new introspection properties</a> for check constraints, and a whole lot of other smaller changes.</p> <p>Includes contributions from <a href=\"https://github.com/bunlongheng\">Bunlong Heng</a>, <a href=\"https://github.com/ethanhawkes-gif\">ethanhawkes-gif</a>, <a href=\"https://github.com/RamiNoodle733\">Rami Abdelrazzaq</a>, <a href=\"https://github.com/nyxst4ck\">nyxst4ck</a>, and <a href=\"https://github.com/ikatyal2110\">ikatyal2110</a>.</p> <p>(It la",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "sqlite-utils 4.2",
+        "textTitlesOnly": "sqlite-utils 4.2",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "sqlite-utils 4.2",
+      "full": {
+        "rel": 0.6639005210679562,
+        "idx": 5,
+        "gap2": 0.03827917911432288
+      },
+      "title_": {
+        "rel": 0.6438376937529081,
+        "idx": 5,
+        "gap2": 0.04974911462126641
+      },
+      "altS": {
+        "rel": 0.6438376937529081,
+        "idx": 5,
+        "gap2": 0.04974911462126641
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/13/llm-gemini",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "llm-gemini 0.33. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/llm-gemini/releases/tag/0.33\">llm-gemini 0.33</a></p> <p>It's been a while since the last <code>llm-gemini</code> release. This version of the plugin adds support for today's <a href=\"https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/\">Gemini 3.7 Flash</a> release, plus <code>gemini-3.6-flash</code>, <code>gemini-3.5-flash-lite</code> and two embedding models <code>gemini-embedding-2</code> and <code>gemini-embedding-001</code>.</p> <p>The plugin is also upgraded for compatibility with LLM 0.32, which means you can now see reasoning traces and you can also enable server-side tools using this pattern:</p> <pre><code>llm -m gemini-3.7-flash -T CodeExecution \\ 'use python to calculate (factorial of 13) * 3' </code></pre> <p>I had Gemini 3.7 Flash <a href=\"https://tools.simonwillison.net/markdown-svg-renderer.html#url=https%3A%2F%2Fgist.github.com%2Fsimonw%2F6779a22d5e7bb6bdf29936f1600a5259\">draw me some pelicans riding bicycles</a> at high, medium, and low thinking efforts (minimal, which was an option in 3.6 Flash, has been removed in 3.7.) Here's the hi",
+        "textTitlesOnly": "llm-gemini 0.33. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/llm-gemini/releases/tag/0.33\">llm-gemini 0.33</a></p> <p>It's been a while since the last <code>llm-gemini</code> release. This version of the plugin adds support for today's <a href=\"https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/\">Gemini 3.7 Flash</a> release, plus <code>gemini-3.6-flash</code>, <code>gemini-3.5-flash-lite</code> and two embedding models <code>gemini-embedding-2</code> and <code>gemini-embedding-001</code>.</p> <p>The plugin is also upgraded for compatibility with LLM 0.32, which means you can now see reasoning traces and you can also enable server-side tools using this pattern:</p> <pre><code>llm -m gemini-3.7-flash -T CodeExecution \\ 'use python to calculate (factorial of 13) * 3' </code></pre> <p>I had Gemini 3.7 Flash <a href=\"https://tools.simonwillison.net/markdown-svg-renderer.html#url=https%3A%2F%2Fgist.github.com%2Fsimonw%2F6779a22d5e7bb6bdf29936f1600a5259\">draw me some pelicans riding bicycles</a> at high, medium, and low thinking efforts (minimal, which was an option in 3.6 Flash, has been removed in 3.7.) Here's the hi",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "llm-gemini 0.33",
+        "textTitlesOnly": "llm-gemini 0.33",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "llm-gemini 0.33",
+      "full": {
+        "rel": 0.6789007881375033,
+        "idx": 15,
+        "gap2": 0.03048671555858884
+      },
+      "title_": {
+        "rel": 0.6588239297362721,
+        "idx": 6,
+        "gap2": 0.029575259755682093
+      },
+      "altS": {
+        "rel": 0.6588239297362721,
+        "idx": 6,
+        "gap2": 0.029575259755682093
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/13/alchemy-utils",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "alchemy-utils 0.1a1. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/alchemy-utils/releases/tag/0.1a1\">alchemy-utils 0.1a1</a></p> <p>Performance boost for DuckDB exports and CSV imports, <a href=\"https://simonwillison.net/2026/Aug/12/alchemy-utils/\">see here</a>.</p>",
+        "textTitlesOnly": "alchemy-utils 0.1a1. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/alchemy-utils/releases/tag/0.1a1\">alchemy-utils 0.1a1</a></p> <p>Performance boost for DuckDB exports and CSV imports, <a href=\"https://simonwillison.net/2026/Aug/12/alchemy-utils/\">see here</a>.</p>",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "alchemy-utils 0.1a1",
+        "textTitlesOnly": "alchemy-utils 0.1a1",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "alchemy-utils 0.1a1",
+      "full": {
+        "rel": 0.6820587836703381,
+        "idx": 5,
+        "gap2": 0.007867789227987032
+      },
+      "title_": {
+        "rel": 0.6312581854244774,
+        "idx": 5,
+        "gap2": 0.001705191250849003
+      },
+      "altS": {
+        "rel": 0.6312581854244774,
+        "idx": 5,
+        "gap2": 0.001705191250849003
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/12/alchemy-utils",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "alchemy-utils 0.1a0. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/alchemy-utils/releases/tag/0.1a0\">alchemy-utils 0.1a0</a></p> <p>I've long pondered what a database agnostic version of my <a href=\"https://sqlite-utils.datasette.io/\">sqlite-utils</a> Python library and CLI utility might look like. This morning (literally a shower project) I tasked Codex and GPT-5.6 Sol Ultra with building a prototype:</p> <blockquote> <p><code>Do a research spike to see what it would take to build a library with the same core API as SQLite-utils - in particular the insert and upsert and insert_all and upsert_all and create and update methods, and the table introspection stuff - but backed by SQLalchemy so it works for multiple database engines</code></p> <p><code>Test against PostgreSQL and SQLite and duckdb</code></p> <p><code>Use ~/dev/sqlite-utils for reference</code></p> <p><code>Create a git repo for this and commit and early and often - use uv init to start the project - use red/green TDD and pytest, see ~/dev/django-sql-dashboard for one idea as to how the PostgreSQL tests could work</code></p> </blockquote> <p>It took <a href=\"https://gist.github.com/simonw/bd10e4886688e0",
+        "textTitlesOnly": "alchemy-utils 0.1a0. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/alchemy-utils/releases/tag/0.1a0\">alchemy-utils 0.1a0</a></p> <p>I've long pondered what a database agnostic version of my <a href=\"https://sqlite-utils.datasette.io/\">sqlite-utils</a> Python library and CLI utility might look like. This morning (literally a shower project) I tasked Codex and GPT-5.6 Sol Ultra with building a prototype:</p> <blockquote> <p><code>Do a research spike to see what it would take to build a library with the same core API as SQLite-utils - in particular the insert and upsert and insert_all and upsert_all and create and update methods, and the table introspection stuff - but backed by SQLalchemy so it works for multiple database engines</code></p> <p><code>Test against PostgreSQL and SQLite and duckdb</code></p> <p><code>Use ~/dev/sqlite-utils for reference</code></p> <p><code>Create a git repo for this and commit and early and often - use uv init to start the project - use red/green TDD and pytest, see ~/dev/django-sql-dashboard for one idea as to how the PostgreSQL tests could work</code></p> </blockquote> <p>It took <a href=\"https://gist.github.com/simonw/bd10e4886688e0",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "alchemy-utils 0.1a0",
+        "textTitlesOnly": "alchemy-utils 0.1a0",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "alchemy-utils 0.1a0",
+      "full": {
+        "rel": 0.6636411523539812,
+        "idx": 4,
+        "gap2": 0.027102624398537167
+      },
+      "title_": {
+        "rel": 0.6132965849320982,
+        "idx": 5,
+        "gap2": 0.010740189876643047
+      },
+      "altS": {
+        "rel": 0.6132965849320982,
+        "idx": 5,
+        "gap2": 0.010740189876643047
+      }
+    },
+    {
+      "url": "https://lwn.net/Articles/1087635",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "[$] A look at CrossPoint e-reader firmware. <p>There are <a href=\"https://crosspointreader.com/devices\">a number of small, inexpensive, low-powered e-reader or e-paper devices</a> that have promise as ebook readers with one minor problem: the firmware they ship with does not realize their full potential. To solve that problem, the <a href=\"https://crosspointreader.com/\">CrossPoint Reader project</a> looks to provide replacement firmware that offers necessary features, better performance, and a more pleasant reading experience. On August&#160;7, the project released <a href=\"https://github.com/crosspoint-reader/crosspoint-reader/releases/tag/v1.5.0\">version 1.5.0</a>, which opens large <a href=\"https://en.wikipedia.org/wiki/EPUB\">EPUBs</a> more quickly, provides offline dictionary lookups, and has reworked settings for changing layout and font options. The release also improves support for right-to-left text as well as <a href=\"https://en.wikipedia.org/wiki/CJK_characters\">Chinese, Japanese, and Korean</a> (CJK) text rendering.</p>",
+        "textTitlesOnly": "[$] A look at CrossPoint e-reader firmware. <p>There are <a href=\"https://crosspointreader.com/devices\">a number of small, inexpensive, low-powered e-reader or e-paper devices</a> that have promise as ebook readers with one minor problem: the firmware they ship with does not realize their full potential. To solve that problem, the <a href=\"https://crosspointreader.com/\">CrossPoint Reader project</a> looks to provide replacement firmware that offers necessary features, better performance, and a more pleasant reading experience. On August&#160;7, the project released <a href=\"https://github.com/crosspoint-reader/crosspoint-reader/releases/tag/v1.5.0\">version 1.5.0</a>, which opens large <a href=\"https://en.wikipedia.org/wiki/EPUB\">EPUBs</a> more quickly, provides offline dictionary lookups, and has reworked settings for changing layout and font options. The release also improves support for right-to-left text as well as <a href=\"https://en.wikipedia.org/wiki/CJK_characters\">Chinese, Japanese, and Korean</a> (CJK) text rendering.</p>",
+        "anchorCount": 0,
+        "publisherId": "lwn"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "version 1.5.0",
+        "textTitlesOnly": "[$] A look at CrossPoint e-reader firmware",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "[$] A look at CrossPoint e-reader firmware",
+      "full": {
+        "rel": 0.6330046299371859,
+        "idx": 12,
+        "gap2": 0.04462371317201641
+      },
+      "title_": {
+        "rel": 0.7267040286039278,
+        "idx": 12,
+        "gap2": 0.02159896467272715
+      },
+      "altS": {
+        "rel": 0.6869504679511942,
+        "idx": 9,
+        "gap2": 0.009550120442217147
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/11/datasette-upload-dbs",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "datasette-upload-dbs 0.5a0. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette-upload-dbs/releases/tag/0.5a0\">datasette-upload-dbs 0.5a0</a></p> <p>This plugin has been around for a while - it lets users upload a brand new SQLite database to a hosted Datasette instance, at which point that database will start being served by that instance.</p> <p>It can also be used to atomically swap a database with a more recent version. The uploaded database is saved to a file, verified, then swapped in so <code>/name</code> starts serving the new one.</p> <p>The new release adds a formalized API, so you can replace an existing database (or add a new one) like this:</p> <pre><code>curl -X POST \\ -H \"Authorization: Bearer $API_TOKEN\" \\ -H \"Accept: application/json\" \\ -F \"db=@content.db\" \\ -F \"db_name=content\" \\ https://your-instance.example.com/-/upload-dbs </code></pre> <p>This means you can build fresh databases in an environment such as GitHub Actions and swap them in production as soon as that build has completed.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "textTitlesOnly": "datasette-upload-dbs 0.5a0. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette-upload-dbs/releases/tag/0.5a0\">datasette-upload-dbs 0.5a0</a></p> <p>This plugin has been around for a while - it lets users upload a brand new SQLite database to a hosted Datasette instance, at which point that database will start being served by that instance.</p> <p>It can also be used to atomically swap a database with a more recent version. The uploaded database is saved to a file, verified, then swapped in so <code>/name</code> starts serving the new one.</p> <p>The new release adds a formalized API, so you can replace an existing database (or add a new one) like this:</p> <pre><code>curl -X POST \\ -H \"Authorization: Bearer $API_TOKEN\" \\ -H \"Accept: application/json\" \\ -F \"db=@content.db\" \\ -F \"db_name=content\" \\ https://your-instance.example.com/-/upload-dbs </code></pre> <p>This means you can build fresh databases in an environment such as GitHub Actions and swap them in production as soon as that build has completed.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "datasette-upload-dbs 0.5a0",
+        "textTitlesOnly": "datasette-upload-dbs 0.5a0",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "datasette-upload-dbs 0.5a0",
+      "full": {
+        "rel": 0.611768818101847,
+        "idx": 5,
+        "gap2": 0.02108980205623645
+      },
+      "title_": {
+        "rel": 0.533877790768159,
+        "idx": 5,
+        "gap2": 0.002002001725299518
+      },
+      "altS": {
+        "rel": 0.533877790768159,
+        "idx": 5,
+        "gap2": 0.002002001725299518
+      }
+    },
+    {
+      "url": "https://vercel.com/blog/everything-hackable-will-get-hacked",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Everything hackable will get hacked. Over the past year, AI models have become much more capable of performing cybersecurity work. These changes are reshaping both the threats facing the web and the tools available to defend it. Right now, defenders have an advantage because they can use stronger models for defensive work than the open-weight models broadly available for offensive research. But this advantage will not always last. The gap will soon close. I have both good news and bad news, neither of which is yet widely understood in the community. Bad news: Near-frontier open-weight models that perform offensive security research are available today. Kimi K3 is an Opus 4.X-class model with no relevant cybersecurity safeguards. Good news: You do not need to wait for “Mythos access” or OpenAI’s cyber program to begin defensive cybersecurity work. Frontier models, with the notable exception of Fable 5, will perform defensive cybersecurity tasks today. The uncertainty around Mythos 5's release seems to have created a kind of paralysis among defenders, many of whom are underutilizing the powerful tools available to them today. This post aims to give readers insight into how we're thin",
+        "textTitlesOnly": "Everything hackable will get hacked. Over the past year, AI models have become much more capable of performing cybersecurity work. These changes are reshaping both the threats facing the web and the tools available to defend it. Right now, defenders have an advantage because they can use stronger models for defensive work than the open-weight models broadly available for offensive research. But this advantage will not always last. The gap will soon close. I have both good news and bad news, neither of which is yet widely understood in the community. Bad news: Near-frontier open-weight models that perform offensive security research are available today. Kimi K3 is an Opus 4.X-class model with no relevant cybersecurity safeguards. Good news: You do not need to wait for “Mythos access” or OpenAI’s cyber program to begin defensive cybersecurity work. Frontier models, with the notable exception of Fable 5, will perform defensive cybersecurity tasks today. The uncertainty around Mythos 5's release seems to have created a kind of paralysis among defenders, many of whom are underutilizing the powerful tools available to them today. This post aims to give readers insight into how we're thin",
+        "anchorCount": 0,
+        "publisherId": "vercel"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Everything hackable will get hacked (6 minute read)",
+        "textTitlesOnly": "Grok Bot 🤖, Gemini 1B MAUs 📈, prop trading devs 👨‍💻",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Everything hackable will get hacked",
+      "full": {
+        "rel": 0.7056496459190833,
+        "idx": 15,
+        "gap2": 0.010183016280145285
+      },
+      "title_": {
+        "rel": 0.6115845431259371,
+        "idx": 10,
+        "gap2": 0.022694269933509092
+      },
+      "altS": {
+        "rel": 0.6227078713499752,
+        "idx": 12,
+        "gap2": 0.004855556066569289
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/10/introducing-muse-glimmer",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Introducing Muse Glimmer. <p><strong><a href=\"https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model\">Introducing Muse Glimmer</a></strong></p> Meta are back in the open weights game! Muse Glimmer is a brand new 30B model under a clean Apache 2.0 license (a step up from the janky Llama licenses of old).</p> <p>They claim to have optimized it for exactly the kind of things I'm looking for in a local model:</p> <blockquote> <ul> <li><strong>End-to-end Agentic Task Completion.</strong> Muse Glimmer achieves strong success rates on full-task benchmarks including DeepSearch QA, MCP-Atlas, 𝛕-Bench and SWE-Bench, which measure its ability to work within scaffolds, write and debug code, and resolve multi-turn requests from start to finish.</li> <li><strong>Reliable Tool Use.</strong> The model handles a wide range of function calls, invoking tools with precise schemas throughout extended workflows.</li> <li><strong>Multi-Step Reasoning.</strong> Muse Glimmer chains reasoning over long horizons, sustaining coherent plans across complex, extended workflows. [...]</li> </ul> </blockquote> <p>Here's <a href=\"https://gist.github.com/simonw/f20d4cd0ea7596990f7910ead616493e\">a",
+        "textTitlesOnly": "Introducing Muse Glimmer. <p><strong><a href=\"https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model\">Introducing Muse Glimmer</a></strong></p> Meta are back in the open weights game! Muse Glimmer is a brand new 30B model under a clean Apache 2.0 license (a step up from the janky Llama licenses of old).</p> <p>They claim to have optimized it for exactly the kind of things I'm looking for in a local model:</p> <blockquote> <ul> <li><strong>End-to-end Agentic Task Completion.</strong> Muse Glimmer achieves strong success rates on full-task benchmarks including DeepSearch QA, MCP-Atlas, 𝛕-Bench and SWE-Bench, which measure its ability to work within scaffolds, write and debug code, and resolve multi-turn requests from start to finish.</li> <li><strong>Reliable Tool Use.</strong> The model handles a wide range of function calls, invoking tools with precise schemas throughout extended workflows.</li> <li><strong>Multi-Step Reasoning.</strong> Muse Glimmer chains reasoning over long horizons, sustaining coherent plans across complex, extended workflows. [...]</li> </ul> </blockquote> <p>Here's <a href=\"https://gist.github.com/simonw/f20d4cd0ea7596990f7910ead616493e\">a",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Introducing Muse Glimmer (4 minute read)",
+        "textTitlesOnly": "Zuckerberg's manifesto 🤖, Elon's $1T shortcut 💰, local models won't win 👨‍💻",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Introducing Muse Glimmer",
+      "full": {
+        "rel": 0.7547520157541742,
+        "idx": 15,
+        "gap2": 0.03687780793330042
+      },
+      "title_": {
+        "rel": 0.6428675599870299,
+        "idx": 15,
+        "gap2": 0.038199246556574584
+      },
+      "altS": {
+        "rel": 0.6456447310027694,
+        "idx": 15,
+        "gap2": 0.015453272040215071
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/6/datasette-auth-tokens",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "datasette-auth-tokens 0.4a13. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette-auth-tokens/releases/tag/0.4a13\">datasette-auth-tokens 0.4a13</a></p> <p>Upgraded for compatibility with `sqlite-utils 4.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "textTitlesOnly": "datasette-auth-tokens 0.4a13. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette-auth-tokens/releases/tag/0.4a13\">datasette-auth-tokens 0.4a13</a></p> <p>Upgraded for compatibility with `sqlite-utils 4.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "datasette-auth-tokens 0.4a13",
+        "textTitlesOnly": "datasette-auth-tokens 0.4a13",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "datasette-auth-tokens 0.4a13",
+      "full": {
+        "rel": 0.5791767545821572,
+        "idx": 5,
+        "gap2": 0.005762664550292618
+      },
+      "title_": {
+        "rel": 0.5766731540851131,
+        "idx": 11,
+        "gap2": 0.009467051883759847
+      },
+      "altS": {
+        "rel": 0.5766731540851131,
+        "idx": 11,
+        "gap2": 0.009467051883759847
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/6/datasette",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "datasette 1.0a38. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette/releases/tag/1.0a38\">datasette 1.0a38</a></p> <blockquote> <p>This release fixes a <strong>SQL injection</strong> security issue that affects Datasette instances that serve a <strong>mixture of public and private tables</strong> in the same database, with access configured using the <a href=\"https://docs.datasette.io/en/latest/authentication.html\">Datasette permissions system</a>.</p> <p>Site administrators who serve private tables in this way are advised to disable the <a href=\"https://docs.datasette.io/en/latest/authentication.html#execute-sql\">execute-sql permission</a> <actions_execute_sql>` on that database to prevent users from accessing private tables using raw SQL queries. The bug that has been fixed would have allowed users with access to any public table to execute SQL injection attacks despite that restriction, giving them read-only access to data in private tables in the same database.</p> <p>This fix is also available in <a href=\"https://simonwillison.net/2026/Aug/6/datasette-2/\">Datasette 0.65.3</a>.</p> </blockquote> <p>Thankfully this particular configuration - private tables",
+        "textTitlesOnly": "datasette 1.0a38. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette/releases/tag/1.0a38\">datasette 1.0a38</a></p> <blockquote> <p>This release fixes a <strong>SQL injection</strong> security issue that affects Datasette instances that serve a <strong>mixture of public and private tables</strong> in the same database, with access configured using the <a href=\"https://docs.datasette.io/en/latest/authentication.html\">Datasette permissions system</a>.</p> <p>Site administrators who serve private tables in this way are advised to disable the <a href=\"https://docs.datasette.io/en/latest/authentication.html#execute-sql\">execute-sql permission</a> <actions_execute_sql>` on that database to prevent users from accessing private tables using raw SQL queries. The bug that has been fixed would have allowed users with access to any public table to execute SQL injection attacks despite that restriction, giving them read-only access to data in private tables in the same database.</p> <p>This fix is also available in <a href=\"https://simonwillison.net/2026/Aug/6/datasette-2/\">Datasette 0.65.3</a>.</p> </blockquote> <p>Thankfully this particular configuration - private tables",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "datasette 1.0a38",
+        "textTitlesOnly": "datasette 1.0a38",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "datasette 1.0a38",
+      "full": {
+        "rel": 0.6290747627332511,
+        "idx": 11,
+        "gap2": 0.025922201478378204
+      },
+      "title_": {
+        "rel": 0.5852257604069032,
+        "idx": 5,
+        "gap2": 0.00001712600128089825
+      },
+      "altS": {
+        "rel": 0.5852257604069032,
+        "idx": 5,
+        "gap2": 0.00001712600128089825
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/6/datasette-2",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "datasette 0.65.3. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette/releases/tag/0.65.3\">datasette 0.65.3</a></p> <p>Back-ported the SQL Injection security fix from <a href=\"https://simonwillison.net/2026/Aug/6/datasette/\">1.0a38</a>.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "textTitlesOnly": "datasette 0.65.3. <p><strong>Release:</strong> <a href=\"https://github.com/simonw/datasette/releases/tag/0.65.3\">datasette 0.65.3</a></p> <p>Back-ported the SQL Injection security fix from <a href=\"https://simonwillison.net/2026/Aug/6/datasette/\">1.0a38</a>.</p> <p>Tags: <a href=\"https://simonwillison.net/tags/datasette\">datasette</a></p>",
+        "anchorCount": 0,
+        "publisherId": "simonwillison"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "datasette 0.65.3",
+        "textTitlesOnly": "datasette 0.65.3",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "datasette 0.65.3",
+      "full": {
+        "rel": 0.6107028897095571,
+        "idx": 3,
+        "gap2": 0.01612865873692526
+      },
+      "title_": {
+        "rel": 0.5814341741099978,
+        "idx": 1,
+        "gap2": 0.007706753955346368
+      },
+      "altS": {
+        "rel": 0.5814341741099978,
+        "idx": 1,
+        "gap2": 0.007706753955346368
+      }
+    },
+    {
+      "url": "https://blog.cloudflare.com/the-agentic-internet",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Building an open Agentic Internet: readable, discoverable, callable, and payable. Our data shows that a lot of traffic from well-behaved bots is re-fetching pages that have not changed . Billions of requests. An enormous amount of machine effort, attached to no outcome at all. That's the signature of a web built for humans being visited by something else. Agents are here - not as a new kind of software, but as a new kind of visitor to the web. The web reshaped around this new visitor is what we call the Agentic Internet. We see its future as readable, discoverable, callable, and payable. To realize that future, it needs its own tools and protocols. Cloudflare's developer platform gave agents a place to run, and the first tools to build them. What's missing are the ones that let agents and domain owners cooperate instead of collide — on the open Internet, not just inside a single platform. Every browser has always identified itself to the web with a header called User-Agent. The name only made sense once you realized the browser was acting on your behalf. Now a user agent is truly a user's agent: a program that fetches the web on a person's behalf. Today its most mature form is the ",
+        "textTitlesOnly": "Building an open Agentic Internet: readable, discoverable, callable, and payable. Our data shows that a lot of traffic from well-behaved bots is re-fetching pages that have not changed . Billions of requests. An enormous amount of machine effort, attached to no outcome at all. That's the signature of a web built for humans being visited by something else. Agents are here - not as a new kind of software, but as a new kind of visitor to the web. The web reshaped around this new visitor is what we call the Agentic Internet. We see its future as readable, discoverable, callable, and payable. To realize that future, it needs its own tools and protocols. Cloudflare's developer platform gave agents a place to run, and the first tools to build them. What's missing are the ones that let agents and domain owners cooperate instead of collide — on the open Internet, not just inside a single platform. Every browser has always identified itself to the web with a header called User-Agent. The name only made sense once you realized the browser was acting on your behalf. Now a user agent is truly a user's agent: a program that fetches the web on a person's behalf. Today its most mature form is the ",
+        "anchorCount": 0,
+        "publisherId": "cloudflare"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Building an open Agentic Internet: readable, discoverable, callable, and payable (9 minute read)",
+        "textTitlesOnly": "OpenAI device details 🤖, AI synthetic virus 🦠, agent plugins 👨‍💻",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Building an open Agentic Internet: readable, discoverable, callable, and payable",
+      "full": {
+        "rel": 0.6466293455917993,
+        "idx": 7,
+        "gap2": 0.019091212492554077
+      },
+      "title_": {
+        "rel": 0.7931524655001645,
+        "idx": 7,
+        "gap2": 0.03800466402452651
+      },
+      "altS": {
+        "rel": 0.7795438146367487,
+        "idx": 12,
+        "gap2": 0.0005367263525243304
+      }
+    },
+    {
+      "url": "https://blog.cloudflare.com/mcp-v2",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "The next generation of MCP. Over the last year and a half, the Model Context Protocol (MCP) has become the universal standard for how agents interact with external services. But one of the main criticisms of MCP was that the protocol required a stateful connection between Client and Server. This evolved from MCP’s origins and the first STDIO transport, designed for local applications . When MCP Servers went remote, it translated the stateful connection that worked so well locally and transposed it onto web infrastructure. Building a well-behaved MCP Server meant managing request routing to sticky sessions, holding open streams, message replay, and generally more overhead and complexity than a traditional web server. This changes now. The latest MCP 2026-07-28 specification was released last week, together with updated TypeScript, Python, Go, and C# SDKs. MCP is now a fully stateless protocol. The specification, interaction model and SDKs have all been rewritten to leverage this new protocol and simplify usage. This means that MCP servers can now run in just a Worker, no stateful infrastructure needed, and customers benefit from the operational simplicity and reduced cost of less mo",
+        "textTitlesOnly": "The next generation of MCP. Over the last year and a half, the Model Context Protocol (MCP) has become the universal standard for how agents interact with external services. But one of the main criticisms of MCP was that the protocol required a stateful connection between Client and Server. This evolved from MCP’s origins and the first STDIO transport, designed for local applications . When MCP Servers went remote, it translated the stateful connection that worked so well locally and transposed it onto web infrastructure. Building a well-behaved MCP Server meant managing request routing to sticky sessions, holding open streams, message replay, and generally more overhead and complexity than a traditional web server. This changes now. The latest MCP 2026-07-28 specification was released last week, together with updated TypeScript, Python, Go, and C# SDKs. MCP is now a fully stateless protocol. The specification, interaction model and SDKs have all been rewritten to leverage this new protocol and simplify usage. This means that MCP servers can now run in just a Worker, no stateful infrastructure needed, and customers benefit from the operational simplicity and reduced cost of less mo",
+        "anchorCount": 0,
+        "publisherId": "cloudflare"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Cloudflare covers what changed",
+        "textTitlesOnly": "Shipping less JavaScript with Baseline",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "The next generation of MCP",
+      "full": {
+        "rel": 0.6434904304160135,
+        "idx": 3,
+        "gap2": 0.0030302764514690272
+      },
+      "title_": {
+        "rel": 0.6604099059723166,
+        "idx": 10,
+        "gap2": 0.008099643129626521
+      },
+      "altS": {
+        "rel": 0.6534916446787058,
+        "idx": 0,
+        "gap2": 0.0029732937958684147
+      }
+    },
+    {
+      "url": "https://astro.build/blog/astro-720",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Astro 7.2. Astro 7.2 adds experimental incremental static builds, an option to opt out of session support, background mode for astro preview, and relative logger entrypoints.",
+        "textTitlesOnly": "Astro 7.2. Astro 7.2 adds experimental incremental static builds, an option to opt out of session support, background mode for astro preview, and relative logger entrypoints.",
+        "anchorCount": 0,
+        "publisherId": "astro"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Astro 7.2",
+        "textTitlesOnly": "Shipping less JavaScript with Baseline",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Astro 7.2",
+      "full": {
+        "rel": 0.6327301573577391,
+        "idx": 15,
+        "gap2": 0.040816064804482854
+      },
+      "title_": {
+        "rel": 0.6368506800928716,
+        "idx": 15,
+        "gap2": 0.008142871087767789
+      },
+      "altS": {
+        "rel": 0.6368506800928716,
+        "idx": 15,
+        "gap2": 0.008142871087767789
+      }
+    },
+    {
+      "url": "https://nodejs.org/en/blog/release/v26.7.0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Node.js 26.7.0 (Current).",
+        "textTitlesOnly": "Node.js 26.7.0 (Current).",
+        "anchorCount": 0,
+        "publisherId": "nodejs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Node.js 26.7.0 (Current)",
+        "textTitlesOnly": "Shipping less JavaScript with Baseline",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Node.js 26.7.0 (Current)",
+      "full": {
+        "rel": 0.7291106681088646,
+        "idx": 0,
+        "gap2": 0.06726929486552446
+      },
+      "title_": {
+        "rel": 0.6877099584331322,
+        "idx": 0,
+        "gap2": 0.08688406903655588
+      },
+      "altS": {
+        "rel": 0.6877099584331322,
+        "idx": 0,
+        "gap2": 0.08688406903655588
+      }
+    },
+    {
+      "url": "https://blog.rust-lang.org/2026/08/04/enabling-polonius-alpha-on-nightly",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Enabling the next iteration of the borrow checker on nightly. <p>TL;DR We are enabling the next iteration of the borrow checker (coined Polonius Alpha) on nightly in preparation for stabilization in the next few months.</p> <h2 id=\"whaaaaaat\"><a class=\"anchor\" href=\"#whaaaaaat\" aria-hidden=\"true\"></a> Whaaaaaat?</h2> <p>Yes! You heard it right! The next iteration of the Rust borrow checker is coming! Rust's first borrow checker (\"AST borrowck\") was very limited and was phased out <a rel=\"external\" href=\"https://blog.rust-lang.org/2019/11/01/nll-hard-errors/\">in 2019</a> in favor of <a rel=\"external\" href=\"https://rust-lang.github.io/rfcs/2094-nll.html\">NLL</a>, other than a \"migrate mode\" that was used to provide nice error messages. That migrate mode was finally removed <a rel=\"external\" href=\"https://blog.rust-lang.org/2022/08/05/nll-by-default\">in 2022</a>.</p> <p>The <a rel=\"external\" href=\"https://github.com/rust-lang/polonius\">Polonius borrow checker</a> spun out of the NLL effort in 2018. The <a rel=\"external\" href=\"https://smallcultfollowing.com/babysteps/blog/2018/04/27/an-alias-based-formulation-of-the-borrow-checker/\">initial formulation</a> passed the NLL test suite and",
+        "textTitlesOnly": "Enabling the next iteration of the borrow checker on nightly. <p>TL;DR We are enabling the next iteration of the borrow checker (coined Polonius Alpha) on nightly in preparation for stabilization in the next few months.</p> <h2 id=\"whaaaaaat\"><a class=\"anchor\" href=\"#whaaaaaat\" aria-hidden=\"true\"></a> Whaaaaaat?</h2> <p>Yes! You heard it right! The next iteration of the Rust borrow checker is coming! Rust's first borrow checker (\"AST borrowck\") was very limited and was phased out <a rel=\"external\" href=\"https://blog.rust-lang.org/2019/11/01/nll-hard-errors/\">in 2019</a> in favor of <a rel=\"external\" href=\"https://rust-lang.github.io/rfcs/2094-nll.html\">NLL</a>, other than a \"migrate mode\" that was used to provide nice error messages. That migrate mode was finally removed <a rel=\"external\" href=\"https://blog.rust-lang.org/2022/08/05/nll-by-default\">in 2022</a>.</p> <p>The <a rel=\"external\" href=\"https://github.com/rust-lang/polonius\">Polonius borrow checker</a> spun out of the NLL effort in 2018. The <a rel=\"external\" href=\"https://smallcultfollowing.com/babysteps/blog/2018/04/27/an-alias-based-formulation-of-the-borrow-checker/\">initial formulation</a> passed the NLL test suite and",
+        "anchorCount": 0,
+        "publisherId": "rust"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Enabling the next iteration of the borrow checker on nightly",
+        "textTitlesOnly": "This Week in Rust 663",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Enabling the next iteration of the borrow checker on nightly",
+      "full": {
+        "rel": 0.6468618521068373,
+        "idx": 10,
+        "gap2": 0.010348267795103339
+      },
+      "title_": {
+        "rel": 0.6514584847316875,
+        "idx": 0,
+        "gap2": 0.08132246247268304
+      },
+      "altS": {
+        "rel": 0.6514584847316875,
+        "idx": 0,
+        "gap2": 0.08132246247268304
+      }
+    },
+    {
+      "url": "https://nextjs.org/blog/next-16-3",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Next.js 16.3. Next.js 16.3 introduces Instant Navigations, a suite of tools for single-page-app responsiveness, plus a faster dev server, faster builds, and improved tooling for AI agents.",
+        "textTitlesOnly": "Next.js 16.3. Next.js 16.3 introduces Instant Navigations, a suite of tools for single-page-app responsiveness, plus a faster dev server, faster builds, and improved tooling for AI agents.",
+        "anchorCount": 0,
+        "publisherId": "nextjs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Next.js 16.3 Released",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Next.js 16.3",
+      "full": {
+        "rel": 0.7987045509028814,
+        "idx": 0,
+        "gap2": 0.11657472139979541
+      },
+      "title_": {
+        "rel": 0.7286782291454859,
+        "idx": 0,
+        "gap2": 0.11470315962241762
+      },
+      "altS": {
+        "rel": 0.7496631066921858,
+        "idx": 0,
+        "gap2": 0.09528028731625116
+      }
+    },
+    {
+      "url": "https://nodejs.org/en/blog/release/v26.6.0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Node.js 26.6.0 (Current).",
+        "textTitlesOnly": "Node.js 26.6.0 (Current).",
+        "anchorCount": 0,
+        "publisherId": "nodejs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Node.js v26.6.0 (Current)",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Node.js 26.6.0 (Current)",
+      "full": {
+        "rel": 0.729109545564628,
+        "idx": 0,
+        "gap2": 0.06609433455151481
+      },
+      "title_": {
+        "rel": 0.687903256155484,
+        "idx": 0,
+        "gap2": 0.09016385531390203
+      },
+      "altS": {
+        "rel": 0.6887077660286205,
+        "idx": 0,
+        "gap2": 0.06728354271564452
+      }
+    },
+    {
+      "url": "https://nodejs.org/en/blog/release/v24.19.0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Node.js 24.19.0 (LTS).",
+        "textTitlesOnly": "Node.js 24.19.0 (LTS).",
+        "anchorCount": 0,
+        "publisherId": "nodejs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "v24.19.0 (LTS)",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Node.js 24.19.0 (LTS)",
+      "full": {
+        "rel": 0.7116450964403824,
+        "idx": 0,
+        "gap2": 0.053398023467837286
+      },
+      "title_": {
+        "rel": 0.673810107686041,
+        "idx": 0,
+        "gap2": 0.04747975199569243
+      },
+      "altS": {
+        "rel": 0.6616488553515709,
+        "idx": 0,
+        "gap2": 0.02451633750680715
+      }
+    },
+    {
+      "url": "https://svelte.dev/blog/whats-new-in-svelte-august-2026",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "What’s new in Svelte: August 2026. <p>The biggest news this month is the first <code>@next</code> releases of SvelteKit 3. Thirteen preview versions shipped in July: previewing new <code>$app/manifest</code> and <code>$app/service-worker</code> modules, improved API availability and type checking in service workers, tracing out of the experimental namespace, shallow routing baked into <code>goto</code> and a lot more. It’s a prerelease, but it’s worth trying out to see what’s coming to SvelteKit!</p> <p>Alongside the preview releases, the stable line kept moving with <code>submitted</code> on remote forms and a new home for <code>defineEnvVars</code>. The language tools also picked up zero-config <code>+error.svelte</code> props so error pages get their <code>page</code> and <code>error</code> types with no extra setup.</p> <p>And, in case you missed it, <a href=\"https://sveltesummit.com\">Svelte Summit Ljubljana 2026</a> is happening November 19-20, with a workshop day on November 18, the day before the summit. Save the date!</p> <h2 id=\"What's-new-in-SvelteKit\"><span>What’s new in SvelteKit</span><a href=\"#What's-new-in-SvelteKit\" class=\"permalink\" aria-label=\"permalink\"></a></h2>",
+        "textTitlesOnly": "What’s new in Svelte: August 2026. <p>The biggest news this month is the first <code>@next</code> releases of SvelteKit 3. Thirteen preview versions shipped in July: previewing new <code>$app/manifest</code> and <code>$app/service-worker</code> modules, improved API availability and type checking in service workers, tracing out of the experimental namespace, shallow routing baked into <code>goto</code> and a lot more. It’s a prerelease, but it’s worth trying out to see what’s coming to SvelteKit!</p> <p>Alongside the preview releases, the stable line kept moving with <code>submitted</code> on remote forms and a new home for <code>defineEnvVars</code>. The language tools also picked up zero-config <code>+error.svelte</code> props so error pages get their <code>page</code> and <code>error</code> types with no extra setup.</p> <p>And, in case you missed it, <a href=\"https://sveltesummit.com\">Svelte Summit Ljubljana 2026</a> is happening November 19-20, with a workshop day on November 18, the day before the summit. Save the date!</p> <h2 id=\"What's-new-in-SvelteKit\"><span>What’s new in SvelteKit</span><a href=\"#What's-new-in-SvelteKit\" class=\"permalink\" aria-label=\"permalink\"></a></h2>",
+        "anchorCount": 0,
+        "publisherId": "svelte"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "the Svelte team",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "What’s new in Svelte: August 2026",
+      "full": {
+        "rel": 0.6258034479094801,
+        "idx": 1,
+        "gap2": 0.017593202406643416
+      },
+      "title_": {
+        "rel": 0.6224980996901527,
+        "idx": 1,
+        "gap2": 0.03718760968541501
+      },
+      "altS": {
+        "rel": 0.652375719991129,
+        "idx": 1,
+        "gap2": 0.011705673426097851
+      }
+    },
+    {
+      "url": "https://openai.com/index/ten-advances-in-mathematics",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Ten advances in mathematics and theoretical computer science. OpenAI shares new results on long-standing open problems in mathematics and theoretical computer science, including advances in geometry, cryptography, and complexity.",
+        "textTitlesOnly": "Ten advances in mathematics and theoretical computer science. OpenAI shares new results on long-standing open problems in mathematics and theoretical computer science, including advances in geometry, cryptography, and complexity.",
+        "anchorCount": 0,
+        "publisherId": "openai"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "OpenAI announces 10 discoveries from their next model. Observations:: 1) AI is getting very good at math 2) Two years ago LLMs failed at basic math 3) This cost less than $2000 in current API fees 4)",
+        "textTitlesOnly": "OpenAI announces 10 discoveries from their next model. Observations:: 1) AI is getting very good at math 2) Two years ago LLMs failed at basic math 3) This cost less than $2000 in current API fees 4)",
+        "anchorCount": 0,
+        "publisherId": null
+      },
+      "title": "Ten advances in mathematics and theoretical computer science",
+      "full": {
+        "rel": 0.7041739758801886,
+        "idx": 16,
+        "gap2": 0.017864186647654212
+      },
+      "title_": {
+        "rel": 0.7045066617253244,
+        "idx": 16,
+        "gap2": 0.0005586222475647551
+      },
+      "altS": {
+        "rel": 0.7928154716252415,
+        "idx": 15,
+        "gap2": 0.050859101153430286
+      }
+    },
+    {
+      "url": "https://astro.build/blog/whats-new-july-2026",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "What's new in Astro - July 2026. July 2026 - CodeTV GSAP Webflow contest, Astro Germany, and more!",
+        "textTitlesOnly": "What's new in Astro - July 2026. July 2026 - CodeTV GSAP Webflow contest, Astro Germany, and more!",
+        "anchorCount": 0,
+        "publisherId": "astro"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "the Astro team",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "What's new in Astro - July 2026",
+      "full": {
+        "rel": 0.5490521673379284,
+        "idx": 15,
+        "gap2": 0.011892438572948638
+      },
+      "title_": {
+        "rel": 0.6021556378760161,
+        "idx": 15,
+        "gap2": 0.014385499021931647
+      },
+      "altS": {
+        "rel": 0.6374009499639656,
+        "idx": 16,
+        "gap2": 0.012638538279975076
+      }
+    },
+    {
+      "url": "https://chriscoyier.net/2026/07/30/codepen-2-0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "CodePen 2.0. Noting perhaps my largest personal career accomplishment, which is launching CodePen 2.0 . Far more work, believe it or not, than the entire creation of the original CodePen. This isn’t the place to describe every detail of what we did and why we did it. If you’re interested, perhaps our Why 2.0? podcast or the What’s New? page. Instead, a couple of stories from the first week of launch. I was working on a demo with someone I’ve never met before: Dave Samaniego. It started on their (classic) Pen. They needed to import some other JavaScript, so they used 3 Pens and pulled in the JavaScript from the other two into the main demo. They also needed an npm package. I forked the Pen and invited them as a co-editor, so we could both work on it together anytime. I moved the JavaScript into files on the main Pen, as that’s much easier to work with. The npm package is in the package.json file for easy version management. We both cleaned it up to our liking. The Keyframers (David and Shaw) got back together and did a live stream on launch day. They also used the invite feature and live collaboration . They worked together for hours, and while there was a bug or two, it was nothing",
+        "textTitlesOnly": "CodePen 2.0. Noting perhaps my largest personal career accomplishment, which is launching CodePen 2.0 . Far more work, believe it or not, than the entire creation of the original CodePen. This isn’t the place to describe every detail of what we did and why we did it. If you’re interested, perhaps our Why 2.0? podcast or the What’s New? page. Instead, a couple of stories from the first week of launch. I was working on a demo with someone I’ve never met before: Dave Samaniego. It started on their (classic) Pen. They needed to import some other JavaScript, so they used 3 Pens and pulled in the JavaScript from the other two into the main demo. They also needed an npm package. I forked the Pen and invited them as a co-editor, so we could both work on it together anytime. I moved the JavaScript into files on the main Pen, as that’s much easier to work with. The npm package is in the package.json file for easy version management. We both cleaned it up to our liking. The Keyframers (David and Shaw) got back together and did a live stream on launch day. They also used the invite feature and live collaboration . They worked together for hours, and while there was a bug or two, it was nothing",
+        "anchorCount": 0,
+        "publisherId": "chriscoyier"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "hit Hacker News",
+        "textTitlesOnly": "Clips from Hacker News Thread",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "CodePen 2.0",
+      "full": {
+        "rel": 0.62455438050508,
+        "idx": 3,
+        "gap2": 0.0001453827484994008
+      },
+      "title_": {
+        "rel": 0.7077861282761514,
+        "idx": 14,
+        "gap2": 0.01446249937405597
+      },
+      "altS": {
+        "rel": 0.6536317571996153,
+        "idx": 12,
+        "gap2": 0.04730635690041707
+      }
+    },
+    {
+      "url": "https://openai.com/index/advancing-the-price-performance-frontier-with-gpt-5-6",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Advancing the price-performance frontier with GPT-5.6. Explore lower GPT‑5.6 pricing for Luna and Terra—and how OpenAI’s more efficient models help enterprises deploy AI workflows at scale.",
+        "textTitlesOnly": "Advancing the price-performance frontier with GPT-5.6. Explore lower GPT‑5.6 pricing for Luna and Terra—and how OpenAI’s more efficient models help enterprises deploy AI workflows at scale.",
+        "anchorCount": 0,
+        "publisherId": "openai"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "smallest model by 80%",
+        "textTitlesOnly": "Latest open artifacts (#23): Laguna S2.1, Inkling, & Kimi K3 show the utility of open models on the Pareto frontier",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Advancing the price-performance frontier with GPT-5.6",
+      "full": {
+        "rel": 0.7843540099314505,
+        "idx": 15,
+        "gap2": 0.08927029185702962
+      },
+      "title_": {
+        "rel": 0.7818241905433795,
+        "idx": 15,
+        "gap2": 0.08137713543119085
+      },
+      "altS": {
+        "rel": 0.6886248013791948,
+        "idx": 15,
+        "gap2": 0.019849505228093478
+      }
+    },
+    {
+      "url": "https://blog.jim-nielsen.com/2026/ai-aesthetic",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "The AI Aesthetic. <p>Every zeitgeist comes with new design idioms unique to its challenges. Many of them disappear as fads change, but others bake themselves into deeper parts of existing software interaction paradigms.</p> <p>For example, there’s <a href=\"https://en.wikipedia.org/wiki/Hamburger_button\" >the hamburger menu</a> (≡) which saw a proliferation during the rise of mobile due to the constraints around screen size. It has since spread to many other parts of software interaction design and will likely remain prevalent for a long time as a terse way of indicating “more menu-type content here”.</p> <p>As another example, before AI what were the connotations of the sparkle emoji ✨? Personally, I don’t know, but now it means AI. (AI = sparkles and rainbow colors — it’s funny when you think about it. They should’ve just thrown unicorns in there for the trifecta. AI = sparkles, rainbows, and unicorns ✨🌈🦄. Apt.)</p> <p>Some patterns are very specific to the interactions inherent to the nature of AI as a technology. For example: streaming text. This is a pattern made for and refined by chat interfaces, so it may not have tons of utility for reuse across other software interaction",
+        "textTitlesOnly": "The AI Aesthetic. <p>Every zeitgeist comes with new design idioms unique to its challenges. Many of them disappear as fads change, but others bake themselves into deeper parts of existing software interaction paradigms.</p> <p>For example, there’s <a href=\"https://en.wikipedia.org/wiki/Hamburger_button\" >the hamburger menu</a> (≡) which saw a proliferation during the rise of mobile due to the constraints around screen size. It has since spread to many other parts of software interaction design and will likely remain prevalent for a long time as a terse way of indicating “more menu-type content here”.</p> <p>As another example, before AI what were the connotations of the sparkle emoji ✨? Personally, I don’t know, but now it means AI. (AI = sparkles and rainbow colors — it’s funny when you think about it. They should’ve just thrown unicorns in there for the trifecta. AI = sparkles, rainbows, and unicorns ✨🌈🦄. Apt.)</p> <p>Some patterns are very specific to the interactions inherent to the nature of AI as a technology. For example: streaming text. This is a pattern made for and refined by chat interfaces, so it may not have tons of utility for reuse across other software interaction",
+        "anchorCount": 0,
+        "publisherId": "jimnielsen"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "The AI Aesthetic (3 minute read)",
+        "textTitlesOnly": "Tesla SpaceX merger 🚗, OpenAI price cuts 📉, Stripe's AI knowledge platform 👨‍💻",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "The AI Aesthetic",
+      "full": {
+        "rel": 0.6303882461795541,
+        "idx": 2,
+        "gap2": 0.004884871191889517
+      },
+      "title_": {
+        "rel": 0.7512683215648701,
+        "idx": 17,
+        "gap2": 0.0006924148043289113
+      },
+      "altS": {
+        "rel": 0.7649840970117237,
+        "idx": 16,
+        "gap2": 0.022842276794528882
+      }
+    },
+    {
+      "url": "https://openai.com/index/gpt-5-6-frontier-intelligence-efficiency",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "How GPT-5.6 fuses frontier intelligence with frontier efficiency. GPT-5.6 improves AI efficiency across models, inference, and agentic workflows, helping deliver more useful intelligence per dollar.",
+        "textTitlesOnly": "How GPT-5.6 fuses frontier intelligence with frontier efficiency. GPT-5.6 improves AI efficiency across models, inference, and agentic workflows, helping deliver more useful intelligence per dollar.",
+        "anchorCount": 0,
+        "publisherId": "openai"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "published",
+        "textTitlesOnly": "[AINews] GPT 5.6 price cut by 20%-80%: Cost of GPT 5.4 Intelligence dropped 13x in 4 months due to GPT 5.6 recursive self-optimization",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "How GPT-5.6 fuses frontier intelligence with frontier efficiency",
+      "full": {
+        "rel": 0.7699051155074043,
+        "idx": 15,
+        "gap2": 0.036968543471360804
+      },
+      "title_": {
+        "rel": 0.7830211679434316,
+        "idx": 15,
+        "gap2": 0.02342582553856254
+      },
+      "altS": {
+        "rel": 0.6604701819124037,
+        "idx": 12,
+        "gap2": 0.03661569382370544
+      }
+    },
+    {
+      "url": "https://nodejs.org/en/blog/announcements/new-api-docs-beta",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Check out the New Node.js API Documentation Preview.",
+        "textTitlesOnly": "Check out the New Node.js API Documentation Preview.",
+        "anchorCount": 0,
+        "publisherId": "nodejs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "a new API docs site in preview",
+        "textTitlesOnly": "Anders Hejlsberg demos TypeScript 7's 10x speedup",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Check out the New Node.js API Documentation Preview",
+      "full": {
+        "rel": 0.6870605461743076,
+        "idx": 0,
+        "gap2": 0.010669890826385253
+      },
+      "title_": {
+        "rel": 0.7040382400587284,
+        "idx": 0,
+        "gap2": 0.024457294816482955
+      },
+      "altS": {
+        "rel": 0.6771119682434296,
+        "idx": 1,
+        "gap2": 0.02085201256680269
+      }
+    },
+    {
+      "url": "https://huggingface.co/blog/security-incident-july-2026",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Security incident disclosure — July 2026.",
+        "textTitlesOnly": "Security incident disclosure — July 2026.",
+        "anchorCount": 0,
+        "publisherId": "huggingface"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "disclosed they had detected an attack",
+        "textTitlesOnly": "Now we have a timeline of the OpenAI accidental attack against Hugging Face",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Security incident disclosure — July 2026",
+      "full": {
+        "rel": 0.6803207327988874,
+        "idx": 11,
+        "gap2": 0.08825700012695337
+      },
+      "title_": {
+        "rel": 0.7010611879235671,
+        "idx": 11,
+        "gap2": 0.09319339455265996
+      },
+      "altS": {
+        "rel": 0.5889610193493346,
+        "idx": 16,
+        "gap2": 0.00015191087607446807
+      }
+    },
+    {
+      "url": "https://astro.build/blog/astro-710",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Astro 7.1. Astro 7.1 is about more control: CSP, pagination, dev server, and content collections.",
+        "textTitlesOnly": "Astro 7.1. Astro 7.1 is about more control: CSP, pagination, dev server, and content collections.",
+        "anchorCount": 0,
+        "publisherId": "astro"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Astro 7.1",
+        "textTitlesOnly": "The coding challenge you don't want to pass",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Astro 7.1",
+      "full": {
+        "rel": 0.6349238903206463,
+        "idx": 4,
+        "gap2": 0.012622409970655335
+      },
+      "title_": {
+        "rel": 0.6396576538026089,
+        "idx": 15,
+        "gap2": 0.002791855438336155
+      },
+      "altS": {
+        "rel": 0.6396576538026089,
+        "idx": 15,
+        "gap2": 0.002791855438336155
+      }
+    },
+    {
+      "url": "https://blog.rust-lang.org/2026/07/16/Rust-1.97.1",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Announcing Rust 1.97.1. <p>The Rust team has published a new point release of Rust, 1.97.1. Rust is a programming language that is empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via rustup, getting Rust 1.97.1 is as easy as:</p> <pre class=\"giallo z-code\"><code data-lang=\"plain\"><span class=\"giallo-l\"><span>rustup update stable</span></span></code></pre> <p>If you don't have it already, you can <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\">get <code>rustup</code></a> from the appropriate page on our website.</p> <h2 id=\"what-s-in-1-97-1\"><a class=\"anchor\" href=\"#what-s-in-1-97-1\" aria-hidden=\"true\"></a> What's in 1.97.1</h2> <p>Rust 1.97.1 fixes a <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/159035\">miscompilation in an LLVM optimization</a>.</p> <p>We have backported both an LLVM fix and a disable of the underlying change in Rust 1.97.0 of Rust's generated IR that increased the likelihood of this happening. However, note that the underlying miscompilation has been present since at least Rust 1.87.</p> <p>If you'd like to help us out by testing future releases, you might con",
+        "textTitlesOnly": "Announcing Rust 1.97.1. <p>The Rust team has published a new point release of Rust, 1.97.1. Rust is a programming language that is empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via rustup, getting Rust 1.97.1 is as easy as:</p> <pre class=\"giallo z-code\"><code data-lang=\"plain\"><span class=\"giallo-l\"><span>rustup update stable</span></span></code></pre> <p>If you don't have it already, you can <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\">get <code>rustup</code></a> from the appropriate page on our website.</p> <h2 id=\"what-s-in-1-97-1\"><a class=\"anchor\" href=\"#what-s-in-1-97-1\" aria-hidden=\"true\"></a> What's in 1.97.1</h2> <p>Rust 1.97.1 fixes a <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/159035\">miscompilation in an LLVM optimization</a>.</p> <p>We have backported both an LLVM fix and a disable of the underlying change in Rust 1.97.0 of Rust's generated IR that increased the likelihood of this happening. However, note that the underlying miscompilation has been present since at least Rust 1.87.</p> <p>If you'd like to help us out by testing future releases, you might con",
+        "anchorCount": 0,
+        "publisherId": "rust"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Announcing Rust 1.97.1",
+        "textTitlesOnly": "This Week in Rust 661",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Announcing Rust 1.97.1",
+      "full": {
+        "rel": 0.7121579501159272,
+        "idx": 10,
+        "gap2": 0.04947707325588813
+      },
+      "title_": {
+        "rel": 0.7676478643795173,
+        "idx": 10,
+        "gap2": 0.08282634389111565
+      },
+      "altS": {
+        "rel": 0.7676478643795173,
+        "idx": 10,
+        "gap2": 0.08282634389111565
+      }
+    },
+    {
+      "url": "https://blog.rust-lang.org/2026/07/09/Rust-1.97.0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Announcing Rust 1.97.0. <p>The Rust team is happy to announce a new version of Rust, 1.97.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.97.0 with:</p> <pre class=\"giallo z-code\"><code data-lang=\"shellsession\"><span class=\"giallo-l\"><span>$</span><span> rustup update stable</span></span></code></pre> <p>If you don't have it already, you can get <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\"><code>rustup</code></a> from the appropriate page on our website, and check out the <a rel=\"external\" href=\"https://doc.rust-lang.org/stable/releases.html#version-1970-2026-07-09\">detailed release notes for 1.97.0</a>.</p> <p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/new/choose\">report</a> any bugs you might come across!</p> <h2 id=\"what-s-in-1-97-0-stable\"><a class=\"anchor\" href=\"#what-s-in-1-97-0",
+        "textTitlesOnly": "Announcing Rust 1.97.0. <p>The Rust team is happy to announce a new version of Rust, 1.97.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.97.0 with:</p> <pre class=\"giallo z-code\"><code data-lang=\"shellsession\"><span class=\"giallo-l\"><span>$</span><span> rustup update stable</span></span></code></pre> <p>If you don't have it already, you can get <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\"><code>rustup</code></a> from the appropriate page on our website, and check out the <a rel=\"external\" href=\"https://doc.rust-lang.org/stable/releases.html#version-1970-2026-07-09\">detailed release notes for 1.97.0</a>.</p> <p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/new/choose\">report</a> any bugs you might come across!</p> <h2 id=\"what-s-in-1-97-0-stable\"><a class=\"anchor\" href=\"#what-s-in-1-97-0",
+        "anchorCount": 0,
+        "publisherId": "rust"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Rust",
+        "textTitlesOnly": "Announcing Rust 1.97.0",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Announcing Rust 1.97.0",
+      "full": {
+        "rel": 0.6745886341524128,
+        "idx": 10,
+        "gap2": 0.05528014540106818
+      },
+      "title_": {
+        "rel": 0.7678632178189932,
+        "idx": 10,
+        "gap2": 0.08662327544398496
+      },
+      "altS": {
+        "rel": 0.7766988629531628,
+        "idx": 10,
+        "gap2": 0.16358769973558962
+      }
+    },
+    {
+      "url": "https://nextjs.org/blog/next-16-3-ai-improvements",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Next.js 16.3: AI Improvements. Actionable errors with paste-ready fix prompts, first-party Skills for the dev loop and Cache Components, and tooling that keeps coding agents in sync with your project.",
+        "textTitlesOnly": "Next.js 16.3: AI Improvements. Actionable errors with paste-ready fix prompts, first-party Skills for the dev loop and Cache Components, and tooling that keeps coding agents in sync with your project.",
+        "anchorCount": 0,
+        "publisherId": "nextjs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "AI improvements",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Next.js 16.3: AI Improvements",
+      "full": {
+        "rel": 0.7222361104004574,
+        "idx": 7,
+        "gap2": 0.037252320833133235
+      },
+      "title_": {
+        "rel": 0.7251634224910273,
+        "idx": 17,
+        "gap2": 0.010953030081112924
+      },
+      "altS": {
+        "rel": 0.7841917482009433,
+        "idx": 17,
+        "gap2": 0.002323015311525234
+      }
+    },
+    {
+      "url": "https://nextjs.org/blog/next-16-3-instant-navigations",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Next.js 16.3: Instant Navigations. A new suite of tools that brings the responsiveness of a single-page app to the server-centric model of Next.js.",
+        "textTitlesOnly": "Next.js 16.3: Instant Navigations. A new suite of tools that brings the responsiveness of a single-page app to the server-centric model of Next.js.",
+        "anchorCount": 0,
+        "publisherId": "nextjs"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Instant Navigations",
+        "textTitlesOnly": "Reimplementing htmx from scratch",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Next.js 16.3: Instant Navigations",
+      "full": {
+        "rel": 0.8138450685827394,
+        "idx": 0,
+        "gap2": 0.08081579256588078
+      },
+      "title_": {
+        "rel": 0.7591525591118276,
+        "idx": 0,
+        "gap2": 0.11938931569362199
+      },
+      "altS": {
+        "rel": 0.6644200280851611,
+        "idx": 0,
+        "gap2": 0.009927658786617721
+      }
+    },
+    {
+      "url": "https://blog.rust-lang.org/2026/05/28/Rust-1.96.0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Announcing Rust 1.96.0. <p>The Rust team is happy to announce a new version of Rust, 1.96.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.96.0 with:</p> <pre class=\"giallo z-code\"><code data-lang=\"shellsession\"><span class=\"giallo-l\"><span>$</span><span> rustup update stable</span></span></code></pre> <p>If you don't have it already, you can <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\">get <code>rustup</code></a> from the appropriate page on our website, and check out the <a rel=\"external\" href=\"https://doc.rust-lang.org/stable/releases.html#version-1960-2026-05-28\">detailed release notes for 1.96.0</a>.</p> <p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/new/choose\">report</a> any bugs you might come across!</p> <h2 id=\"what-s-in-1-96-0-stable\"><a class=\"anchor\" href=\"#what-s-in-1-96-0",
+        "textTitlesOnly": "Announcing Rust 1.96.0. <p>The Rust team is happy to announce a new version of Rust, 1.96.0. Rust is a programming language empowering everyone to build reliable and efficient software.</p> <p>If you have a previous version of Rust installed via <code>rustup</code>, you can get 1.96.0 with:</p> <pre class=\"giallo z-code\"><code data-lang=\"shellsession\"><span class=\"giallo-l\"><span>$</span><span> rustup update stable</span></span></code></pre> <p>If you don't have it already, you can <a rel=\"external\" href=\"https://www.rust-lang.org/install.html\">get <code>rustup</code></a> from the appropriate page on our website, and check out the <a rel=\"external\" href=\"https://doc.rust-lang.org/stable/releases.html#version-1960-2026-05-28\">detailed release notes for 1.96.0</a>.</p> <p>If you'd like to help us out by testing future releases, you might consider updating locally to use the beta channel (<code>rustup default beta</code>) or the nightly channel (<code>rustup default nightly</code>). Please <a rel=\"external\" href=\"https://github.com/rust-lang/rust/issues/new/choose\">report</a> any bugs you might come across!</p> <h2 id=\"what-s-in-1-96-0-stable\"><a class=\"anchor\" href=\"#what-s-in-1-96-0",
+        "anchorCount": 0,
+        "publisherId": "rust"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Rust",
+        "textTitlesOnly": "Announcing Rust 1.96.0",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Announcing Rust 1.96.0",
+      "full": {
+        "rel": 0.6792175957569007,
+        "idx": 10,
+        "gap2": 0.05806580933554939
+      },
+      "title_": {
+        "rel": 0.7682361754396703,
+        "idx": 10,
+        "gap2": 0.09085776567080717
+      },
+      "altS": {
+        "rel": 0.7766988629531628,
+        "idx": 10,
+        "gap2": 0.16358769973558962
+      }
+    },
+    {
+      "url": "https://devblogs.microsoft.com/typescript/announcing-typescript-6-0",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Announcing TypeScript 6.0. Today we are excited to announce the availability of TypeScript 6.0! If you are not familiar with TypeScript, it’s a language that builds on JavaScript by adding syntax for types, which enables type-checking to catch errors, and provide rich editor tooling. You can learn more about TypeScript and how to get started on the TypeScript website . But if you’re already familiar with the language, you can get TypeScript 6.0 through npm with the following command: npm install -D typescript TypeScript 6.0 is a unique release in that we intend for it to be the last release based on the current JavaScript codebase. As announced last year (with recent updates here ), we are working on a new codebase for the TypeScript compiler and language service written in Go that takes advantage of the speed of native code and shared-memory multi-threading. That new codebase will be the foundation of TypeScript 7.0 and beyond. TypeScript 6.0 acts as the bridge between TypeScript 5.9 and 7.0. As such, most changes in TypeScript 6.0 are meant to help align and prepare for adopting TypeScript 7.0. It may seem surprising to say, but TypeScript 7.0 is actually extremely close to compl",
+        "textTitlesOnly": "Announcing TypeScript 6.0. Today we are excited to announce the availability of TypeScript 6.0! If you are not familiar with TypeScript, it’s a language that builds on JavaScript by adding syntax for types, which enables type-checking to catch errors, and provide rich editor tooling. You can learn more about TypeScript and how to get started on the TypeScript website . But if you’re already familiar with the language, you can get TypeScript 6.0 through npm with the following command: npm install -D typescript TypeScript 6.0 is a unique release in that we intend for it to be the last release based on the current JavaScript codebase. As announced last year (with recent updates here ), we are working on a new codebase for the TypeScript compiler and language service written in Go that takes advantage of the speed of native code and shared-memory multi-threading. That new codebase will be the foundation of TypeScript 7.0 and beyond. TypeScript 6.0 acts as the bridge between TypeScript 5.9 and 7.0. As such, most changes in TypeScript 6.0 are meant to help align and prepare for adopting TypeScript 7.0. It may seem surprising to say, but TypeScript 7.0 is actually extremely close to compl",
+        "anchorCount": 0,
+        "publisherId": "typescript"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "Docs",
+        "textTitlesOnly": "What’s new in Svelte: June 2026. What’s new in Svelte: May 2026",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Announcing TypeScript 6.0",
+      "full": {
+        "rel": 0.7653121816398738,
+        "idx": 3,
+        "gap2": 0.10113446981940666
+      },
+      "title_": {
+        "rel": 0.7889969013984053,
+        "idx": 3,
+        "gap2": 0.11132145405897309
+      },
+      "altS": {
+        "rel": 0.6285830021170261,
+        "idx": 5,
+        "gap2": 0.005877764256263074
+      }
+    },
+    {
+      "url": "https://go.dev/blog/16years",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Go’s Sweet 16. <div id=\"blog\"><div id=\"content\"> <div id=\"content\"> <div class=\"Article\" data-slug=\"/blog/16years\"> <h1 class=\"small\"><a href=\"/blog/\">The Go Blog</a></h1> <h1>Go’s Sweet 16</h1> <p class=\"author\"> Austin Clements, for the Go team<br> 14 November 2025 </p> <div class='markdown'> <p>This past Monday, November 10th, we celebrated the 16th anniversary of Go’s <a href=\"https://opensource.googleblog.com/2009/11/hey-ho-lets-go.html\" rel=\"noreferrer\" target=\"_blank\">open source release</a>!</p> <p>We released <a href=\"/blog/go1.24\">Go 1.24 in February</a> and <a href=\"/blog/go1.25\">Go 1.25 in August</a>, following our now well-established and dependable release cadence. Continuing our mission to build the most productive language platform for building production systems, these releases included new APIs for building robust and reliable software, significant advances in Go’s track record for building secure software, and some serious under-the-hood improvements. Meanwhile, no one can ignore the seismic shifts in our industry brought by generative AI. The Go team is applying its thoughtful and uncompromising mindset to the problems and opportunities of this dynamic space, wo",
+        "textTitlesOnly": "Go’s Sweet 16. <div id=\"blog\"><div id=\"content\"> <div id=\"content\"> <div class=\"Article\" data-slug=\"/blog/16years\"> <h1 class=\"small\"><a href=\"/blog/\">The Go Blog</a></h1> <h1>Go’s Sweet 16</h1> <p class=\"author\"> Austin Clements, for the Go team<br> 14 November 2025 </p> <div class='markdown'> <p>This past Monday, November 10th, we celebrated the 16th anniversary of Go’s <a href=\"https://opensource.googleblog.com/2009/11/hey-ho-lets-go.html\" rel=\"noreferrer\" target=\"_blank\">open source release</a>!</p> <p>We released <a href=\"/blog/go1.24\">Go 1.24 in February</a> and <a href=\"/blog/go1.25\">Go 1.25 in August</a>, following our now well-established and dependable release cadence. Continuing our mission to build the most productive language platform for building production systems, these releases included new APIs for building robust and reliable software, significant advances in Go’s track record for building secure software, and some serious under-the-hood improvements. Meanwhile, no one can ignore the seismic shifts in our industry brought by generative AI. The Go team is applying its thoughtful and uncompromising mindset to the problems and opportunities of this dynamic space, wo",
+        "anchorCount": 0,
+        "publisherId": "go"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "v1.0.0",
+        "textTitlesOnly": "Go’s Sweet 16",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Go’s Sweet 16",
+      "full": {
+        "rel": 0.6469003721027977,
+        "idx": 15,
+        "gap2": 0.0014698552096761297
+      },
+      "title_": {
+        "rel": 0.5155783219224325,
+        "idx": 9,
+        "gap2": 0.010157599356282354
+      },
+      "altS": {
+        "rel": 0.7139666115934019,
+        "idx": 1,
+        "gap2": 0.01988331294626422
+      }
+    },
+    {
+      "url": "https://svelte.dev/blog/whats-new-in-svelte-october-2025",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "What’s new in Svelte: October 2025. <p>There were lots of improvements to remote functions this month - including new batching tools and improved performance via lazy discovery. For more info, check out the Docs and PR links in each bullet. Async SSR is also available for those who would like to try it out while it’s still experimental. It’s included when the config option in <code>svelte.config.js</code> has the <code>compilerOptions.experimental.async</code> setting enabled.</p> <p>We’ve got a hefty showcase this month too, so let’s dive in!</p> <h2 id=\"What's-new-in-Svelte-SvelteKit-and-Svelte-CLI-(sv)\"><span>What’s new in Svelte, SvelteKit and Svelte CLI (sv)</span><a href=\"#What's-new-in-Svelte-SvelteKit-and-Svelte-CLI-(sv)\" class=\"permalink\" aria-label=\"permalink\"></a></h2><ul> <li>The <code>event</code> property is now included on popstate, link and form navigation (<strong>kit@2.40.0</strong>, <a href=\"https://github.com/sveltejs/kit/pull/14307\">#14307</a>)</li> <li>The <code>%sveltekit.version%</code> placeholder can now be used in <code>app.html</code> to easily include the current SvelteKit version in the output (<strong>kit@2.41.0</strong>, <a href=\"https://svelte.dev/d",
+        "textTitlesOnly": "What’s new in Svelte: October 2025. <p>There were lots of improvements to remote functions this month - including new batching tools and improved performance via lazy discovery. For more info, check out the Docs and PR links in each bullet. Async SSR is also available for those who would like to try it out while it’s still experimental. It’s included when the config option in <code>svelte.config.js</code> has the <code>compilerOptions.experimental.async</code> setting enabled.</p> <p>We’ve got a hefty showcase this month too, so let’s dive in!</p> <h2 id=\"What's-new-in-Svelte-SvelteKit-and-Svelte-CLI-(sv)\"><span>What’s new in Svelte, SvelteKit and Svelte CLI (sv)</span><a href=\"#What's-new-in-Svelte-SvelteKit-and-Svelte-CLI-(sv)\" class=\"permalink\" aria-label=\"permalink\"></a></h2><ul> <li>The <code>event</code> property is now included on popstate, link and form navigation (<strong>kit@2.40.0</strong>, <a href=\"https://github.com/sveltejs/kit/pull/14307\">#14307</a>)</li> <li>The <code>%sveltekit.version%</code> placeholder can now be used in <code>app.html</code> to easily include the current SvelteKit version in the output (<strong>kit@2.41.0</strong>, <a href=\"https://svelte.dev/d",
+        "anchorCount": 0,
+        "publisherId": "svelte"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "LayerChart",
+        "textTitlesOnly": "What’s new in Svelte: October 2025",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "What’s new in Svelte: October 2025",
+      "full": {
+        "rel": 0.6357361991860379,
+        "idx": 3,
+        "gap2": 0.01929471567183716
+      },
+      "title_": {
+        "rel": 0.602298489985173,
+        "idx": 1,
+        "gap2": 0.021034673214465727
+      },
+      "altS": {
+        "rel": 0.6677256240757377,
+        "idx": 9,
+        "gap2": 0.03303941291042145
+      }
+    },
+    {
+      "url": "https://astro.build/blog/astro-5140",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "Astro 5.14. Astro 5.14 has a bumper harvest of features and DX improvements to warm the cockles of your heart, with new routing tools, async Svelte rendering, React 19 actions support, and more!",
+        "textTitlesOnly": "Astro 5.14. Astro 5.14 has a bumper harvest of features and DX improvements to warm the cockles of your heart, with new routing tools, async Svelte rendering, React 19 actions support, and more!",
+        "anchorCount": 0,
+        "publisherId": "astro"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "5.14 release",
+        "textTitlesOnly": "What’s new in Svelte: October 2025",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "Astro 5.14",
+      "full": {
+        "rel": 0.6314332937613338,
+        "idx": 0,
+        "gap2": 0.014462890681400276
+      },
+      "title_": {
+        "rel": 0.6358872088697263,
+        "idx": 15,
+        "gap2": 0.005232789046834552
+      },
+      "altS": {
+        "rel": 0.6553731009106682,
+        "idx": 3,
+        "gap2": 0.015805003976922527
+      }
+    },
+    {
+      "url": "https://svelte.dev/blog/whats-new-in-svelte-april-2025",
+      "strength": 1,
+      "tb": {
+        "basis": "own",
+        "text": "What’s new in Svelte: April 2025. <p>With a couple minor releases of SvelteKit in the last month and a few more from Svelte itself, there’s a lot to be excited about this month. From new helper functions to new configuration options, we’ve got a lot to cover...</p> <p>So let’s dive in!</p> <h2 id=\"What's-new-in-Svelte\"><span>What’s new in Svelte</span><a href=\"#What's-new-in-Svelte\" class=\"permalink\" aria-label=\"permalink\"></a></h2><ul> <li>The new <code>idPrefix</code> option for <code>render</code> makes client-side ID generation more reliable in the rare cases that multiple Svelte runtimes exist on a page (<strong>5.22.0</strong>, <a href=\"https://svelte.dev/docs/svelte/svelte-server#render\">Docs</a>, <a href=\"https://github.com/sveltejs/svelte/pull/15428\">#15428</a>)</li> <li>State created in deriveds/effects can now be written/read locally without self-invalidation - reducing the number of “unsafe read”s significantly (<strong>5.24.0</strong>, <a href=\"https://github.com/sveltejs/svelte/pull/15553\">#15553</a>)</li> <li>Derived statements are now writable (<strong>5.25.0/5.25.2</strong>, <a href=\"https://svelte.dev/docs/svelte/$derived#Overriding-derived-values\">Docs</a>, <a hr",
+        "textTitlesOnly": "What’s new in Svelte: April 2025. <p>With a couple minor releases of SvelteKit in the last month and a few more from Svelte itself, there’s a lot to be excited about this month. From new helper functions to new configuration options, we’ve got a lot to cover...</p> <p>So let’s dive in!</p> <h2 id=\"What's-new-in-Svelte\"><span>What’s new in Svelte</span><a href=\"#What's-new-in-Svelte\" class=\"permalink\" aria-label=\"permalink\"></a></h2><ul> <li>The new <code>idPrefix</code> option for <code>render</code> makes client-side ID generation more reliable in the rare cases that multiple Svelte runtimes exist on a page (<strong>5.22.0</strong>, <a href=\"https://svelte.dev/docs/svelte/svelte-server#render\">Docs</a>, <a href=\"https://github.com/sveltejs/svelte/pull/15428\">#15428</a>)</li> <li>State created in deriveds/effects can now be written/read locally without self-invalidation - reducing the number of “unsafe read”s significantly (<strong>5.24.0</strong>, <a href=\"https://github.com/sveltejs/svelte/pull/15553\">#15553</a>)</li> <li>Derived statements are now writable (<strong>5.25.0/5.25.2</strong>, <a href=\"https://svelte.dev/docs/svelte/$derived#Overriding-derived-values\">Docs</a>, <a hr",
+        "anchorCount": 0,
+        "publisherId": "svelte"
+      },
+      "alt": {
+        "basis": "citing",
+        "text": "fixes",
+        "textTitlesOnly": "What’s new in Svelte: April 2025",
+        "anchorCount": 1,
+        "publisherId": null
+      },
+      "title": "What’s new in Svelte: April 2025",
+      "full": {
+        "rel": 0.6359163763659997,
+        "idx": 3,
+        "gap2": 0.021873863064084897
+      },
+      "title_": {
+        "rel": 0.6119828572805099,
+        "idx": 1,
+        "gap2": 0.0129941018542159
+      },
+      "altS": {
+        "rel": 0.6010251528658351,
+        "idx": 13,
+        "gap2": 0.0028673706011651534
+      }
+    }
+  ]
+}

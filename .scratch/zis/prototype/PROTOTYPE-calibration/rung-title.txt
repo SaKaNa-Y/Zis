@@ -1,0 +1,61 @@
+n=44 contested `own` Signals
+
+=== title-alone vs own-full vs citing ===
+  title beats own-full on REL+:      23/44 (52.3%)
+  title beats citing  on REL+:       14/44 (31.8%)
+  title is the argmax winner of all 3: 14/44
+  title and own-full name the SAME Interest: 25/44
+  title and citing   name the SAME Interest: 25/44
+
+  median gap-to-2nd:  own-full 0.026  title 0.023  citing 0.016
+
+=== the cases #35 and #42 are built on ===
+
+  https://blog.cloudflare.com/kitesurf (S=2)
+    own-full  0.704 gap 0.022 -> #6 Drizzle and other TypeScript ORMs — schema
+    title     0.751 gap 0.001 -> #8 Coding agents and agentic developer toolin
+    citing    0.766 gap 0.021 -> #10 Web platform features landing in browsers 
+    title text:  Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers
+    citing text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers
+
+  https://huggingface.co/blog/agent-intrusion-technical-timeline (S=2)
+    own-full  0.774 gap 0.035 -> #17 AI research published by the frontier labs
+    title     0.779 gap 0.034 -> #17 AI research published by the frontier labs
+    citing    0.604 gap 0.019 -> #12 Web application security — SSRF, authentic
+    title text:  Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident
+    citing text: Huggingface released a full detailed retrospective of their completely-agent-driven security
+
+  https://bun.com/blog/bun-in-rust (S=2)
+    own-full  0.737 gap 0.060 -> #11 Rust for tooling and systems work — the la
+    title     0.701 gap 0.039 -> #11 Rust for tooling and systems work — the la
+    citing    0.594 gap 0.004 -> #14 Developer tooling and build systems — Vite
+    title text:  Rewriting Bun in Rust
+    citing text: post about the project.
+
+  https://blog.cloudflare.com/the-agentic-internet (S=1)
+    own-full  0.647 gap 0.019 -> #8 Coding agents and agentic developer toolin
+    title     0.793 gap 0.038 -> #8 Coding agents and agentic developer toolin
+    citing    0.780 gap 0.001 -> #13 RSS, feeds, and the open web — readers, ag
+    title text:  Building an open Agentic Internet: readable, discoverable, callable, and payable
+    citing text: Building an open Agentic Internet: readable, discoverable, callable, and payable (9 minute r
+
+  https://openai.com/index/ten-advances-in-mathematics (S=1)
+    own-full  0.704 gap 0.018 -> #17 AI research published by the frontier labs
+    title     0.705 gap 0.001 -> #17 AI research published by the frontier labs
+    citing    0.793 gap 0.051 -> #16 Frontier model releases from the major AI 
+    title text:  Ten advances in mathematics and theoretical computer science
+    citing text: OpenAI announces 10 discoveries from their next model. Observations:: 1) AI is getting very 
+
+  https://blog.jim-nielsen.com/2026/ai-aesthetic (S=1)
+    own-full  0.630 gap 0.005 -> #3 Tailwind CSS v4 — the engine rewrite, desi
+    title     0.751 gap 0.001 -> #18 AI provider platform and API changes — too
+    citing    0.765 gap 0.023 -> #17 AI research published by the frontier labs
+    title text:  The AI Aesthetic
+    citing text: The AI Aesthetic (3 minute read)
+
+  https://go.dev/blog/16years (S=1)
+    own-full  0.647 gap 0.001 -> #16 Frontier model releases from the major AI 
+    title     0.516 gap 0.010 -> #10 Web platform features landing in browsers 
+    citing    0.714 gap 0.020 -> #2 Vue 3 Composition API and the Vue ecosyste
+    title text:  Go’s Sweet 16
+    citing text: v1.0.0
