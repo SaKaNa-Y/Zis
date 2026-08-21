@@ -373,13 +373,44 @@ co-citation already made, and Zis is a worse-latency Techmeme with a nicer
 why-line.
 
 It is observable by corpus replay, which is how it should be checked, and **it is
-currently not firing.** Over the 30-day replay in
-[#21](https://github.com/SaKaNa-Y/Zis/issues/21)'s calibration at the settled bar:
-**5 entries by the `interest` route, 4 by `convergence`**, and **all five
-interest-route entries are Strength 2** — below the convergence threshold, so
-co-citation alone would never have surfaced any of them. The Interest Profile is
-doing separable work today. Re-check this on any corpus replay, any bar change,
-and any embedding-model swap.
+currently not firing.** Over the 30-day replay at the settled **per-rung** bars
+(`own` 0.70 / `citing` 0.67): **6 entries by the `interest` route, 4 by
+`convergence`**, and **all six interest-route entries are Strength 2** — below the
+convergence threshold, so co-citation alone would never have surfaced any of them.
+The Interest Profile is doing separable work today. Re-check this on any corpus
+replay, any bar change, and any embedding-model swap.
+
+*(The figure this section carried until
+[#35](https://github.com/SaKaNa-Y/Zis/issues/35) re-ran it — 5 and 4 — came from
+#21's grid at a **flat** `T+` = 0.70. The shipped model bars `citing` at 0.67, which
+admits one more. The conclusion was unaffected, but a positioning document should
+not quote a configuration the product does not run.)*
+
+### 7.1a The condition to actually watch: the claim hollowing out without falsifying
+
+`T_gap` ([ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md)) takes
+the interest route from **6 entries to 1** over the same 30 days. The falsifier
+above **still does not fire** — that one surviving entry is Strength 2, so the
+profile is still selecting something convergence would not have — but the claim it
+protects is now resting on **one entry per month**, with roughly four fifths of a
+Brief arriving by `convergence` and **no Interest named at all**.
+
+This is recorded as a distinct condition because §7.1 is written as a binary and
+would report *healthy* all the way down to a single entry, and then to zero only if
+that last entry happened to be Strength ≥3. **A claim can hollow out without
+tripping a test written that way.** The honest statement of where the position
+stands: the mechanism is separable and doing real work, and it is doing it **rarely
+enough that the claim's weight rests on supply** —
+[#11](https://github.com/SaKaNa-Y/Zis/issues/11) is therefore load-bearing for the
+*position*, not merely for density
+([`ranking-model.md`](ranking-model.md) §9).
+
+Two things this is not. It is **not** licence to lower `T_gap` — §9's rule is that
+a missed density target is reported rather than closed by moving a bar, and a floor
+lowered until the Brief fills is an adaptive bar reintroduced through the
+explanation instead of through the score. And it is **not** a reason to weaken
+`T_gap`'s purpose: the entries it removed were carrying why-texts the reader would
+not have written, which is the claim failing *visibly* rather than quietly.
 
 ### 7.2 The test of the standing assumption: reader behaviour
 
@@ -420,6 +451,7 @@ the ADR that decides it.
 | Velocity scoring | [ADR-0006](adr/0006-admission-is-absolute-bars-not-a-score.md) — "unusual velocity against a baseline" cannot be rendered into a why-text from stored columns |
 | **The Interest-edit preview** — *what would this edit have done to yesterday's Brief?* | [ADR-0011](adr/0011-a-claimed-advantage-must-cost-a-competitor-something.md) and [#17](https://github.com/SaKaNa-Y/Zis/issues/17). See below |
 | **Near-miss surfacing** — *"3 Signals came close"*, or a relevance margin on the Signal page | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) and §1. See below |
+| **A "matched, weakly" state** — naming an Interest while flagging low confidence | [ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md) and [#10](https://github.com/SaKaNa-Y/Zis/issues/10) — a flat ranking has no explanation to hedge, and there is no badge anywhere in the product; a section invented to house it is a badge renamed |
 
 ### 8.1 The Interest-edit preview
 
@@ -461,3 +493,15 @@ unfalsifiable text on the provenance record, which is worse.
 So the Signal page ([`ui-and-ia.md`](ui-and-ia.md) §4) shows the Admission route
 and the Citation table, and **no relevance number is rendered anywhere in the
 product**.
+
+**This survived a live test rather than a hypothetical one.**
+[ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md) added `GAP` —
+the margin between the named Interest and the runner-up — as a **gate** on the
+interest route. A margin is exactly what this row refuses, so the distinction it
+forced is worth keeping: what §8.2 bans is **showing** a relevance number, not
+**computing** one. `GAP` is stored, gates admission, and renders nowhere; a Signal
+that fails it simply has no matched-Interest line, which is indistinguishable to
+the reader from any other `convergence` entry. Had ADR-0012 instead proposed
+*"matched, weakly"* as a visible state, this row would have refused it — and
+[#10](https://github.com/SaKaNa-Y/Zis/issues/10)'s no-badge rule would have refused
+it independently.

@@ -36,11 +36,27 @@ decision removed.
   no threat they would answer.
 - `BriefEntry`'s frozen why-text is produced without any LLM call, so a sealed
   Brief is reproducible from stored rows alone.
-- A vague Interest is visible rather than silent: it shows up as the stated
+- ~~A vague Interest is visible rather than silent: it shows up as the stated
   reason on Signals that should not have surfaced, which tells the reader what
   to sharpen. This is the answer to the cold-start problem — the profile must be
   non-empty before the first Brief is cut, and the why-text is the feedback loop
-  that improves it.
+  that improves it.~~ **Withdrawn** by
+  [ADR-0012](0012-a-flat-interest-ranking-has-no-explanation.md), on measurement.
+  The loop requires the wrong winners to be the *vague* statements; measured
+  against the profile's own geometry, three of four are among the **sharpest** in
+  the profile, so the loop reaches one failure in four and the reader is left with
+  a correct, specific sentence attached to the wrong story and nothing to edit.
+  **The cold-start half of this bullet stands** — the profile must be non-empty
+  before the first Brief is cut — but the why-text is not a reliable repair
+  mechanism, and a wrong why-text is a failure rather than feedback.
 - Any future change that matches a stored category set alongside the free text
   is a reversal of this decision and of the removal of `Topic`, not an
   enhancement.
+- **The argmax alone is not a sufficient why-text**
+  ([ADR-0012](0012-a-flat-interest-ranking-has-no-explanation.md)). This ADR's
+  core survives unchanged — statements embedded separately, `MAX` over
+  per-Interest similarity, the matched Interest *is* the why-text, rendered
+  verbatim with no LLM call. What is added is a second condition: the ranking that
+  produced the argmax must not be **flat**, because the reader's own statements sit
+  at a median pairwise cosine of 0.659 and a generic text scores alike against all
+  of them, making the winner rounding noise.
