@@ -282,18 +282,54 @@ its Strength. That is correct, it is bounded by `E2`, and it cannot disturb
 sealing — a cut `BriefEntry`'s why-text is frozen, so re-embedding never alters a
 Brief already cut.
 
-**The precedence itself is a measured open defect** —
+**The precedence stands, and the rung is a coverage decision rather than a quality
+one** — **ADR-0013**,
 [Re-decide which text_basis rung is chosen when more than one is available](https://github.com/SaKaNa-Y/Zis/issues/42).
-It was chosen for **coverage** and never tested against the argmax it produces. On
-two of the four `own`-rung eligible Signals the losing rung scores higher *and*
-names better: `blog.cloudflare.com/kitesurf` is `own` 0.704 → *"Drizzle and other
-TypeScript ORMs"* against `citing` **0.766 → *"Web platform features landing in
-browsers"***, where the citing anchor text is a better description of the link than
-the Item's own opening. The other two rows show the precedence earning its keep,
-so this is not an inversion. It is **not fixed here** on purpose: "pick the higher
-`REL+`" compares across rungs with different bars, which is structurally the
-pollution-selecting error this section's own correction caught, and the `GAP`-based
-tiebreak decides the Cloudflare case by 0.036 against 0.035, which is noise.
+This section used to call it a measured open defect, on #35's finding that two of
+four `own`-rung eligible Signals name better on the losing rung. **Re-measured
+with the eligibility filter dropped, that accusation does not survive**, and the
+two facts that kill it are properties of the corpus rather than of the profile.
+
+**The population is 44 Signals, not 849.** The precedence only fires on an `own`
+Signal that *also* has a `citing` text; 805 of the 849 carry only a `self`
+Citation, so the ladder never has a choice. Of the 44, **13** are admitted by
+`REL+` and **3** survive `T_gap` — 0.06% of the corpus.
+
+**Both candidate tiebreaks select for garbage.** The predicted objection was the
+cross-bar problem, and it is small — "higher `REL+`" adds 6 admissions and exactly
+1 clears only the 0.67 bar. What disqualifies both is that **29 of the 44 `citing`
+texts are under 25 characters** (`Docs`, `v1.0.0`, `published`), and short text
+against short Interest statements inflates cosine, so higher `REL+` picks them 14
+times and higher `GAP` 11 times:
+
+```
+go.dev/blog/16years                     (Go's 16th-birthday post)
+  own     REL+ 0.647  -> "Frontier model releases from the major AI labs"
+  citing  REL+ 0.714  -> "Vue 3 Composition API and the Vue ecosystem"
+          citing text, in full: `v1.0.0`
+```
+
+That is this section's own largest finding running in the other direction — **a
+bar on `REL+` over polluted text selects for pollution**, whether concatenation
+made short texts long or a bare anchor made them short.
+
+**And the flagship failures are `own`'s composition, not the ladder.** `own` is at
+the 1200-char cap on essentially every one of these Signals, and in 15 of the 44
+the `citing` anchor quotes the Item's own title — so the contest is *title + body*
+versus *title*. Measuring the title alone, which this section never did:
+`blog.cloudflare.com/the-agentic-internet` is `own` 0.647 → *"Coding agents"*,
+`citing` 0.780 → *"RSS, feeds, and the open web"*, and **title-alone 0.793 →
+*"Coding agents"***. The `citing` text there is `own`'s title verbatim plus
+`(9 minute read)`, and it names *worse*; `own` lost because the body diluted a
+title that was already right. On `kitesurf` the two texts differ only by a
+`(16 minute read)` suffix and **name different Interests**, which is the noise
+floor rather than a signal about rungs.
+
+**The real defect is therefore re-addressed at its own address** —
+[Decide what the `own` rung embeds](https://github.com/SaKaNa-Y/Zis/issues/49),
+a 19× larger lever, governing all 849 `own` Signals. Nothing here answers it:
+title-alone wins 23 of 44 and loses badly on a thin title (`Go's Sweet 16`, 0.516
+against 0.647), so "embed the title" is measured wrong too.
 
 ## 5. Ordering
 

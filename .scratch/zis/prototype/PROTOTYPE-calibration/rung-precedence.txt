@@ -1,0 +1,152 @@
+=== the population ===
+  4986 Signals in the corpus
+  own       849  (17.0%)
+  citing   3935  (78.9%)
+  slug      202  (4.1%)
+
+  of the 849 `own` Signals, 44 have a `citing` text available.
+  the rest have only a self Citation, so the precedence never fires on them.
+  contested share of the whole corpus: 0.9%
+
+
+=== 1. how often do the two rungs disagree about the why-text? ===
+  different argmax Interest: 29/44  (65.9%)
+  -> that is the ceiling on how many why-texts ANY rung rule could rewrite.
+
+=== 2. which rung does each candidate rule pick? ===
+  higher REL+            picks citing   21/44  (47.7%)
+  higher GAP to 2nd      picks citing   18/44  (40.9%)
+  higher SPREAD to 5th   picks citing   21/44  (47.7%)
+  §4 as written           picks own    44/44  (100.0%)
+
+  do the three rules agree with each other?
+  byRel vs byGap: agree 31/44 (70.5%)
+  byRel vs bySpread: agree 32/44 (72.7%)
+  byGap vs bySpread: agree 35/44 (79.5%)
+
+=== 3. is the split a coin flip? margins on the deciding quantity ===
+  |ΔREL+| median 0.051  p25 0.029  p75 0.096  max 0.170
+     decided by less than 0.010: 5/44 (11.4%)
+  |ΔGAP| median 0.019  p25 0.006  p75 0.035  max 0.108
+     decided by less than 0.010: 14/44 (31.8%)
+
+=== 4. the cross-bar problem, priced ===
+   `own` is gated at 0.70 and `citing` at 0.67. If maximising REL+ selects
+   for the lower bar, it shows up as extra ADMISSIONS, not as a nicer score.
+
+  §4 (always own):        16/44 admitted by REL+ alone
+  pick higher REL+:       22/44   (Δ +6)
+  pick higher GAP:        21/44   (Δ +5)
+
+  admitted ONLY because the chosen rung's bar is lower: 6/44 (13.6%)
+  of those, 1 score below 0.70 — i.e. they clear ONLY the 0.67 bar.
+
+  with ADR-0012's gap floor (T_gap=0.04) applied on top:
+  §4 (always own): 9   higher REL+: 12   higher GAP: 12
+
+=== 5. where a rule change would actually be visible ===
+   an argmax disagreement only reaches a reader if the Signal is admitted at all.
+
+  argmax disagreements on an admitted Signal: 13/44 (29.5%)
+  ... and surviving T_gap:                    3/44 (6.8%)
+
+  the admitted disagreements, worst-margin last (for hand reading):
+
+  https://huggingface.co/blog/agent-intrusion-technical-timeline  (S=2)
+    own    REL+ 0.774 gap 0.035 -> #17 AI research published by the frontier labs —
+    citing REL+ 0.604 gap 0.019 -> #12 Web application security — SSRF, authenticat
+    own text:    Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.
+    citing text: Huggingface released a full detailed retrospective of their completely-agent-driven security inc
+    rules: REL+ own, GAP own, SPREAD own
+
+  https://bun.com/blog/bun-in-rust  (S=2)
+    own    REL+ 0.737 gap 0.060 -> #11 Rust for tooling and systems work — the lang
+    citing REL+ 0.594 gap 0.004 -> #14 Developer tooling and build systems — Vite, 
+    own text:    Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust
+    citing text: post about the project.
+    rules: REL+ own, GAP own, SPREAD own
+
+  https://devblogs.microsoft.com/typescript/announcing-typescript-6-0  (S=1)
+    own    REL+ 0.765 gap 0.101 -> #4 TypeScript language releases and type-level 
+    citing REL+ 0.629 gap 0.006 -> #6 Drizzle and other TypeScript ORMs — schema d
+    own text:    Announcing TypeScript 6.0. Today we are excited to announce the availability of TypeScript 6.0! 
+    citing text: Docs
+    rules: REL+ own, GAP own, SPREAD own
+
+  https://blog.jim-nielsen.com/2026/ai-aesthetic  (S=1)
+    own    REL+ 0.630 gap 0.005 -> #3 Tailwind CSS v4 — the engine rewrite, design
+    citing REL+ 0.765 gap 0.023 -> #17 AI research published by the frontier labs —
+    own text:    The AI Aesthetic. <p>Every zeitgeist comes with new design idioms unique to its challenges. Many
+    citing text: The AI Aesthetic (3 minute read)
+    rules: REL+ citing, GAP citing, SPREAD citing
+
+  https://blog.cloudflare.com/the-agentic-internet  (S=1)
+    own    REL+ 0.647 gap 0.019 -> #8 Coding agents and agentic developer tooling 
+    citing REL+ 0.780 gap 0.001 -> #13 RSS, feeds, and the open web — readers, aggr
+    own text:    Building an open Agentic Internet: readable, discoverable, callable, and payable. Our data shows
+    citing text: Building an open Agentic Internet: readable, discoverable, callable, and payable (9 minute read)
+    rules: REL+ citing, GAP own, SPREAD citing
+
+  https://openai.com/index/gpt-5-6-frontier-intelligence-efficiency  (S=1)
+    own    REL+ 0.770 gap 0.037 -> #16 Frontier model releases from the major AI la
+    citing REL+ 0.660 gap 0.037 -> #13 RSS, feeds, and the open web — readers, aggr
+    own text:    How GPT-5.6 fuses frontier intelligence with frontier efficiency. GPT-5.6 improves AI efficiency
+    citing text: published
+    rules: REL+ own, GAP own, SPREAD own
+
+  https://openai.com/index/ten-advances-in-mathematics  (S=1)
+    own    REL+ 0.704 gap 0.018 -> #17 AI research published by the frontier labs —
+    citing REL+ 0.793 gap 0.051 -> #16 Frontier model releases from the major AI la
+    own text:    Ten advances in mathematics and theoretical computer science. OpenAI shares new results on long-
+    citing text: OpenAI announces 10 discoveries from their next model. Observations:: 1) AI is getting very good
+    rules: REL+ citing, GAP citing, SPREAD citing
+
+  https://vercel.com/blog/everything-hackable-will-get-hacked  (S=1)
+    own    REL+ 0.706 gap 0.010 -> #16 Frontier model releases from the major AI la
+    citing REL+ 0.623 gap 0.005 -> #13 RSS, feeds, and the open web — readers, aggr
+    own text:    Everything hackable will get hacked. Over the past year, AI models have become much more capable
+    citing text: Everything hackable will get hacked (6 minute read)
+    rules: REL+ own, GAP own, SPREAD own
+
+  https://go.dev/blog/16years  (S=1)
+    own    REL+ 0.647 gap 0.001 -> #16 Frontier model releases from the major AI la
+    citing REL+ 0.714 gap 0.020 -> #2 Vue 3 Composition API and the Vue ecosystem 
+    own text:    Go’s Sweet 16. <div id="blog"><div id="content"> <div id="content"> <div class="Article" data-sl
+    citing text: v1.0.0
+    rules: REL+ citing, GAP citing, SPREAD citing
+
+  https://nextjs.org/blog/next-16-3-ai-improvements  (S=1)
+    own    REL+ 0.722 gap 0.037 -> #8 Coding agents and agentic developer tooling 
+    citing REL+ 0.784 gap 0.002 -> #18 AI provider platform and API changes — tool 
+    own text:    Next.js 16.3: AI Improvements. Actionable errors with paste-ready fix prompts, first-party Skill
+    citing text: AI improvements
+    rules: REL+ citing, GAP own, SPREAD citing
+
+  https://blog.cloudflare.com/kitesurf  (S=2)
+    own    REL+ 0.704 gap 0.022 -> #6 Drizzle and other TypeScript ORMs — schema d
+    citing REL+ 0.766 gap 0.021 -> #10 Web platform features landing in browsers — 
+    own text:    Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Sh
+    citing text: Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers (16
+    rules: REL+ citing, GAP own, SPREAD citing
+
+  https://lwn.net/Articles/1087635  (S=1)
+    own    REL+ 0.633 gap 0.045 -> #13 RSS, feeds, and the open web — readers, aggr
+    citing REL+ 0.687 gap 0.010 -> #10 Web platform features landing in browsers — 
+    own text:    [$] A look at CrossPoint e-reader firmware. <p>There are <a href="https://crosspointreader.com/d
+    citing text: version 1.5.0
+    rules: REL+ citing, GAP own, SPREAD own
+
+  https://nodejs.org/en/blog/announcements/new-api-docs-beta  (S=1)
+    own    REL+ 0.687 gap 0.011 -> #1 Next.js App Router internals — routing, cach
+    citing REL+ 0.677 gap 0.021 -> #2 Vue 3 Composition API and the Vue ecosystem 
+    own text:    Check out the New Node.js API Documentation Preview.
+    citing text: a new API docs site in preview
+    rules: REL+ own, GAP citing, SPREAD citing
+
+=== 6. does anchor availability explain anything? ===
+   the `citing` text is an anchor where one exists and a citing Item title
+   otherwise. If the wins concentrate on anchors, the fixed rule ("prefer the
+   anchor") is a different and cheaper proposition than a measured tiebreak.
+
+  with anchor text     n=  43  REL+ picks citing 46.5%  GAP picks citing 39.5%  argmax differs 65.1%
+  title fallback only  n=   1  REL+ picks citing 100.0%  GAP picks citing 100.0%  argmax differs 100.0%
