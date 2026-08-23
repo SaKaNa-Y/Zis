@@ -41,7 +41,7 @@ Computed for a reader `u` and a Signal `s` at cut time `t`.
 | `REL+(s,u)` | `MAX` over the reader's Interests of `cos(vec(s), vec(i))` (ADR-0003) |
 | `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — `own` **0.70**, `citing` **0.67**, `slug` **uncalibrated** (§4) |
 | `GAP(s,u)` | `REL+(s,u) − ` the **second**-highest `cos(vec(s), vec(i))`. How far the named Interest beat the runner-up (§6, ADR-0012) |
-| `T_gap` | the flatness floor, **provisional 0.038 and explicitly uncalibrated** (§6). Computed and stored; **never rendered** |
+| `T_gap` | the flatness floor, **provisional 0.038 and explicitly uncalibrated** (§6). Computed and stored; **never rendered**. On the reader's own profile it **selects for wrongness** and its own ordering evidence is withdrawn ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)) — its fate is [#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s |
 
 `H` = 36h is **measured, not assumed**: on the corpus the median gap from a
 Signal's first Citation to its second distinct Publisher is **30.4h** and to its
@@ -491,6 +491,18 @@ three of the four are among the **sharpest** in the profile (*"RSS, feeds, and t
 open web"* ranks 16th of 18 on vagueness). The reader is shown a tight, specific,
 well-written sentence attached to the wrong story, with nothing to edit.
 
+**Re-measured on the reader's own profile, and the reason changed**
+([#47](https://github.com/SaKaNa-Y/Zis/issues/47), ADR-0012's amendment). The
+inversion in the paragraph above is a **draft artifact** — but so is its opposite.
+On the 20 statements #46 elicited, wrong winners span vagueness rank **2 to 18 of
+20** and right winners span **1 to 12**, the *vaguest* statement produces a correct
+why-text, and the mean centrality of the wrong set (0.6755) sits *below* the right
+set's (0.687). **Sharpness is uncorrelated with correctness**, so narrowing a
+statement is **inert**, not counter-productive. The withdrawal stands and is
+stronger: an inert lever is worse than a weak one, because the reader would be
+editing in the dark. **No guidance surface is added** — refused at
+`positioning.md` §8.4, and §7's per-Interest state is not reopened to house it.
+
 **So a why-text is admissible only if the ranking that produced it was not flat**
 — the `GAP` conjunct in §3. The mechanism is §10's floor taken one step further:
 the reader's statements sit at a median pairwise cosine of **0.659**, so a generic
@@ -498,6 +510,17 @@ text scores about the same against all of them and the winner is decided by nois
 while a specific text makes one Interest pull clear. **Flatness is the profile
 saying it has no opinion, in the only vocabulary it has.** On the admitted set the
 three unambiguously correct why-texts are the three largest gaps, with no overlap.
+
+**That last sentence is withdrawn** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)).
+On the reader's own profile the gaps run 0.108 `RIGHT`, **0.081 `missed`**, 0.060
+`RIGHT`, 0.041 `missed`, 0.035 `near`, 0.026 `RIGHT`, 0.014 `missed`, 0.004
+`missed` — a wrong winner is the *second*-largest gap, above a correct entry, and
+the overlap is total. The spread to 5th fails the same way: the same wrong winner is
+third-largest. **Neither quantity orders the admitted set any more, and no floor in
+the sweep excludes that failure.** The mechanism argument above is unaffected in
+form and unsupported in fact. `T_gap` is kept anyway, because removing it needs the
+same holdout that re-siting it needs — put to
+[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54).
 
 **`T_gap` is provisional at 0.038 and uncalibrated**, on the `T+[slug]` precedent
 — fitted on 8 labelled points with no holdout, and two different quantities
@@ -523,7 +546,11 @@ settled bars, `T_gap` takes the interest route from **6 entries to 1**; Brief
 entries 10 → 5, trailing-14 median 1 → 0, empty days 21/30 → 25/30. No floor keeps
 more than one entry without also keeping a clearly-wrong one. This is §9's rule
 applied, not an exception to it: a bar that misses the density target is reported
-as miscalibrated, never lowered.
+as miscalibrated, never lowered. **On the reader's own profile the price is smaller
+and buys less** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)): the interest
+route keeps **3 entries not 1**, Brief entries **7 not 5**, empty days **24/30 not
+25/30** — but the three survivors are **1 right in 3, against 3 in 8 unfiltered**,
+so the floor **selects for wrongness** on the profile that counts.
 
 **What `T_gap` suppresses but cannot diagnose.** Two of the four failures — a
 software-job-market essay, a GitHub product changelog — have **no right answer
@@ -534,6 +561,17 @@ the judgement the cosine already failed at. `T_gap` suppresses both faults
 together. Coverage is
 [Decide whether the Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/41)'s
 question, not this section's.
+
+**Coverage came back, and the answer is that this paragraph describes a draft.**
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47) re-ran it against the reader's own
+20 statements: **0 of 8** admitted entries are uncovered, and the four wrong winners
+each passed over a correct statement that was already in the profile (#1, #10, #8,
+#9). ADR-0012's fault is an argmax-**selection** fault, full stop. The runtime
+*incapability* is unchanged and still worth knowing — the system cannot detect a
+no-right-answer condition, so it can never decline to name an Interest on those
+grounds — but that defect is now **latent rather than live**. Consequently
+**ADR-0003 gains no minimum-coverage requirement** and none will be added:
+`positioning.md` §8.4, refused with no reopening condition.
 
 ### Interests are written in English
 
@@ -754,7 +792,14 @@ internal separation directly rather than sitting relative to it. A model swap no
 invalidates three numbers, not two. `T_gap` itself is **fitted rather than sited**:
 8 labelled points, no holdout, and two candidate quantities that separated them
 equally well. It is a placeholder with a mechanism behind it, which is a weaker
-thing than the bars above.
+thing than the bars above. **Weaker still after
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47)**: on the reader's own profile
+neither candidate quantity separates the data *at all*, so what is in doubt is no
+longer the value but whether there is a mechanism here — and `T+`/`T_gap` are
+deliberately **not** re-sited, because eight labelled points cannot be split into a
+fit set and a holdout. Both questions go to
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54), whose first job is deciding
+whether a labelled holdout is worth building inside Phase 0.
 
 **And #49 hands `T_gap` more than it was carrying.** Composition changes *which*
 Interest is named far more than *whether* one clears the bar — 42 of the 168

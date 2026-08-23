@@ -453,6 +453,8 @@ the ADR that decides it.
 | **Near-miss surfacing** — *"3 Signals came close"*, or a relevance margin on the Signal page | [#14](https://github.com/SaKaNa-Y/Zis/issues/14) and §1. See below |
 | **A "matched, weakly" state** — naming an Interest while flagging low confidence | [ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md) and [#10](https://github.com/SaKaNa-Y/Zis/issues/10) — a flat ranking has no explanation to hedge, and there is no badge anywhere in the product; a section invented to house it is a badge renamed |
 | **An aggregate no-coverage note** — *"N Signals cleared Strength 2 and none of your statements had an opinion"* | [#41](https://github.com/SaKaNa-Y/Zis/issues/41) — §8.2 inverted, and it cannot distinguish a profile gap from thin supply. See below |
+| **A minimum-coverage requirement on the Interest Profile** — a floor on statement count, or on the areas the statements must span | [#47](https://github.com/SaKaNa-Y/Zis/issues/47) — the fault it would prevent does not exist, and it is a constraint on *reader data*. See below |
+| **Guidance to write sharper, narrower Interests** — a nudge on a statement that produced a wrong why-text | [#35](https://github.com/SaKaNa-Y/Zis/issues/35) and [#47](https://github.com/SaKaNa-Y/Zis/issues/47) — sharpness is uncorrelated with correctness, so the lever is inert and the reader would be editing in the dark. See §8.4 |
 
 ### 8.1 The Interest-edit preview
 
@@ -553,3 +555,53 @@ condition or a profile condition, so neither a denser corpus nor a better-writte
 profile revives it. #41 found that the uncovered cases which motivated the note
 were an artifact of an unedited draft profile and were not coverage gaps at all —
 but that finding is why the note is *unnecessary*, not why it is refused.
+
+**#41's suspicion is now confirmed at full strength**, and it changes nothing here:
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47) measured the reader's own
+20-statement profile and found **0 of 8** admitted entries uncovered. So the note's
+subject matter has no observed instances at all. It stays refused on the three
+grounds above, all of which were chosen precisely because they do not depend on
+which profile is loaded.
+
+### 8.4 A minimum-coverage requirement, and guidance to narrow a statement
+
+Two refusals from [#47](https://github.com/SaKaNa-Y/Zis/issues/47), which re-asked
+ADR-0012's coverage and separation questions against the profile
+[#46](https://github.com/SaKaNa-Y/Zis/issues/46) elicited from the reader. Both are
+refusals of a **constraint or nudge aimed at the reader's own sentences**, which is
+what makes them one section rather than two.
+
+**A minimum-coverage requirement on the profile.** ADR-0012 recorded two admitted
+Signals with *no right answer anywhere in the profile*, and #41 deferred the
+question of whether the spec therefore needs a written minimum-coverage rule — a
+floor on statement count, or on the areas the statements must span. #47 measured it
+and **the fault does not exist**: all **8 of 8** admitted entries have a correct
+statement present in the reader's 20, and the four wrong winners passed over #1,
+#10, #8 and #9. The `uncovered` verdict stopped describing anything and left the
+measurement's label vocabulary. So the rule has nothing to prevent — and it is a
+constraint on **reader data**, which is a genuinely awkward thing for a spec to
+assert: the product telling the reader their own interests are malformed.
+**Refused with no reopening condition, on purpose.** The obvious trigger — *a
+profile smaller than N statements* — is the very constraint being refused, so
+writing it in as a condition smuggles it back in. A thin profile already produces a
+thin Brief through `T+`, without a separate rule to say so.
+
+**Guidance to write sharper, narrower Interests.** Refused first by
+[#35](https://github.com/SaKaNa-Y/Zis/issues/35) as *guidance, not a mechanism* —
+it pushes the product's correctness onto the reader's phrasing — and upheld by #47
+on stronger and different ground. #35's original evidence was that narrowing looked
+actively **counter-productive** (the draft's sharpest statements produced its worst
+failures), and #41 could not rely on that because it was draft-measured. On the
+reader's own profile **neither that pattern nor its opposite holds**: wrong winners
+span vagueness rank 2 to 18 of 20, right winners span 1 to 12, and the profile's
+*vaguest* statement produces a **correct** why-text. Sharpness and correctness are
+uncorrelated, so the lever is **inert** rather than backwards — and an inert lever
+the reader holds is worse than a weak one, because they would be editing in the
+dark. Decisively, the sentence each failure needed was **already in the profile**,
+so no edit to the reader's phrasing was ever the fix. **`ui-and-ia.md` §7 is not
+reopened to house it**: §7's per-Interest state reports a *fact* about a statement
+(*this cannot match*), whereas *"try narrowing this"* is advice with no evidence
+behind it — which is where ADR-0009's line falls.
+
+Neither refusal touches `T_gap`. Whether the gap floor is a mechanism or a fit is
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s question.
