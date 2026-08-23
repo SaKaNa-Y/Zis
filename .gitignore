@@ -48,4 +48,8 @@ Thumbs.db
 
 # Prototype fetch caches. The prototypes and their findings are kept as
 # primary sources; the raw HTTP bodies they cached are not.
+# The dated suffixes are #11's: measuring an ADDITION to the source roster needs
+# every source to share one fetch window, so the old cache is set aside under a
+# date rather than deleted. `cache*/` covers those; `cache/` alone did not.
 .scratch/**/cache/
+.scratch/**/cache-*/

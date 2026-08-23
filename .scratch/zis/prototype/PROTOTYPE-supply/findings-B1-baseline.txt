@@ -1,0 +1,441 @@
+=== ingest ===
+  simonwillison        rss               30 items
+    bsky simonwillison: dropped 6 reposts (reason field)
+  simonwillison        bluesky-author    40 items
+  tldr                 rss               20 items
+  jsweekly             rss                4 items
+  reactstatus          rss                4 items
+  frontendfocus        rss                4 items
+  twir                 rss                4 items
+  jimnielsen           rss               10 items
+  pycoders             rss                3 items
+  react                rss               23 items
+  react                github-releases    5 items
+  nextjs               rss               40 items
+  nextjs               github-releases    5 items
+  typescript           rss               10 items
+  typescript           github-releases    5 items
+  nodejs               rss               40 items
+  nodejs               github-releases    5 items
+  rust                 rss               10 items
+  rust                 github-releases    5 items
+  go                   rss               10 items
+  cloudflare           rss               20 items
+  github               rss               10 items
+  github               rss               10 items
+  openai               rss               40 items
+  deepmind             rss               40 items
+  webkit               rss               10 items
+  chromedev            rss               10 items
+  svelte               rss               40 items
+  svelte               github-releases    5 items
+  astro                rss               40 items
+  astro                github-releases    5 items
+  deno                 rss               40 items
+  deno                 github-releases    5 items
+  bun                  rss               40 items
+  bun                  github-releases    5 items
+  arstechnica          rss               20 items
+  lwn                  rss               15 items
+  404media             rss               15 items
+  thenewstack          rss               26 items
+  bramus               rss               10 items
+  rachelandrew         rss               10 items
+    bsky rachelandrew: dropped 22 reposts (reason field)
+  rachelandrew         bluesky-author    11 items
+  armin                rss               10 items
+  interconnects        rss               20 items
+  latentspace          rss               20 items
+  pragmaticengineer    rss               15 items
+  chriscoyier          rss               12 items
+    bsky chriscoyier: dropped 17 reposts (reason field)
+  chriscoyier          bluesky-author    18 items
+    bsky adactio: dropped 1 reposts (reason field)
+  adactio              bluesky-author    58 items
+    bsky kentcdodds: dropped 2 reposts (reason field)
+  kentcdodds           bluesky-author    56 items
+    bsky juliaevans: dropped 23 reposts (reason field)
+  juliaevans           bluesky-author    30 items
+  juliaevans           rss               20 items
+    bsky glyph: dropped 23 reposts (reason field)
+  glyph                bluesky-author    23 items
+    bsky emollick: dropped 1 reposts (reason field)
+  emollick             bluesky-author    21 items
+    bsky una: dropped 21 reposts (reason field)
+  una                  bluesky-author    15 items
+    bsky cassidoo: dropped 17 reposts (reason field)
+  cassidoo             bluesky-author    28 items
+  hn                   hn               120 items
+  hn                   hn               120 items
+  aws                  rss               20 items
+  huggingface          rss               40 items
+  vercel               rss               40 items
+  issue-page hydration: 39 newsletter issues fetched
+total items: 1390
+
+=== canonicalization cases ===
+  28 pass / 0 fail
+
+=== corpus build (window 72h) ===
+  links after pure cascade: 5549 (citations 6708)
+  shorteners: 5 found, 5 hops, 0 hit the 3-hop wall
+  github renames resolved: 0 links rewritten
+  rel=canonical: 0 via header, 13 via <link>, 6 cross-site rejected
+  HN discussion links resolved to their targets: 231
+  single-citation vehicle posts folded into their target: 166
+  release/announcement bridges (reversed rule): 15
+  signals: 5198  (strength>=2: 86, >=3: 13, >=5: 0)
+  merges applied: 412, refused (closed/out-of-window): 0
+
+=== window sweep (does the window matter?) ===
+   12h: signals 5198  s>=2 86  s>=3 13  merges refused 0
+   24h: signals 5198  s>=2 86  s>=3 13  merges refused 0
+   48h: signals 5198  s>=2 86  s>=3 13  merges refused 0
+   72h: signals 5198  s>=2 86  s>=3 13  merges refused 0
+  168h: signals 5198  s>=2 86  s>=3 13  merges refused 0
+
+=== layer ablation (which layers earn their keep?) ===
+  all layers               links  5610  signals  5198  s>=2   86  s>=3   13  max 3
+  no shortener unwrap      links  5605  signals  5193  s>=2   86  s>=3   13  max 3
+  no HN discussion alias   links  5566  signals  5385  s>=2   86  s>=3   13  max 3
+  no rel=canonical         links  5598  signals  5186  s>=2   86  s>=3   13  max 3
+  no github rename         links  5610  signals  5198  s>=2   86  s>=3   13  max 3
+  no release bridge        links  5610  signals  5213  s>=2   86  s>=3   13  max 3
+  no reference filter      links  7849  signals  7432  s>=2   97  s>=3   14  max 3
+  no intra-publisher filter links  7301  signals  6795  s>=2   86  s>=3   13  max 3
+  no citation-worthiness at all links  9659  signals  9152  s>=2   97  s>=3   14  max 3
+  no vehicle folding       links  5610  signals  5364  s>=2   86  s>=3   12  max 3
+  pure syntactic only      links  5549  signals  5549  s>=2   86  s>=3   12  max 3
+
+=== expected clusters (C1..C10) ===
+  C1   React release / React Team post            THIN (0, +origin=1, wanted >=7)
+        https://react.dev/blog/2026/02/24/the-react-foundation
+        voters: (none)  [origin: React]
+  C2   TypeScript release                         THIN (1, +origin=2, wanted >=6)
+        https://devblogs.microsoft.com/typescript/announcing-typescript-7-0
+        voters: React Status  [origin: TypeScript]
+  C3   Rust release / major RFC                   THIN (1, +origin=2, wanted >=5)
+        https://blog.rust-lang.org/2026/08/20/supply-chain-attack-on-arrayref
+        voters: LWN  [origin: Rust]
+  C4   Cloudflare Birthday/Developer Week         THIN (2, +origin=3, wanted >=6)
+        https://blog.cloudflare.com/kitesurf
+        voters: TLDR, JavaScript Weekly  [origin: Cloudflare]
+  C5   Frontier-model launch                      THIN (2, +origin=3, wanted >=7)
+        https://openai.com/index/pacing-model-development-cyber-capabilities
+        voters: The New Stack, Ethan Mollick  [origin: OpenAI]
+  C6   Anthropic announcement (ZERO from origin)  THIN (3, +origin=3, wanted >=5)
+        https://anthropic.com/research/riemann-zeta
+        voters: TLDR, JavaScript Weekly, Interconnects
+  C7   Web-platform / CSS feature ships           THIN (2, +origin=2, wanted >=5)
+        https://developer.chrome.com/blog/container-timing-origin-trial
+        voters: JavaScript Weekly, Frontend Focus
+  C8   Postgres release / major extension         ABSENT — no Link of this shape in the corpus at all
+  C9   Viral long-form engineering post           THIN (1, +origin=1, wanted >=4)
+        https://news.ycombinator.com/item?id=49395628
+        voters: Hacker News  [origin: Hacker News]
+  C10  Node.js security release                   THIN (1, +origin=2, wanted >=4)
+        https://nodejs.org/en/blog/release/v26.7.0
+        voters: JavaScript Weekly  [origin: Node.js]
+
+=== negative controls (must NOT cluster) ===
+  aws            multi-publisher signals touching its hosts: 0
+  huggingface    multi-publisher signals touching its hosts: 3
+      s=2 https://huggingface.co/Qwen/Qwen3.8-27B
+         voters: simonwillison, latentspace
+      s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+         voters: simonwillison, interconnects
+      s=2 https://huggingface.co/zai-org/GLM-5.2
+         voters: simonwillison, interconnects
+  vercel         multi-publisher signals touching its hosts: 0
+
+=== part 3: second-pass headroom (lexical proxy, NOT embeddings) ===
+  Signals with a title of their own (an ingested Item): 1326 / 5198
+  Signals that are cited-only (no ingested Item — the C6 shape): 3872
+  candidate cross-Signal pairs at Jaccard>=0.45: 339 (of 404550 pairs)
+   1.00 "facebook/react 19.2.8 (July 21st, 2026)" [3p]
+        vs "facebook/react 19.1.9 (July 21st, 2026)" [3p]
+        https://github.com/react/react/releases/tag/v19.2.8
+        https://github.com/react/react/releases/tag/v19.1.9
+   1.00 "facebook/react 19.2.8 (July 21st, 2026)" [3p]
+        vs "facebook/react 19.0.8 (July 21st, 2026)" [3p]
+        https://github.com/react/react/releases/tag/v19.2.8
+        https://github.com/react/react/releases/tag/v19.0.8
+   1.00 "facebook/react 19.1.9 (July 21st, 2026)" [3p]
+        vs "facebook/react 19.0.8 (July 21st, 2026)" [3p]
+        https://github.com/react/react/releases/tag/v19.1.9
+        https://github.com/react/react/releases/tag/v19.0.8
+   1.00 "Stop Making TUIs" [2p]
+        vs "Stop Making TUIs" [0p]
+        https://sockpuppet.org/blog/2026/08/20/stop-making-tuis
+        https://simonwillison.net/2026/Aug/21/stop-making-tuis
+   1.00 "vercel/next.js v16.4.0-canary.2" [1p]
+        vs "vercel/next.js v16.4.0-canary.1" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1
+   1.00 "vercel/next.js v16.4.0-canary.2" [1p]
+        vs "vercel/next.js v16.4.0-canary.0" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0
+   1.00 "vercel/next.js v16.4.0-canary.2" [1p]
+        vs "vercel/next.js v16.3.1-canary.26" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2
+        https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26
+   1.00 "vercel/next.js v16.4.0-canary.1" [1p]
+        vs "vercel/next.js v16.4.0-canary.0" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0
+   1.00 "vercel/next.js v16.4.0-canary.1" [1p]
+        vs "vercel/next.js v16.3.1-canary.26" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1
+        https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26
+   1.00 "Felony charges for citizen deleting phone data at US Border" [1p]
+        vs "Felony charges for citizen deleting phone data at US Border" [0p]
+        https://news.ycombinator.com/item?id=49386895
+        https://news.ycombinator.com/item?id=49406860
+   1.00 "vercel/next.js v16.4.0-canary.0" [1p]
+        vs "vercel/next.js v16.3.1-canary.26" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0
+        https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26
+   1.00 "We Tracked a Shipment of Rare Books. It Ended at an Amazon AI Training Facility" [1p]
+        vs "We Tracked a Shipment of Rare Books. It Ended at an Amazon AI Training Facility" [0p]
+        https://404media.co/we-tracked-a-shipment-of-rare-books-it-ended-at-an-amazon-ai-training-facility
+        https://simonwillison.net/2026/Aug/17/we-tracked-a-shipment-of-rare-books-it-ended-at-an-amazon-ai-tra
+   1.00 "nodejs/node 2026-08-05, Version 26.7.0 (Current), @aduh95" [1p]
+        vs "nodejs/node 2026-08-03, Version 26.6.0 (Current), @aduh95" [1p]
+        https://github.com/nodejs/node/releases/tag/v26.7.0
+        https://github.com/nodejs/node/releases/tag/v26.6.0
+   1.00 "facebook/react 19.2.7 (June 1st, 2026)" [1p]
+        vs "facebook/react 19.1.8 (June 1st, 2026)" [1p]
+        https://github.com/react/react/releases/tag/v19.2.7
+        https://github.com/react/react/releases/tag/v19.1.8
+   0.80 "Supply chain attack on arrayref" [1p]
+        vs "Supply chain attack on arrayref (Rust blog)" [0p]
+        https://blog.rust-lang.org/2026/08/20/supply-chain-attack-on-arrayref
+        https://lwn.net/Articles/1089720
+   0.80 "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22699" [1p]
+        vs "Wednesday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22682" [1p]
+        https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b
+        https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a
+   0.80 "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22695" [1p]
+        vs "Monday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22677" [1p]
+        https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u
+        https://bsky.app/profile/adactio.com/post/3mrnwshehso2a
+   0.75 "vercel/next.js v16.4.0-canary.2" [1p]
+        vs "vercel/next.js v16.3.2" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2
+        https://github.com/vercel/next.js/releases/tag/v16.3.2
+   0.75 "vercel/next.js v16.4.0-canary.1" [1p]
+        vs "vercel/next.js v16.3.2" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1
+        https://github.com/vercel/next.js/releases/tag/v16.3.2
+   0.75 "vercel/next.js v16.4.0-canary.0" [1p]
+        vs "vercel/next.js v16.3.2" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0
+        https://github.com/vercel/next.js/releases/tag/v16.3.2
+   0.75 "vercel/next.js v16.3.2" [1p]
+        vs "vercel/next.js v16.3.1-canary.26" [1p]
+        https://github.com/vercel/next.js/releases/tag/v16.3.2
+        https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26
+   0.75 "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber" [0p]
+        vs "Introducing Gemini 3.5 Flash Cyber" [0p]
+        https://deepmind.google/blog/introducing-gemini-3-6-flash-3-5-flash-lite-and-3-5-flash-cyber
+        https://deepmind.google/blog/introducing-gemini-3-5-flash-cyber
+   0.71 "nodejs/node 2026-08-03, Version 24.19.0 'Krypton' (LTS), @aduh95" [1p]
+        vs "nodejs/node 2026-07-29, Version 24.18.1 'Krypton' (LTS), @juanarbol" [1p]
+        https://github.com/nodejs/node/releases/tag/v24.19.0
+        https://github.com/nodejs/node/releases/tag/v24.18.1
+   0.70 "Sunday afternoon session in Belfast
+
+
+🔗 https://adactio.com/notes/22689" [1p]
+        vs "Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22673" [1p]
+        https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u
+        https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23
+   0.70 "Another Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22674" [1p]
+        vs "Sunday session in Belfast
+
+
+🔗 https://adactio.com/notes/22673" [1p]
+        https://bsky.app/profile/adactio.com/post/3mrkrfhfnb62z
+        https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23
+
+=== top signals by strength ===
+  s= 3 score=0.01 [closed] https://anthropic.com/research/riemann-zeta
+        ""
+        TLDR, JavaScript Weekly, Interconnects
+  s= 3 score=0.00 [closed] https://bsky.app/profile/simonwillison.net/post/3msjr3mlnz22x
+        "Thanks to the video from the Black Hat security conference of OpenAI's presentation about "
+        Simon Willison, TLDR, Interconnects
+        merged links: 2 -> https://simonwillison.net/2026/Aug/7/openai-timeline
+  s= 3 score=0.00 [closed] https://sentry.io/resources/etsy-workshop
+        ""
+        JavaScript Weekly, React Status, Frontend Focus
+  s= 3 score=0.00 [closed] https://denodell.com/blog/your-spa-is-leaking-memory-soak-test-it
+        ""
+        JavaScript Weekly, React Status, Frontend Focus
+  s= 3 score=0.00 [closed] https://tanstack.com/charts/latest
+        ""
+        JavaScript Weekly, React Status, Frontend Focus
+  s= 3 score=0.00 [closed] https://master.dev/courses/frontend-architecture
+        ""
+        JavaScript Weekly, React Status, Frontend Focus
+  s= 3 score=0.00 [closed] https://javascriptweekly.com/latest
+        ""
+        React Status, Frontend Focus, PyCoder's Weekly
+  s= 3 score=0.00 [closed] https://javascriptweekly.com/issues
+        ""
+        React Status, Frontend Focus, PyCoder's Weekly
+  s= 3 score=0.00 [closed] https://github.com/react/react/releases/tag/v19.2.8
+        "facebook/react 19.2.8 (July 21st, 2026)"
+        JavaScript Weekly, React Status, React
+  s= 3 score=0.00 [closed] https://github.com/react/react/releases/tag/v19.1.9
+        "facebook/react 19.1.9 (July 21st, 2026)"
+        JavaScript Weekly, React Status, React
+  s= 3 score=0.00 [closed] https://github.com/react/react/releases/tag/v19.0.8
+        "facebook/react 19.0.8 (July 21st, 2026)"
+        JavaScript Weekly, React Status, React
+  s= 3 score=0.00 [closed] https://tigerdata.com/go/trial
+        ""
+        JavaScript Weekly, React Status, Frontend Focus
+  s= 3 score=0.00 [closed] https://anthropic.com/news/claude-fable-5-mythos-5
+        ""
+        The New Stack, Armin Ronacher, Interconnects
+  s= 2 score=0.76          https://sockpuppet.org/blog/2026/08/20/stop-making-tuis
+        "Stop Making TUIs"
+        Simon Willison, Hacker News | origin=Hacker News
+        merged links: 2 -> https://news.ycombinator.com/item?id=49384210
+  s= 2 score=0.43 [closed] https://bun.com/blog/bun-v1.4
+        "Bun 1.4"
+        Simon Willison, Vercel | origin=Bun
+  s= 2 score=0.41 [closed] https://cnbc.com/2026/08/19/open-ai-ipo-timing-2027-friar.html
+        ""
+        TLDR, The New Stack
+  s= 2 score=0.38 [closed] https://debian.org/vote/2026/vote_002
+        ""
+        LWN, The New Stack
+  s= 2 score=0.32 [closed] https://x.com/sama/status/2089787807611195475
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.32 [closed] https://x.com/sama/status/2089805495783813196
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.27 [closed] https://jeremymorrell.dev/blog/extensible-software-in-the-age-of-llms
+        ""
+        Simon Willison, TLDR
+  s= 2 score=0.26 [closed] https://modular.com/blog/mojo-open-source
+        ""
+        Simon Willison, TLDR
+  s= 2 score=0.25 [closed] https://githubstatus.com/incidents/zkxwbgr0cnmx
+        "The RCA for the outage we had at GitHub yesterday is live.
+
+We're sorry it happened and ho"
+        GitHub, Cassidy Williams
+        merged links: 2 -> https://bsky.app/profile/cassidoo.co/post/3mtexgqpbck2t
+  s= 2 score=0.21 [closed] https://openai.com/index/pacing-model-development-cyber-capabilities
+        "Pacing model development in an era of cyber-critical capabilities"
+        The New Stack, Ethan Mollick | origin=OpenAI
+        merged links: 2 -> https://bsky.app/profile/emollick.bsky.social/post/3mtf67piajs2n
+  s= 2 score=0.17 [closed] https://artificialanalysis.ai/models/qwen3-8-27b
+        ""
+        Simon Willison, Latent Space
+        merged links: 2 -> https://news.ycombinator.com/item?id=49334544
+  s= 2 score=0.17 [closed] https://openrouter.ai/blog/announcements/series-b
+        ""
+        The New Stack, Latent Space
+  s= 2 score=0.10 [closed] https://huggingface.co/Qwen/Qwen3.8-27B
+        ""
+        Simon Willison, Latent Space
+  s= 2 score=0.03 [closed] https://z.ai/blog/glm-5.3
+        ""
+        Interconnects, Latent Space
+  s= 2 score=0.03 [closed] https://deepseek.com/harness/en
+        ""
+        TLDR, Latent Space
+  s= 2 score=0.02 [closed] https://nature.com/articles/s41586-024-08025-4
+        ""
+        404 Media, Latent Space
+  s= 2 score=0.01 [closed] https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html
+        ""
+        Simon Willison, TLDR
+
+=== issue-page hydration leverage ===
+  aggregator items: 39, hydrated with gain: 35, links gained: 1197
+
+=== #11 supply: which publishers actually raise Strength ===
+  publisher              cites  votes(s>=2)  votes(s>=3)  cites-per-vote
+  jsweekly                191           45            9             4.2
+  reactstatus             125           32           10             3.9
+  frontendfocus           129           25            7             5.2
+  tldr                    412           14            2            29.4
+  latentspace            1040           11            0            94.5
+  simonwillison           167           11            1            15.2
+  interconnects           284           10            3            28.4
+  thenewstack             142            7            1            20.3
+  chriscoyier              84            4            0            21.0
+  bramus                   93            3            0            31.0
+  emollick                 36            3            0            12.0
+  react                    28            3            3             9.3
+  deno                     45            2            0            22.5
+  armin                    36            2            1            18.0
+  pycoders                 12            2            2             6.0
+  hn                      436            1            0           436.0
+  pragmaticengineer       185            1            0           185.0
+  cloudflare              116            1            0           116.0
+  kentcdodds              110            1            0           110.0
+  vercel                   68            1            0            68.0  [control]
+  404media                 59            1            0            59.0
+  rachelandrew             54            1            0            54.0
+  cassidoo                 47            1            0            47.0
+  github                   43            1            0            43.0
+  lwn                      35            1            0            35.0
+  una                      25            1            0            25.0
+  svelte                  971            0            0               —
+  twir                    559            0            0               —
+  bun                     176            0            0               —
+  juliaevans              175            0            0               —
+  typescript              101            0            0               —
+  aws                      97            0            0               —  [control]
+  rust                     66            0            0               —
+  adactio                  60            0            0               —
+  webkit                   54            0            0               —
+  astro                    50            0            0               —
+  arstechnica              47            0            0               —
+  glyph                    47            0            0               —
+  jimnielsen               45            0            0               —
+  nextjs                   45            0            0               —
+  nodejs                   45            0            0               —
+  openai                   40            0            0               —
+  deepmind                 40            0            0               —
+  huggingface              40            0            0               —  [control]
+  go                       38            0            0               —
+  chromedev                10            0            0               —
+
+  publishers in the roster: 46
+  publishers that raised Strength at least once: 26
+  publishers that raised Strength ZERO times (non-control): 18
+    svelte(971) twir(559) bun(176) juliaevans(175) typescript(101) rust(66) adactio(60) webkit(54) astro(50) arstechnica(47) glyph(47) jimnielsen(45) nextjs(45) nodejs(45) openai(40) deepmind(40) go(38) chromedev(10)
+  strength histogram: 0:796 1:4316 2:73 3:13
+
+=== diagnostics ===
+  {"shortenerHops":5,"shortenerExhausted":0,"ssrfRejects":0,"canonicalHeader":0,"canonicalTag":13,"canonicalCrossSite":6,"ghRenames":0,"hnResolved":231,"releaseBridges":15,"droppedNonHttp":20,"referenceDropped":2912,"intraPublisherDropped":2636,"vehicleMerges":166}
+  net: {"hits":8641,"misses":929,"errors":0,"bytes":64983148}
+  citations by kind: self=1390 outbound=5318
+  citations per publisher: latentspace=1040 svelte=971 twir=559 hn=436 tldr=412 interconnects=284 jsweekly=191 pragmaticengineer=185 bun=176 juliaevans=175 simonwillison=167 thenewstack=142 frontendfocus=129 reactstatus=125 cloudflare=116 kentcdodds=110 typescript=101 aws=97 bramus=93 chriscoyier=84 vercel=68 rust=66 adactio=60 404media=59 webkit=54 rachelandrew=54 astro=50 arstechnica=47 glyph=47 cassidoo=47 jimnielsen=45 nextjs=45 nodejs=45 deno=45 github=43 openai=40 deepmind=40 huggingface=40 go=38 armin=36 emollick=36 lwn=35 react=28 una=25 pycoders=12 chromedev=10

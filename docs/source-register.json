@@ -1,0 +1,1435 @@
+{
+  "schemaNote": "Zis v1 source register. Resolves issue #11. Publisher is the owning voice and the unit Strength counts; a Source is one pollable endpoint belonging to it. Measured figures are from PROTOTYPE-supply over the 2026-08-23 fetch window and are properties of THAT corpus, not guarantees.",
+  "measuredAt": "2026-08-23",
+  "totals": {
+    "publishers": 73,
+    "sources": 96
+  },
+  "publishers": [
+    {
+      "id": "simonwillison",
+      "name": "Simon Willison",
+      "hosts": [
+        "simonwillison.net"
+      ],
+      "measured": {
+        "cites": 167,
+        "votesS2": 14,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://simonwillison.net/atom/everything/"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:kft6lu4trxowqmter2b6vg6z"
+        }
+      ]
+    },
+    {
+      "id": "tldr",
+      "name": "TLDR",
+      "hosts": [
+        "tldr.tech"
+      ],
+      "measured": {
+        "cites": 412,
+        "votesS2": 21,
+        "votesS3": 6
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://tldr.tech/api/rss/tech"
+        }
+      ]
+    },
+    {
+      "id": "cooperpress",
+      "name": "Cooper Press",
+      "hosts": [
+        "javascriptweekly.com",
+        "react.statuscode.com",
+        "frontendfoc.us",
+        "nodeweekly.com",
+        "golangweekly.com"
+      ],
+      "measured": {
+        "cites": 664,
+        "votesS2": 49,
+        "votesS3": 3
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://javascriptweekly.com/rss"
+        },
+        {
+          "transport": "rss",
+          "url": "https://react.statuscode.com/rss"
+        },
+        {
+          "transport": "rss",
+          "url": "https://frontendfoc.us/rss"
+        },
+        {
+          "transport": "rss",
+          "url": "https://nodeweekly.com/rss"
+        },
+        {
+          "transport": "rss",
+          "url": "https://golangweekly.com/rss"
+        }
+      ]
+    },
+    {
+      "id": "twir",
+      "name": "This Week in Rust",
+      "hosts": [
+        "this-week-in-rust.org"
+      ],
+      "measured": {
+        "cites": 559,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://this-week-in-rust.org/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "jimnielsen",
+      "name": "Jim Nielsen",
+      "hosts": [
+        "blog.jim-nielsen.com"
+      ],
+      "measured": {
+        "cites": 45,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://blog.jim-nielsen.com/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "pycoders",
+      "name": "PyCoder's Weekly",
+      "hosts": [
+        "pycoders.com"
+      ],
+      "measured": {
+        "cites": 12,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://pycoders.com/feed"
+        }
+      ]
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "hosts": [
+        "react.dev"
+      ],
+      "measured": {
+        "cites": 28,
+        "votesS2": 3,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://react.dev/rss.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "facebook/react"
+        }
+      ]
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "hosts": [
+        "nextjs.org"
+      ],
+      "measured": {
+        "cites": 45,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://nextjs.org/feed.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "vercel/next.js"
+        }
+      ]
+    },
+    {
+      "id": "typescript",
+      "name": "TypeScript",
+      "hosts": [
+        "devblogs.microsoft.com",
+        "typescriptlang.org"
+      ],
+      "measured": {
+        "cites": 101,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://devblogs.microsoft.com/typescript/feed/"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "microsoft/TypeScript"
+        }
+      ]
+    },
+    {
+      "id": "nodejs",
+      "name": "Node.js",
+      "hosts": [
+        "nodejs.org"
+      ],
+      "measured": {
+        "cites": 45,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://nodejs.org/en/feed/blog.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "nodejs/node"
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "hosts": [
+        "blog.rust-lang.org",
+        "rust-lang.org"
+      ],
+      "measured": {
+        "cites": 66,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://blog.rust-lang.org/feed.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "rust-lang/rust"
+        }
+      ]
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "hosts": [
+        "go.dev"
+      ],
+      "measured": {
+        "cites": 38,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://go.dev/blog/feed.atom"
+        }
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "hosts": [
+        "blog.cloudflare.com",
+        "cloudflare.com"
+      ],
+      "measured": {
+        "cites": 116,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://blog.cloudflare.com/rss/"
+        }
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "hosts": [
+        "github.blog",
+        "github.com"
+      ],
+      "measured": {
+        "cites": 43,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://github.blog/feed/"
+        },
+        {
+          "transport": "rss",
+          "url": "https://github.blog/changelog/feed/",
+          "negativeControl": true
+        }
+      ]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "hosts": [
+        "openai.com"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://openai.com/news/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "deepmind",
+      "name": "Google DeepMind",
+      "hosts": [
+        "deepmind.google"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://deepmind.google/blog/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "webkit",
+      "name": "WebKit",
+      "hosts": [
+        "webkit.org"
+      ],
+      "measured": {
+        "cites": 54,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://webkit.org/feed/atom/"
+        }
+      ]
+    },
+    {
+      "id": "chromedev",
+      "name": "Chrome for Developers",
+      "hosts": [
+        "developer.chrome.com"
+      ],
+      "measured": {
+        "cites": 10,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://developer.chrome.com/static/blog/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "svelte",
+      "name": "Svelte",
+      "hosts": [
+        "svelte.dev"
+      ],
+      "measured": {
+        "cites": 971,
+        "votesS2": 4,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://svelte.dev/blog/rss.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "sveltejs/svelte"
+        }
+      ]
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "hosts": [
+        "astro.build"
+      ],
+      "measured": {
+        "cites": 50,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://astro.build/rss.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "withastro/astro"
+        }
+      ]
+    },
+    {
+      "id": "deno",
+      "name": "Deno",
+      "hosts": [
+        "deno.com",
+        "deno.land"
+      ],
+      "measured": {
+        "cites": 45,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://deno.com/feed"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "denoland/deno"
+        }
+      ]
+    },
+    {
+      "id": "bun",
+      "name": "Bun",
+      "hosts": [
+        "bun.com",
+        "bun.sh"
+      ],
+      "measured": {
+        "cites": 176,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://bun.com/rss.xml"
+        },
+        {
+          "transport": "github-releases",
+          "repo": "oven-sh/bun"
+        }
+      ]
+    },
+    {
+      "id": "arstechnica",
+      "name": "Ars Technica",
+      "hosts": [
+        "arstechnica.com"
+      ],
+      "measured": {
+        "cites": 47,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://feeds.arstechnica.com/arstechnica/index"
+        }
+      ]
+    },
+    {
+      "id": "lwn",
+      "name": "LWN",
+      "hosts": [
+        "lwn.net"
+      ],
+      "measured": {
+        "cites": 35,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://lwn.net/headlines/newrss"
+        }
+      ]
+    },
+    {
+      "id": "404media",
+      "name": "404 Media",
+      "hosts": [
+        "404media.co"
+      ],
+      "measured": {
+        "cites": 59,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.404media.co/rss/"
+        }
+      ]
+    },
+    {
+      "id": "thenewstack",
+      "name": "The New Stack",
+      "hosts": [
+        "thenewstack.io"
+      ],
+      "measured": {
+        "cites": 142,
+        "votesS2": 7,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://thenewstack.io/blog/feed/"
+        }
+      ]
+    },
+    {
+      "id": "bramus",
+      "name": "Bramus",
+      "hosts": [
+        "bram.us"
+      ],
+      "measured": {
+        "cites": 93,
+        "votesS2": 3,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.bram.us/feed/"
+        }
+      ]
+    },
+    {
+      "id": "rachelandrew",
+      "name": "Rachel Andrew",
+      "hosts": [
+        "rachelandrew.co.uk"
+      ],
+      "measured": {
+        "cites": 54,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://rachelandrew.co.uk/feed/"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:xi53lkcvx4b3bl5tgsb7tnqe"
+        }
+      ]
+    },
+    {
+      "id": "armin",
+      "name": "Armin Ronacher",
+      "hosts": [
+        "lucumr.pocoo.org"
+      ],
+      "measured": {
+        "cites": 36,
+        "votesS2": 3,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://lucumr.pocoo.org/feed.atom"
+        }
+      ]
+    },
+    {
+      "id": "interconnects",
+      "name": "Interconnects",
+      "hosts": [
+        "interconnects.ai"
+      ],
+      "measured": {
+        "cites": 284,
+        "votesS2": 22,
+        "votesS3": 4
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.interconnects.ai/feed"
+        }
+      ]
+    },
+    {
+      "id": "latentspace",
+      "name": "Latent Space",
+      "hosts": [
+        "latent.space"
+      ],
+      "measured": {
+        "cites": 1040,
+        "votesS2": 14,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.latent.space/feed"
+        }
+      ]
+    },
+    {
+      "id": "pragmaticengineer",
+      "name": "Pragmatic Engineer",
+      "hosts": [
+        "blog.pragmaticengineer.com"
+      ],
+      "measured": {
+        "cites": 185,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://blog.pragmaticengineer.com/rss/"
+        }
+      ]
+    },
+    {
+      "id": "chriscoyier",
+      "name": "Chris Coyier",
+      "hosts": [
+        "chriscoyier.net",
+        "css-tricks.com"
+      ],
+      "measured": {
+        "cites": 99,
+        "votesS2": 5,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://chriscoyier.net/feed/"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:xhhcrzsilpamjmz4dvrpt7df"
+        },
+        {
+          "transport": "rss",
+          "url": "https://css-tricks.com/feed/"
+        }
+      ]
+    },
+    {
+      "id": "adactio",
+      "name": "Jeremy Keith",
+      "hosts": [
+        "adactio.com"
+      ],
+      "measured": {
+        "cites": 60,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:r4p4qrbwfv7fbvpem5hjdmvl"
+        }
+      ]
+    },
+    {
+      "id": "kentcdodds",
+      "name": "Kent C. Dodds",
+      "hosts": [
+        "kentcdodds.com"
+      ],
+      "measured": {
+        "cites": 110,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:xzefkiajzjmmyp6zq6ftczg3"
+        }
+      ]
+    },
+    {
+      "id": "juliaevans",
+      "name": "Julia Evans",
+      "hosts": [
+        "jvns.ca"
+      ],
+      "measured": {
+        "cites": 175,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:nzrozayxq764zbgl4qtp5ald"
+        },
+        {
+          "transport": "rss",
+          "url": "https://jvns.ca/atom.xml"
+        }
+      ]
+    },
+    {
+      "id": "glyph",
+      "name": "Glyph",
+      "hosts": [
+        "glyph.im"
+      ],
+      "measured": {
+        "cites": 47,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:vaa5e4jzfpx6znz3jzxqixym"
+        }
+      ]
+    },
+    {
+      "id": "emollick",
+      "name": "Ethan Mollick",
+      "hosts": [
+        "oneusefulthing.org"
+      ],
+      "measured": {
+        "cites": 36,
+        "votesS2": 4,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:flxq4uyjfotciovpw3x3fxnu"
+        }
+      ]
+    },
+    {
+      "id": "una",
+      "name": "Una Kravets",
+      "hosts": [
+        "una.im"
+      ],
+      "measured": {
+        "cites": 25,
+        "votesS2": 7,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:kesmfbtx2loscqj7ktw5shtt"
+        }
+      ]
+    },
+    {
+      "id": "cassidoo",
+      "name": "Cassidy Williams",
+      "hosts": [
+        "cassidoo.co"
+      ],
+      "measured": {
+        "cites": 47,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:bhdap3w2bseikypfnjmaskzf"
+        }
+      ]
+    },
+    {
+      "id": "hn",
+      "name": "Hacker News",
+      "hosts": [
+        "news.ycombinator.com"
+      ],
+      "measured": {
+        "cites": 436,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "hn",
+          "list": "topstories"
+        },
+        {
+          "transport": "hn",
+          "list": "newstories"
+        }
+      ]
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "hosts": [
+        "aws.amazon.com"
+      ],
+      "negativeControl": true,
+      "measured": {
+        "cites": 97,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://aws.amazon.com/blogs/aws/feed/"
+        }
+      ]
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face",
+      "hosts": [
+        "huggingface.co"
+      ],
+      "negativeControl": true,
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://huggingface.co/blog/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "hosts": [
+        "vercel.com"
+      ],
+      "negativeControl": true,
+      "measured": {
+        "cites": 68,
+        "votesS2": 2,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://vercel.com/atom"
+        }
+      ]
+    },
+    {
+      "id": "webtoolsweekly",
+      "name": "Web Tools Weekly",
+      "hosts": [
+        "webtoolsweekly.com"
+      ],
+      "measured": {
+        "cites": 487,
+        "votesS2": 24,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://webtoolsweekly.com/feed/"
+        }
+      ]
+    },
+    {
+      "id": "consoledev",
+      "name": "Console.dev",
+      "hosts": [
+        "console.dev"
+      ],
+      "measured": {
+        "cites": 407,
+        "votesS2": 11,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://console.dev/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "cssweekly",
+      "name": "CSS Weekly",
+      "hosts": [
+        "css-weekly.com"
+      ],
+      "measured": {
+        "cites": 1040,
+        "votesS2": 21,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://css-weekly.com/feed/"
+        }
+      ]
+    },
+    {
+      "id": "martinfowler",
+      "name": "Martin Fowler",
+      "hosts": [
+        "martinfowler.com"
+      ],
+      "measured": {
+        "cites": 122,
+        "votesS2": 4,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://martinfowler.com/feed.atom"
+        }
+      ]
+    },
+    {
+      "id": "lethain",
+      "name": "Will Larson",
+      "hosts": [
+        "lethain.com"
+      ],
+      "measured": {
+        "cites": 15,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://lethain.com/feeds/"
+        }
+      ]
+    },
+    {
+      "id": "danluu",
+      "name": "Dan Luu",
+      "hosts": [
+        "danluu.com"
+      ],
+      "measured": {
+        "cites": 1309,
+        "votesS2": 4,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://danluu.com/atom.xml"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:2mrgzk6xlemfv6yugn644xxy"
+        }
+      ]
+    },
+    {
+      "id": "jakearchibald",
+      "name": "Jake Archibald",
+      "hosts": [
+        "jakearchibald.com"
+      ],
+      "measured": {
+        "cites": 53,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://jakearchibald.com/posts.rss"
+        }
+      ]
+    },
+    {
+      "id": "leaverou",
+      "name": "Lea Verou",
+      "hosts": [
+        "lea.verou.me"
+      ],
+      "measured": {
+        "cites": 105,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://lea.verou.me/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "stefanjudis",
+      "name": "Stefan Judis",
+      "hosts": [
+        "stefanjudis.com"
+      ],
+      "measured": {
+        "cites": 726,
+        "votesS2": 48,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.stefanjudis.com/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "nolanlawson",
+      "name": "Nolan Lawson",
+      "hosts": [
+        "nolanlawson.com"
+      ],
+      "measured": {
+        "cites": 65,
+        "votesS2": 4,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://nolanlawson.com/feed/"
+        }
+      ]
+    },
+    {
+      "id": "joshwcomeau",
+      "name": "Josh Comeau",
+      "hosts": [
+        "joshwcomeau.com"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.joshwcomeau.com/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "danabramov",
+      "name": "Dan Abramov",
+      "hosts": [
+        "overreacted.io"
+      ],
+      "measured": {
+        "cites": 46,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://overreacted.io/rss.xml"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:fpruhuo22xkm5o7ttr2ktxdo"
+        }
+      ]
+    },
+    {
+      "id": "sophiebits",
+      "name": "Sophie Alpert",
+      "hosts": [
+        "sophiebits.com"
+      ],
+      "measured": {
+        "cites": 34,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.sophiebits.com/atom.xml"
+        },
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:lq6wgt3qcyog37cw65o5c277"
+        }
+      ]
+    },
+    {
+      "id": "baldur",
+      "name": "Baldur Bjarnason",
+      "hosts": [
+        "baldurbjarnason.com"
+      ],
+      "measured": {
+        "cites": 27,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://www.baldurbjarnason.com/index.xml"
+        }
+      ]
+    },
+    {
+      "id": "hynek",
+      "name": "Hynek Schlawack",
+      "hosts": [
+        "hynek.me"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 1,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:6k63663icgdybm5evgszxjn2"
+        }
+      ]
+    },
+    {
+      "id": "crawshaw",
+      "name": "David Crawshaw",
+      "hosts": [
+        "crawshaw.io"
+      ],
+      "measured": {
+        "cites": 22,
+        "votesS2": 1,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:sbgmax2bfm5dlje36qwvzuuq"
+        }
+      ]
+    },
+    {
+      "id": "wesbos",
+      "name": "Wes Bos",
+      "hosts": [
+        "wesbos.com"
+      ],
+      "measured": {
+        "cites": 26,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:etdjdgnly5tz5l5xdd4jq76d"
+        }
+      ]
+    },
+    {
+      "id": "bradfitz",
+      "name": "Brad Fitzpatrick",
+      "hosts": [
+        "bradfitz.com"
+      ],
+      "measured": {
+        "cites": 27,
+        "votesS2": 1,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:7r2fy3b4u7mmnhgbdxnflovv"
+        }
+      ]
+    },
+    {
+      "id": "antirez",
+      "name": "Salvatore Sanfilippo",
+      "hosts": [
+        "antirez.com"
+      ],
+      "measured": {
+        "cites": 18,
+        "votesS2": 2,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "bluesky-author",
+          "did": "did:plc:ipt7y6qaf6fn7oeeduboqe44"
+        }
+      ]
+    },
+    {
+      "id": "vuejs",
+      "name": "Vue.js",
+      "hosts": [
+        "vuejs.org",
+        "blog.vuejs.org"
+      ],
+      "measured": {
+        "cites": 117,
+        "votesS2": 4,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://blog.vuejs.org/feed.rss"
+        }
+      ]
+    },
+    {
+      "id": "nuxt",
+      "name": "Nuxt",
+      "hosts": [
+        "nuxt.com"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://nuxt.com/blog/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "antfu",
+      "name": "Anthony Fu",
+      "hosts": [
+        "antfu.me"
+      ],
+      "measured": {
+        "cites": 306,
+        "votesS2": 6,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://antfu.me/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "tailwind",
+      "name": "Tailwind CSS",
+      "hosts": [
+        "tailwindcss.com"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://tailwindcss.com/feeds/feed.xml"
+        }
+      ]
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "hosts": [
+        "vite.dev",
+        "vitejs.dev"
+      ],
+      "measured": {
+        "cites": 240,
+        "votesS2": 10,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://vite.dev/blog.rss"
+        }
+      ]
+    },
+    {
+      "id": "importai",
+      "name": "Import AI",
+      "hosts": [
+        "importai.substack.com",
+        "jack-clark.net"
+      ],
+      "measured": {
+        "cites": 150,
+        "votesS2": 5,
+        "votesS3": 2
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://importai.substack.com/feed"
+        }
+      ]
+    },
+    {
+      "id": "raschka",
+      "name": "Sebastian Raschka",
+      "hosts": [
+        "magazine.sebastianraschka.com",
+        "sebastianraschka.com"
+      ],
+      "measured": {
+        "cites": 1049,
+        "votesS2": 16,
+        "votesS3": 1
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://magazine.sebastianraschka.com/feed"
+        }
+      ]
+    },
+    {
+      "id": "googleresearch",
+      "name": "Google Research",
+      "hosts": [
+        "research.google"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://research.google/blog/rss/"
+        }
+      ]
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral AI",
+      "hosts": [
+        "mistral.ai"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://mistral.ai/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "hosts": [
+        "ollama.com"
+      ],
+      "measured": {
+        "cites": 40,
+        "votesS2": 0,
+        "votesS3": 0
+      },
+      "sources": [
+        {
+          "transport": "rss",
+          "url": "https://ollama.com/blog/rss.xml"
+        }
+      ]
+    }
+  ]
+}
