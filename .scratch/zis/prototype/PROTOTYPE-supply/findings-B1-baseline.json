@@ -1,0 +1,1078 @@
+{
+  "itemCount": 1390,
+  "linkCount": 5610,
+  "citationCount": 6708,
+  "signalCount": 5198,
+  "canonCases": {
+    "rows": [
+      [
+        "https://react.dev/blog/2026/01/01/react-19?utm_source=tldr&utm_medium=email",
+        "https://react.dev/blog/2026/01/01/react-19",
+        "ok",
+        "utm_* stripped"
+      ],
+      [
+        "http://WWW.React.dev/blog/foo/",
+        "https://react.dev/blog/foo",
+        "ok",
+        "scheme, host case, www, trailing slash"
+      ],
+      [
+        "https://react.dev:443/blog/foo",
+        "https://react.dev/blog/foo",
+        "ok",
+        "default port"
+      ],
+      [
+        "https://example.com/post#section-3",
+        "https://example.com/post",
+        "ok",
+        "fragment is a scroll target"
+      ],
+      [
+        "https://example.com/post#!/route",
+        "https://example.com/post#!/route",
+        "ok",
+        "hashbang is routing state — KEPT"
+      ],
+      [
+        "https://example.com/a//b///c",
+        "https://example.com/a/b/c",
+        "ok",
+        "doubled slashes"
+      ],
+      [
+        "https://example.com/docs/index.html",
+        "https://example.com/docs",
+        "ok",
+        "index.html is the directory, then the trailing slash goes too"
+      ],
+      [
+        "https://lobste.rs/?page=2",
+        "https://lobste.rs/",
+        "ok",
+        "lobste.rs is allowlist-empty: page dropped; root keeps its slash"
+      ],
+      [
+        "https://example.com/blog?page=2",
+        "https://example.com/blog?page=2",
+        "ok",
+        "?page=2 KEPT — denylist only"
+      ],
+      [
+        "https://example.com/blog?sort=new",
+        "https://example.com/blog?sort=new",
+        "ok",
+        "sort KEPT — changes the document"
+      ],
+      [
+        "https://example.com/p?b=2&a=1",
+        "https://example.com/p?a=1&b=2",
+        "ok",
+        "params sorted so one URL is one Link"
+      ],
+      [
+        "https://amp.theguardian.com/tech/story",
+        "https://theguardian.com/tech/story",
+        "ok",
+        "amp. subdomain"
+      ],
+      [
+        "https://example.com/story/amp/",
+        "https://example.com/story",
+        "ok",
+        "amp path suffix"
+      ],
+      [
+        "https://example.com/story?amp=1",
+        "https://example.com/story",
+        "ok",
+        "amp param"
+      ],
+      [
+        "https://youtu.be/dQw4w9WgXcQ?t=42",
+        "https://youtube.com/watch?v=dQw4w9WgXcQ",
+        "ok",
+        "shortener + player state"
+      ],
+      [
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL123&pp=xx&si=abc",
+        "https://youtube.com/watch?v=dQw4w9WgXcQ",
+        "ok",
+        "allowlist: only v survives"
+      ],
+      [
+        "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+        "https://youtube.com/watch?v=dQw4w9WgXcQ",
+        "ok",
+        "shorts is the same video"
+      ],
+      [
+        "https://www.youtube.com/playlist?list=PL123&si=abc",
+        "https://youtube.com/playlist?list=PL123",
+        "ok",
+        "playlist identity is `list`, not `v`"
+      ],
+      [
+        "https://github.com/Facebook/React.git",
+        "https://github.com/facebook/react",
+        "ok",
+        "owner/repo case + .git"
+      ],
+      [
+        "https://github.com/facebook/react/tree/main",
+        "https://github.com/facebook/react",
+        "ok",
+        "/tree/<branch> is the repo root"
+      ],
+      [
+        "https://github.com/facebook/react/releases/latest",
+        "https://github.com/facebook/react/releases",
+        "ok",
+        "/latest is not a stable Link"
+      ],
+      [
+        "https://github.com/facebook/react/releases/tag/v19.0.0",
+        "https://github.com/facebook/react/releases/tag/v19.0.0",
+        "ok",
+        "a release tag IS the event"
+      ],
+      [
+        "https://news.ycombinator.com/item?id=12345678&p=2",
+        "https://news.ycombinator.com/item?id=12345678",
+        "ok",
+        "allowlist: only id"
+      ],
+      [
+        "mailto:someone@example.com",
+        "(rejected)",
+        "ok",
+        "non-http rejected"
+      ],
+      [
+        "javascript:void(0)",
+        "(rejected)",
+        "ok",
+        "rejected"
+      ],
+      [
+        "/relative/path",
+        "(rejected)",
+        "ok",
+        "no base: rejected"
+      ],
+      [
+        "https://localhost/admin",
+        "(rejected)",
+        "ok",
+        "SSRF guard (checked separately)"
+      ],
+      [
+        "https://192.168.1.1/",
+        "(rejected)",
+        "ok",
+        "SSRF guard (checked separately)"
+      ]
+    ],
+    "pass": 28,
+    "fail": 0
+  },
+  "sweep": [
+    {
+      "w": 12,
+      "signals": 5198,
+      "m2": 86,
+      "m3": 13,
+      "refused": 0
+    },
+    {
+      "w": 24,
+      "signals": 5198,
+      "m2": 86,
+      "m3": 13,
+      "refused": 0
+    },
+    {
+      "w": 48,
+      "signals": 5198,
+      "m2": 86,
+      "m3": 13,
+      "refused": 0
+    },
+    {
+      "w": 72,
+      "signals": 5198,
+      "m2": 86,
+      "m3": 13,
+      "refused": 0
+    },
+    {
+      "w": 168,
+      "signals": 5198,
+      "m2": 86,
+      "m3": 13,
+      "refused": 0
+    }
+  ],
+  "ablationRows": [
+    {
+      "name": "all layers",
+      "links": 5610,
+      "signals": 5198,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no shortener unwrap",
+      "links": 5605,
+      "signals": 5193,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no HN discussion alias",
+      "links": 5566,
+      "signals": 5385,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no rel=canonical",
+      "links": 5598,
+      "signals": 5186,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no github rename",
+      "links": 5610,
+      "signals": 5198,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no release bridge",
+      "links": 5610,
+      "signals": 5213,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no reference filter",
+      "links": 7849,
+      "signals": 7432,
+      "s2": 97,
+      "s3": 14,
+      "maxStrength": 3
+    },
+    {
+      "name": "no intra-publisher filter",
+      "links": 7301,
+      "signals": 6795,
+      "s2": 86,
+      "s3": 13,
+      "maxStrength": 3
+    },
+    {
+      "name": "no citation-worthiness at all",
+      "links": 9659,
+      "signals": 9152,
+      "s2": 97,
+      "s3": 14,
+      "maxStrength": 3
+    },
+    {
+      "name": "no vehicle folding",
+      "links": 5610,
+      "signals": 5364,
+      "s2": 86,
+      "s3": 12,
+      "maxStrength": 3
+    },
+    {
+      "name": "pure syntactic only",
+      "links": 5549,
+      "signals": 5549,
+      "s2": 86,
+      "s3": 12,
+      "maxStrength": 3
+    }
+  ],
+  "clusterVerdicts": [
+    {
+      "id": "C1",
+      "name": "React release / React Team post",
+      "min": 7,
+      "verdict": "THIN (0, +origin=1, wanted >=7)",
+      "best": {
+        "url": "https://react.dev/blog/2026/02/24/the-react-foundation",
+        "strength": 0,
+        "voters": [],
+        "origin": "react",
+        "links": [
+          "https://react.dev/blog/2026/02/24/the-react-foundation"
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "name": "TypeScript release",
+      "min": 6,
+      "verdict": "THIN (1, +origin=2, wanted >=6)",
+      "best": {
+        "url": "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0",
+        "strength": 1,
+        "voters": [
+          "reactstatus"
+        ],
+        "origin": "typescript",
+        "links": [
+          "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0"
+        ]
+      }
+    },
+    {
+      "id": "C3",
+      "name": "Rust release / major RFC",
+      "min": 5,
+      "verdict": "THIN (1, +origin=2, wanted >=5)",
+      "best": {
+        "url": "https://blog.rust-lang.org/2026/08/20/supply-chain-attack-on-arrayref",
+        "strength": 1,
+        "voters": [
+          "lwn"
+        ],
+        "origin": "rust",
+        "links": [
+          "https://blog.rust-lang.org/2026/08/20/supply-chain-attack-on-arrayref"
+        ]
+      }
+    },
+    {
+      "id": "C4",
+      "name": "Cloudflare Birthday/Developer Week",
+      "min": 6,
+      "verdict": "THIN (2, +origin=3, wanted >=6)",
+      "best": {
+        "url": "https://blog.cloudflare.com/kitesurf",
+        "strength": 2,
+        "voters": [
+          "tldr",
+          "jsweekly"
+        ],
+        "origin": "cloudflare",
+        "links": [
+          "https://blog.cloudflare.com/kitesurf"
+        ]
+      }
+    },
+    {
+      "id": "C5",
+      "name": "Frontier-model launch",
+      "min": 7,
+      "verdict": "THIN (2, +origin=3, wanted >=7)",
+      "best": {
+        "url": "https://openai.com/index/pacing-model-development-cyber-capabilities",
+        "strength": 2,
+        "voters": [
+          "thenewstack",
+          "emollick"
+        ],
+        "origin": "openai",
+        "links": [
+          "https://openai.com/index/pacing-model-development-cyber-capabilities",
+          "https://bsky.app/profile/emollick.bsky.social/post/3mtf67piajs2n"
+        ]
+      }
+    },
+    {
+      "id": "C6",
+      "name": "Anthropic announcement (ZERO from origin)",
+      "min": 5,
+      "verdict": "THIN (3, +origin=3, wanted >=5)",
+      "best": {
+        "url": "https://anthropic.com/research/riemann-zeta",
+        "strength": 3,
+        "voters": [
+          "tldr",
+          "jsweekly",
+          "interconnects"
+        ],
+        "origin": null,
+        "links": [
+          "https://anthropic.com/research/riemann-zeta"
+        ]
+      }
+    },
+    {
+      "id": "C7",
+      "name": "Web-platform / CSS feature ships",
+      "min": 5,
+      "verdict": "THIN (2, +origin=2, wanted >=5)",
+      "best": {
+        "url": "https://developer.chrome.com/blog/container-timing-origin-trial",
+        "strength": 2,
+        "voters": [
+          "jsweekly",
+          "frontendfocus"
+        ],
+        "origin": null,
+        "links": [
+          "https://developer.chrome.com/blog/container-timing-origin-trial"
+        ]
+      }
+    },
+    {
+      "id": "C8",
+      "name": "Postgres release / major extension",
+      "min": 4,
+      "verdict": "ABSENT — no Link of this shape in the corpus at all",
+      "best": null
+    },
+    {
+      "id": "C9",
+      "name": "Viral long-form engineering post",
+      "min": 4,
+      "verdict": "THIN (1, +origin=1, wanted >=4)",
+      "best": {
+        "url": "https://news.ycombinator.com/item?id=49395628",
+        "strength": 1,
+        "voters": [
+          "hn"
+        ],
+        "origin": "hn",
+        "links": [
+          "https://news.ycombinator.com/item?id=49395628",
+          "https://danluu.com/perf-opt"
+        ]
+      }
+    },
+    {
+      "id": "C10",
+      "name": "Node.js security release",
+      "min": 4,
+      "verdict": "THIN (1, +origin=2, wanted >=4)",
+      "best": {
+        "url": "https://nodejs.org/en/blog/release/v26.7.0",
+        "strength": 1,
+        "voters": [
+          "jsweekly"
+        ],
+        "origin": "nodejs",
+        "links": [
+          "https://nodejs.org/en/blog/release/v26.7.0"
+        ]
+      }
+    }
+  ],
+  "controlFalsePositives": [
+    {
+      "pid": "huggingface",
+      "strength": 2,
+      "url": "https://huggingface.co/Qwen/Qwen3.8-27B",
+      "voters": [
+        "simonwillison",
+        "latentspace"
+      ]
+    },
+    {
+      "pid": "huggingface",
+      "strength": 2,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731",
+      "voters": [
+        "simonwillison",
+        "interconnects"
+      ]
+    },
+    {
+      "pid": "huggingface",
+      "strength": 2,
+      "url": "https://huggingface.co/zai-org/GLM-5.2",
+      "voters": [
+        "simonwillison",
+        "interconnects"
+      ]
+    }
+  ],
+  "secondPassPairs": [
+    {
+      "score": 1,
+      "a": "facebook/react 19.2.8 (July 21st, 2026)",
+      "b": "facebook/react 19.1.9 (July 21st, 2026)",
+      "aUrl": "https://github.com/react/react/releases/tag/v19.2.8",
+      "bUrl": "https://github.com/react/react/releases/tag/v19.1.9",
+      "aStrength": 3,
+      "bStrength": 3
+    },
+    {
+      "score": 1,
+      "a": "facebook/react 19.2.8 (July 21st, 2026)",
+      "b": "facebook/react 19.0.8 (July 21st, 2026)",
+      "aUrl": "https://github.com/react/react/releases/tag/v19.2.8",
+      "bUrl": "https://github.com/react/react/releases/tag/v19.0.8",
+      "aStrength": 3,
+      "bStrength": 3
+    },
+    {
+      "score": 1,
+      "a": "facebook/react 19.1.9 (July 21st, 2026)",
+      "b": "facebook/react 19.0.8 (July 21st, 2026)",
+      "aUrl": "https://github.com/react/react/releases/tag/v19.1.9",
+      "bUrl": "https://github.com/react/react/releases/tag/v19.0.8",
+      "aStrength": 3,
+      "bStrength": 3
+    },
+    {
+      "score": 1,
+      "a": "Stop Making TUIs",
+      "b": "Stop Making TUIs",
+      "aUrl": "https://sockpuppet.org/blog/2026/08/20/stop-making-tuis",
+      "bUrl": "https://simonwillison.net/2026/Aug/21/stop-making-tuis",
+      "aStrength": 2,
+      "bStrength": 0
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.2",
+      "b": "vercel/next.js v16.4.0-canary.1",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.2",
+      "b": "vercel/next.js v16.4.0-canary.0",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.2",
+      "b": "vercel/next.js v16.3.1-canary.26",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.1",
+      "b": "vercel/next.js v16.4.0-canary.0",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.1",
+      "b": "vercel/next.js v16.3.1-canary.26",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "Felony charges for citizen deleting phone data at US Border",
+      "b": "Felony charges for citizen deleting phone data at US Border",
+      "aUrl": "https://news.ycombinator.com/item?id=49386895",
+      "bUrl": "https://news.ycombinator.com/item?id=49406860",
+      "aStrength": 1,
+      "bStrength": 0
+    },
+    {
+      "score": 1,
+      "a": "vercel/next.js v16.4.0-canary.0",
+      "b": "vercel/next.js v16.3.1-canary.26",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "We Tracked a Shipment of Rare Books. It Ended at an Amazon AI Training Facility",
+      "b": "We Tracked a Shipment of Rare Books. It Ended at an Amazon AI Training Facility",
+      "aUrl": "https://404media.co/we-tracked-a-shipment-of-rare-books-it-ended-at-an-amazon-ai-training-facility",
+      "bUrl": "https://simonwillison.net/2026/Aug/17/we-tracked-a-shipment-of-rare-books-it-ended-at-an-amazon-ai-tra",
+      "aStrength": 1,
+      "bStrength": 0
+    },
+    {
+      "score": 1,
+      "a": "nodejs/node 2026-08-05, Version 26.7.0 (Current), @aduh95",
+      "b": "nodejs/node 2026-08-03, Version 26.6.0 (Current), @aduh95",
+      "aUrl": "https://github.com/nodejs/node/releases/tag/v26.7.0",
+      "bUrl": "https://github.com/nodejs/node/releases/tag/v26.6.0",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 1,
+      "a": "facebook/react 19.2.7 (June 1st, 2026)",
+      "b": "facebook/react 19.1.8 (June 1st, 2026)",
+      "aUrl": "https://github.com/react/react/releases/tag/v19.2.7",
+      "bUrl": "https://github.com/react/react/releases/tag/v19.1.8",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.8,
+      "a": "Supply chain attack on arrayref",
+      "b": "Supply chain attack on arrayref (Rust blog)",
+      "aUrl": "https://blog.rust-lang.org/2026/08/20/supply-chain-attack-on-arrayref",
+      "bUrl": "https://lwn.net/Articles/1089720",
+      "aStrength": 1,
+      "bStrength": 0
+    },
+    {
+      "score": 0.8,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22682",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.8,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22677",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrnwshehso2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.75,
+      "a": "vercel/next.js v16.4.0-canary.2",
+      "b": "vercel/next.js v16.3.2",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.2",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.2",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.75,
+      "a": "vercel/next.js v16.4.0-canary.1",
+      "b": "vercel/next.js v16.3.2",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.1",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.2",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.75,
+      "a": "vercel/next.js v16.4.0-canary.0",
+      "b": "vercel/next.js v16.3.2",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.4.0-canary.0",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.2",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.75,
+      "a": "vercel/next.js v16.3.2",
+      "b": "vercel/next.js v16.3.1-canary.26",
+      "aUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.2",
+      "bUrl": "https://github.com/vercel/next.js/releases/tag/v16.3.1-canary.26",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.75,
+      "a": "Introducing Gemini 3.6 Flash, 3.5 Flash-Lite, and 3.5 Flash Cyber",
+      "b": "Introducing Gemini 3.5 Flash Cyber",
+      "aUrl": "https://deepmind.google/blog/introducing-gemini-3-6-flash-3-5-flash-lite-and-3-5-flash-cyber",
+      "bUrl": "https://deepmind.google/blog/introducing-gemini-3-5-flash-cyber",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.7142857142857143,
+      "a": "nodejs/node 2026-08-03, Version 24.19.0 'Krypton' (LTS), @aduh95",
+      "b": "nodejs/node 2026-07-29, Version 24.18.1 'Krypton' (LTS), @juanarbol",
+      "aUrl": "https://github.com/nodejs/node/releases/tag/v24.19.0",
+      "bUrl": "https://github.com/nodejs/node/releases/tag/v24.18.1",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.7,
+      "a": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "b": "Sunday session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22673",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.7,
+      "a": "Another Sunday session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22674",
+      "b": "Sunday session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22673",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3mrkrfhfnb62z",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrkkv4hutc23",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Wednesday session\r\n\r\n\r\n🔗 https://adactio.com/notes/22724",
+      "b": "Wednesday session in Glencolmcille \r\n\r\n\r\n🔗 https://adactio.com/notes/22668",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3mthiyxfcmj2w",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrbk5mz6yy2u",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Monday session\r\n\r\n\r\n🔗 https://adactio.com/notes/22719",
+      "b": "Monday session in Glencolmcille\r\n\r\n\r\n🔗 https://adactio.com/notes/22666",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3mtci5svmmu2k",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mr4c3lnm662u",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "nodejs/node 2026-08-05, Version 26.7.0 (Current), @aduh95",
+      "b": "nodejs/node 2026-07-29, Version 26.5.1 (Current), @RafaelGSS",
+      "aUrl": "https://github.com/nodejs/node/releases/tag/v26.7.0",
+      "bUrl": "https://github.com/nodejs/node/releases/tag/v26.5.1",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "nodejs/node 2026-08-03, Version 26.6.0 (Current), @aduh95",
+      "b": "nodejs/node 2026-07-29, Version 26.5.1 (Current), @RafaelGSS",
+      "aUrl": "https://github.com/nodejs/node/releases/tag/v26.6.0",
+      "bUrl": "https://github.com/nodejs/node/releases/tag/v26.5.1",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 250",
+      "b": "Release Notes for Safari Technology Preview 249",
+      "aUrl": "https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250",
+      "bUrl": "https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 250",
+      "b": "Release Notes for Safari Technology Preview 248",
+      "aUrl": "https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250",
+      "bUrl": "https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 250",
+      "b": "Release Notes for Safari Technology Preview 247",
+      "aUrl": "https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250",
+      "bUrl": "https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 250",
+      "b": "Release Notes for Safari Technology Preview 246",
+      "aUrl": "https://webkit.org/blog/18191/release-notes-for-safari-technology-preview-250",
+      "bUrl": "https://webkit.org/blog/18128/release-notes-for-safari-technology-preview-246",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 249",
+      "b": "Release Notes for Safari Technology Preview 248",
+      "aUrl": "https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249",
+      "bUrl": "https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 249",
+      "b": "Release Notes for Safari Technology Preview 247",
+      "aUrl": "https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249",
+      "bUrl": "https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 249",
+      "b": "Release Notes for Safari Technology Preview 246",
+      "aUrl": "https://webkit.org/blog/18182/release-notes-for-safari-technology-preview-249",
+      "bUrl": "https://webkit.org/blog/18128/release-notes-for-safari-technology-preview-246",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 248",
+      "b": "Release Notes for Safari Technology Preview 247",
+      "aUrl": "https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248",
+      "bUrl": "https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 248",
+      "b": "Release Notes for Safari Technology Preview 246",
+      "aUrl": "https://webkit.org/blog/18162/release-notes-for-safari-technology-preview-248",
+      "bUrl": "https://webkit.org/blog/18128/release-notes-for-safari-technology-preview-246",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6666666666666666,
+      "a": "Release Notes for Safari Technology Preview 247",
+      "b": "Release Notes for Safari Technology Preview 246",
+      "aUrl": "https://webkit.org/blog/18133/release-notes-for-safari-technology-preview-247",
+      "bUrl": "https://webkit.org/blog/18128/release-notes-for-safari-technology-preview-246",
+      "aStrength": 0,
+      "bStrength": 0
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Thursday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22701",
+      "b": "Wednesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22698",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Thursday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22701",
+      "b": "Tuesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22697",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Thursday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22701",
+      "b": "Thursday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22683",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msfzuudf2b2e",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Wednesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22698",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Thursday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22683",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Tuesday afternoon session in Belfast \r\n\r\n\r\n🔗 https://adactio.com/notes/22679",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrpu5wsu2s2g",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22699",
+      "b": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22677",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdvo32qdx2b",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrnwshehso2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22698",
+      "b": "Tuesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22697",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Wednesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22698",
+      "b": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22682",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msdkyv6jti2w",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Tuesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22697",
+      "b": "Tuesday night session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22680",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrqhs3224w2z",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Tuesday morning session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22697",
+      "b": "Tuesday afternoon session in Belfast \r\n\r\n\r\n🔗 https://adactio.com/notes/22679",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3msaqw5q2lu2e",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrpu5wsu2s2g",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Thursday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22683",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22682",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Tuesday afternoon session in Belfast \r\n\r\n\r\n🔗 https://adactio.com/notes/22679",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrpu5wsu2s2g",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Monday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22695",
+      "b": "Monday evening session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22678",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms6wkacs5e2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrnww64xj72c",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "b": "Thursday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22683",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mruqpbkhgz2w",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "b": "Wednesday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22682",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrsf7np2vh2a",
+      "aStrength": 1,
+      "bStrength": 1
+    },
+    {
+      "score": 0.6363636363636364,
+      "a": "Sunday afternoon session in Belfast\r\n\r\n\r\n🔗 https://adactio.com/notes/22689",
+      "b": "Tuesday afternoon session in Belfast \r\n\r\n\r\n🔗 https://adactio.com/notes/22679",
+      "aUrl": "https://bsky.app/profile/adactio.com/post/3ms3xtlk2tu2u",
+      "bUrl": "https://bsky.app/profile/adactio.com/post/3mrpu5wsu2s2g",
+      "aStrength": 1,
+      "bStrength": 1
+    }
+  ],
+  "notes": {
+    "shortenerHops": 5,
+    "shortenerExhausted": 0,
+    "ssrfRejects": 0,
+    "canonicalHeader": 0,
+    "canonicalTag": 13,
+    "canonicalCrossSite": 6,
+    "ghRenames": 0,
+    "hnResolved": 231,
+    "releaseBridges": 15,
+    "droppedNonHttp": 20,
+    "referenceDropped": 2912,
+    "intraPublisherDropped": 2636,
+    "vehicleMerges": 166
+  },
+  "paginationStance": "KEPT. A denylist strips only params known to be\nattribution noise; page/p/offset/cursor survive because page 2 of a doc is not\npage 1. The failure mode this avoids (two real documents collapsing into one\nLink) is silent and unrecoverable; the failure mode it accepts (a paginated\naggregator page cited two ways) is visible as a thin duplicate Signal and is\nexactly what the one-click user merge exists for.",
+  "config": {
+    "mergeWindowHours": 72,
+    "closeAfterHours": 72,
+    "halfLifeHours": 36,
+    "resolveShorteners": true,
+    "resolveHnDiscussions": true,
+    "resolveGithubRenames": true,
+    "publisherCanonicalMinCites": 2,
+    "releaseBridge": true,
+    "mergeSingleCitationVehicles": true,
+    "vehicleTransports": null,
+    "vehicleGuard": "links",
+    "vehicleMaxBodyChars": null,
+    "vehicleFromCitations": false,
+    "dropReferenceOnly": true,
+    "dropIntraPublisherLinks": true
+  }
+}
