@@ -1,6 +1,13 @@
 # A flat Interest ranking has no explanation
 
-Status: accepted
+Status: accepted, amended by
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47) — see
+[Amendment (#47)](#amendment-47-the-readers-own-profile) at the foot. **No decision
+below moves.** Two pieces of *evidence* do: the coverage fault in
+[What this does not fix, and cannot](#what-this-does-not-fix-and-cannot) is **not
+observed** on the reader's own profile, and the gap-ordering claim closing
+[Why a gap and not a better winner](#the-decision) is **withdrawn**. Read the
+amendment before quoting any number from this file.
 
 Settled by
 [Decide whether the argmax Interest is a good enough explanation](https://github.com/SaKaNa-Y/Zis/issues/35),
@@ -46,6 +53,17 @@ tight, specific, correctly-written sentence attached to the wrong story, and the
 is nothing to edit. **A wrong why-text is therefore a failure of the claim**, not a
 quality nit absorbed by a mechanism already in the design.
 
+> **Superseded evidence, same conclusion** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)).
+> The table above is the *draft* profile. On the reader's own 20 statements the
+> inversion it reports does **not** recur — and neither does its opposite. Sharpness
+> and correctness are simply **uncorrelated**: the profile's *vaguest* statement
+> produces a correct why-text, its third-*sharpest* produces a wrong one, and the
+> mean centrality of the wrong set (0.6755) sits *below* the right set's (0.687).
+> **The withdrawal stands and is stronger for it** — narrowing a statement is not
+> counter-productive, it is **inert**, and a lever uncorrelated with the outcome is
+> worse than a weak one because the reader would be editing in the dark. Full table
+> in the amendment.
+
 ## The decision
 
 **A why-text is admissible only if the ranking that produced it was not flat.**
@@ -72,6 +90,16 @@ one Interest pulls clear. **Flatness is not a proxy for wrongness. It is the
 profile stating that it has no opinion, in the only vocabulary it has.** On the
 admitted set the three unambiguously correct why-texts are the three largest gaps,
 with no overlap.
+
+> **That last sentence is withdrawn** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)).
+> On the reader's own profile the gaps run 0.108 `RIGHT`, **0.081 `missed`**, 0.060
+> `RIGHT`, 0.041 `missed`, 0.035 `near`, 0.026 `RIGHT`, 0.014 `missed`, 0.004
+> `missed` — a wrong winner is the *second*-largest gap, above a correct entry, and
+> the overlap is total. **`GAP` no longer orders the admitted set, and neither does
+> the spread to 5th.** The mechanism argument in the paragraph above is unaffected
+> in *form* and unsupported in *fact*; the decision stands because removing
+> `T_gap` needs the same holdout that re-siting it needs. This is the amendment's
+> central finding.
 
 **Failing `T_gap` fails the interest route outright.** A Signal can still arrive by
 `convergence` at Strength ≥3, which reads no text. There is no third state:
@@ -117,6 +145,18 @@ real profile by
 blocked on
 [Write the reader's actual Interest Profile and re-run the calibration measurement](https://github.com/SaKaNa-Y/Zis/issues/46).
 
+> **#47 has answered it: the fault is not observed on the reader's own profile.**
+> All **8 of 8** admitted entries have a correct statement present in the 20 — the
+> four wrong winners passed over #1, #10, #8 and #9 respectively. `uncovered`
+> **stopped describing anything** and left the label vocabulary. So the section
+> above describes a **draft artifact**, and the size #41 recorded as unmeasured is
+> now measured at **zero**. What survives is narrower and is about capability rather
+> than incidence: the system still cannot *detect* a no-right-answer-anywhere
+> condition, so it can never decline to name an Interest on those grounds. **That
+> defect is latent rather than live** — a real limitation with no observed instances
+> — and the difference matters, because #41's load-bearing sentence reads as though
+> the fault were being seen.
+
 #41 also closed the one surface this section might have licensed: surfacing the
 **aggregate** of the undiagnosable fault is **refused full stop**, on grounds
 independent of any profile — `positioning.md` §8.3. So the honest reading of this
@@ -133,6 +173,12 @@ that it couldn't.**
   GitHub changelog clears a 0.030 floor at 0.032). This follows §9's standing rule:
   a bar that misses the density target is **reported** as miscalibrated, never
   lowered, because an adaptive bar is padding wearing a formula.
+  **Re-measured on the reader's own profile** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)):
+  the interest route goes **3 entries, not 1**; Brief entries **7 not 5**; empty days
+  **24/30 not 25/30**; 12 suppressed by the floor, not 17. **Density roughly tripled
+  and accuracy did not follow** — the three survivors are 1 right in 3, worse than
+  the unfiltered 3 in 8, so on this profile the floor selects *for* wrongness. The
+  price is therefore smaller than recorded here and bought less than claimed.
 - **`positioning.md` §7.1's separability falsifier still does not fire, at any
   floor tested** — every surviving interest-route entry is Strength 2, so
   co-citation alone would not have surfaced it. But it now rests on **one entry per
@@ -154,4 +200,89 @@ that it couldn't.**
   fitted, and two different quantities separated the data equally well, which is
   the signature of fitting rather than measuring. The direction is mechanism-backed;
   the value is a placeholder that must be re-sited before anyone quotes it as
-  evidence of anything.
+  evidence of anything. **#47 sharpens this**: on the reader's profile the two
+  quantities no longer separate the data *at all*, so the reopening question is no
+  longer "what is the right value" but **"is there a mechanism here or only a fit"** —
+  put to
+  [Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54).
+  The holdout requirement is **not** waived; that ticket's first job is to decide
+  whether building one is justified inside Phase 0.
+
+## Amendment (#47): the reader's own profile
+
+[Decide whether a real Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/47)
+re-read this ADR's measurement against the profile
+[#46](https://github.com/SaKaNa-Y/Zis/issues/46) elicited from the reader — 20
+statements, no negatives — which is the profile #41 found the original numbers were
+missing. **Every decision above stands. Three pieces of evidence do not.**
+Measurement: the same
+[`.scratch/zis/prototype/PROTOTYPE-calibration/`](../../.scratch/zis/prototype/PROTOTYPE-calibration)
+scripts, re-run; `argmax-margin.txt` is the file the table below comes from.
+
+### The admitted set, with the centrality of the statement each entry named
+
+Centrality is each statement's mean cosine to the reader's other 19 — the vagueness
+proxy, and the per-statement form of #21's floor. Rank 1 is the **vaguest**.
+
+| verdict | story | names | centrality | rank of 20 | `GAP` |
+|---|---|---|---|---|---|
+| `RIGHT` | Rewriting Bun in Rust | #18 Rust for tooling and systems work | 0.709 | **1st** | 0.060 |
+| `RIGHT` | LLMs reward expertise | #4 Practical LLM application engineering | 0.677 | 11th | 0.108 |
+| `RIGHT` | DeepSeek-V4-Flash-0731 | #1 Frontier model releases | 0.675 | 12th | 0.026 |
+| `near` | Anatomy of a Frontier Lab Agent Intrusion | #3 AI research from the frontier labs | 0.683 | 8th | 0.035 |
+| `missed` | CodePen 2.0 | #20 Software design writing | 0.701 | **2nd** | 0.014 |
+| `missed` | AI is removing the middle class | #2 AI provider platform and API changes | 0.697 | 4th | 0.004 |
+| `missed` | announced Grok 4.6 | #9 Version releases of libraries/runtimes | 0.679 | 10th | 0.081 |
+| `missed` | Stacked pull requests in public preview | #19 RSS, feeds, and the open web | 0.625 | **18th** | 0.041 |
+
+### The three findings
+
+**1. Coverage is not the fault, and never was — it was the draft.** `uncovered` is
+**0 of 8**. Every wrong winner passed over a statement that was sitting in the
+profile: Grok 4.6 over #1, Stacked PRs over #10, the job-market essay over #8, and
+CodePen 2.0 over #9 — the last decided by the reader in this ticket, since #46 left
+it unlabelled. **ADR-0012's fault is an argmax-*selection* fault, full stop.**
+Consequently **ADR-0003 gains no minimum-coverage requirement** and none will be
+added: there is nothing for it to prevent, and it would be a constraint on *reader
+data*. Refused with its reasoning at `positioning.md` **§8.4**, with **no reopening
+condition** — a floor on statement count is the very constraint being refused, and
+`T+` already turns a thin profile into a thin Brief without a separate rule.
+
+**2. Sharpness predicts nothing, so "write narrower Interests" is inert.** #35
+dismissed narrowing as *guidance, not a mechanism*, and #41 could not overturn that
+because the case against it was draft-measured. It is now upheld on stronger and
+different ground. Wrong winners span rank **2 to 18**; right winners span rank **1
+to 12**; the mean centrality of the missed set (**0.6755**) is *lower* than the
+right set's (**0.687**). The two near-ties contradict each other inside one run —
+*Stacked PRs* has the sharp #19 (0.625) beat the vaguer, correct #10 (0.697), while
+the *job-market essay* has the vaguer #2 (0.697) beat the sharper, correct #8
+(0.636) by 0.004. And the decisive point is finding 1: the sentence the reader
+needed was **already written**, so no edit to their phrasing was ever the fix.
+Guidance would also point at the wrong statements — it would ask the reader to
+narrow #18 Rust, their vaguest, which is producing a *correct* why-text. **No
+guidance surface is added**, and `ui-and-ia.md` §7 is not reopened for one: §7
+reports a *fact* about a statement, and *"try narrowing this"* is advice with no
+evidence behind it.
+
+**3. The 0.897 near-duplicate pair is left alone, deliberately.** #1 Frontier model
+releases ↔ #3 AI research from the frontier labs are the tightest of the 190 pairs
+by a wide margin, and both appear in the table. Neither merging them nor a spec rule
+capping pairwise similarity is adopted. A tight pair means the two candidates are
+interchangeable **to the reader too** — which is exactly why the entry it produced
+is labelled `near` and not `missed`, so the harm is close to zero. A
+max-similarity rule is worse than the coverage constraint it resembles: it would
+have refused #1 *or* #3, deleting a statement that produced one of only three
+correct why-texts. **Recorded so it is not re-proposed**, not deferred.
+
+### What #47 deliberately did not do
+
+**`T+` and `T_gap` are not re-sited, and `T_gap` is not removed.** Both are
+invalidated by the profile change — §10 already makes them conditional on
+`(model, profile)` — but the reopening condition above is a *labelled holdout*, and
+eight labelled points cannot be split into a fit set and a holdout. Removing the
+floor needs the same evidence as re-siting it. The sharp question that replaces
+both goes to
+[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54),
+whose opening evidence is the *job-market essay naming #2 by 0.004 over #8, which
+was the right answer* — the strongest single indication that the fix is **pick
+better**, not **suppress**.
