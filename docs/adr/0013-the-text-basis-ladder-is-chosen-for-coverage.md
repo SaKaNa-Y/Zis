@@ -128,7 +128,14 @@ pending.
   lever**: it governs all 849 `own` Signals rather than 44. Nothing here licenses
   an answer to it — title-alone wins 23 of 44 and loses badly where the title is
   thin (`Go's Sweet 16`: 0.516 against 0.647), so "embed the title" is measured to
-  be wrong too.
+  be wrong too. **Both of those figures are draft-profile numbers and #49 corrected
+  them** — re-run against the reader's real profile (#46) title-alone wins **20 of
+  44** and `Go's Sweet 16` reads 0.516 against 0.691. The conclusion is unchanged
+  and the direction is stronger. **#49 has since settled it: the composition
+  stands and the 1200 cap is re-labelled a storage bound**, because past ~300
+  characters the dilution curve is flat and title-alone's higher score is this
+  ADR's own select-for-pollution result a third time (`ranking-model.md` §4.1).
+  Nothing in that answer disturbs the precedence below.
 - **The `citing` rung's definition is untouched.** Anchor text, longest wins,
   citing Item title as fallback — settled by
   [#21](https://github.com/SaKaNa-Y/Zis/issues/21). What the garbage-anchor result

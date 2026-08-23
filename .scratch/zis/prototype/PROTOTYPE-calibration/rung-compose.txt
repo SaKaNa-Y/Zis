@@ -1,0 +1,145 @@
+=== the population: 849 `own` Signals ===
+
+  title length        median 44  p10 15  p90 79
+  body length         median 867  p10 0  p90 1200
+  stored text length  median 902  p90 1200   (title + body, capped at 1200)
+
+  IS THE CAP BINDING? Signals whose title+body EXCEEDS 1200: 397/849 (46.8%)
+  Signals with NO body at all (title is the whole text):            114/849 (13.4%)
+  Signals whose body is under 100 chars:                            167/849
+
+  #49 quoted "median `own` text length 1200" — that is the CONTESTED 44,
+  not the 849. The whole-rung distribution is the line above.
+
+  embedding 5265 distinct texts across 11 caps (9339 cells, deduped)
+
+
+=== the dilution curve, and argmax stability against the shipped 1200 ===
+
+  cap        median REL+   mean REL+   admitted@0.70   argmax != shipped   median gap2
+  title      0.681         0.674       300 (35.3%)      409 (48.2%)        0.017
+  100        0.680         0.677       333 (39.2%)      299 (35.2%)        0.018
+  200        0.666         0.665       279 (32.9%)      202 (23.8%)        0.017
+  300        0.659         0.659       248 (29.2%)      168 (19.8%)        0.018
+  400        0.663         0.660       247 (29.1%)      135 (15.9%)        0.019
+  600        0.659         0.656       225 (26.5%)      104 (12.2%)        0.018
+  800        0.663         0.659       241 (28.4%)       87 (10.2%)        0.018
+  1200       0.663         0.662       255 (30.0%)        0 (0.0%)        0.019
+  1800       0.663         0.662       251 (29.6%)       21 (2.5%)        0.019
+  2400       0.663         0.662       251 (29.6%)       21 (2.5%)        0.019
+  uncapped   0.663         0.662       251 (29.6%)       21 (2.5%)        0.019
+
+  "argmax != shipped" is the count of why-texts that CHANGE if the cap moves.
+  It is not an error rate — there are 8 labels in this corpus and no more.
+
+=== is dilution monotone in length? (per-Signal, title vs each cap) ===
+
+  cap        REL+ higher at cap than at title    REL+ higher at title
+  100        456 (53.7%)                        393 (46.3%)
+  200        364 (42.9%)                        485 (57.1%)
+  300        335 (39.5%)                        514 (60.5%)
+  400        339 (39.9%)                        510 (60.1%)
+  600        326 (38.4%)                        523 (61.6%)
+  800        337 (39.7%)                        512 (60.3%)
+  1200       347 (40.9%)                        502 (59.1%)
+  1800       347 (40.9%)                        502 (59.1%)
+  2400       347 (40.9%)                        502 (59.1%)
+  uncapped   347 (40.9%)                        502 (59.1%)
+
+  restricted to the 397 Signals AT the 1200 cap (where a body genuinely exists to dilute):
+  cap        median REL+   admitted@0.70   argmax != shipped
+  title      0.659         131 (33.0%)      233 (58.7%)
+  100        0.665         130 (32.7%)      197 (49.6%)
+  200        0.656         112 (28.2%)      164 (41.3%)
+  300        0.653          94 (23.7%)      145 (36.5%)
+  400        0.656          93 (23.4%)      120 (30.2%)
+  600        0.648          72 (18.1%)       93 (23.4%)
+  800        0.652          90 (22.7%)       78 (19.6%)
+  1200       0.654         105 (26.4%)        0 (0.0%)
+  1800       0.655         101 (25.4%)       21 (5.3%)
+  2400       0.655         101 (25.4%)       21 (5.3%)
+  uncapped   0.655         101 (25.4%)       21 (5.3%)
+
+
+=== candidate 3: title weighted against body ===
+
+  variant              median REL+   admitted@0.70   argmax != shipped
+  title x2 + body      0.653         195 (23.0%)      113 (13.3%)
+  mean(title, full)    0.693         384 (45.2%)      237 (27.9%)
+
+
+=== does 0.70 survive a composition change? ===
+
+  the profile's own median pairwise cosine (the floor under every bar): 0.661  (n=190 pairs)
+  #21 sited T+[own] = 0.7 against title+1200, i.e. 0.039 above that floor.
+
+  cap        median REL+   REL+ minus floor   the bar HOLDING that offset
+  title      0.681         0.020              0.718
+  100        0.680         0.019              0.718
+  200        0.666         0.006              0.704
+  300        0.659         -0.002              0.696
+  400        0.663         0.002              0.700
+  600        0.659         -0.002              0.696
+  800        0.663         0.002              0.700
+  1200       0.663         0.002              0.700
+  1800       0.663         0.002              0.700
+  2400       0.663         0.002              0.700
+  uncapped   0.663         0.002              0.700
+
+  The last column is NOT a proposal. It is what a bar preserving the shipped
+  offset-above-median would read at each cap — the arithmetic the ticket needs
+  in order to see whether "keep 0.70" is a decision or an oversight.
+
+
+=== ADR-0013's reopening condition, priced ===
+
+  Measured over the CONTESTED 44 only (the population where the ladder has a
+  choice at all), in rung-title.mjs re-run against the real profile:
+  see rung-title.txt — title beats own-full 20/44 on this profile, down from
+  23/44 on the draft. The comparison per cap is below, same 44.
+
+  n=44 contested
+  cap        own beats citing on REL+   own+citing name the SAME Interest
+  title       10/44                      25/44
+  100         27/44                      18/44
+  200         26/44                      18/44
+  300         24/44                      17/44
+  400         25/44                      14/44
+  600         22/44                      15/44
+  800         24/44                      16/44
+  1200        22/44                      13/44
+  1800        22/44                      13/44
+  2400        22/44                      13/44
+  uncapped    22/44                      13/44
+
+
+=== the 8 hand labels, per cap (the ONLY correctness evidence there is) ===
+
+
+  https://blog.cloudflare.com/kitesurf
+    [near]  S=2  title 92 chars, body 1200 chars
+      title     0.751  gap 0.001  -> #5 Coding agents and agentic developer tooling — 
+      200       0.759  gap 0.014  -> #16 Web platform features landing in browsers — CS
+      400       0.695  gap 0.007  -> #14 Tailwind CSS v4 — the engine rewrite, design t
+      1200      0.698  gap 0.016  -> #7 Notable open-source AI projects the community 
+      uncapped  0.689  gap 0.015  -> #7 Notable open-source AI projects the community 
+
+  https://huggingface.co/blog/agent-intrusion-technical-timeline
+    [near]  S=2  title 89 chars, body 0 chars
+      title     0.779  gap 0.034  -> #3 AI research published by the frontier labs — i
+      200       0.774  gap 0.035  -> #3 AI research published by the frontier labs — i
+      400       0.774  gap 0.035  -> #3 AI research published by the frontier labs — i
+      1200      0.774  gap 0.035  -> #3 AI research published by the frontier labs — i
+      uncapped  0.774  gap 0.035  -> #3 AI research published by the frontier labs — i
+
+  https://bun.com/blog/bun-in-rust
+    [RIGHT]  S=2  title 21 chars, body 41 chars
+      title     0.701  gap 0.039  -> #18 Rust for tooling and systems work — the langua
+      200       0.737  gap 0.060  -> #18 Rust for tooling and systems work — the langua
+      400       0.737  gap 0.060  -> #18 Rust for tooling and systems work — the langua
+      1200      0.737  gap 0.060  -> #18 Rust for tooling and systems work — the langua
+      uncapped  0.737  gap 0.060  -> #18 Rust for tooling and systems work — the langua
+
+  3 of the 9 labelled URLs are on the `own` rung. A cap that improves
+  these and a cap that improves the corpus are different claims; neither
+  set can license the other, which is the constraint the decision inherits.

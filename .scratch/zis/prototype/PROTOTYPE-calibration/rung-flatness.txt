@@ -1,0 +1,97 @@
+=== argmax concentration over 849 `own` Signals, 20 Interests ===
+
+  cap        distinct Interests named   top statement    top-3 share   entropy/max
+  title      20/20                      #9 x144       39.9%        0.914
+  100        20/20                      #9 x130       41.7%        0.896
+  200        20/20                      #1 x128       42.2%        0.877
+  300        20/20                      #7 x143       45.6%        0.862
+  400        20/20                      #7 x145       46.2%        0.857
+  600        20/20                      #1 x152       47.1%        0.852
+  800        20/20                      #1 x151       46.9%        0.847
+  1200       20/20                      #1 x145       45.7%        0.860
+  1800       20/20                      #1 x144       46.1%        0.859
+  2400       20/20                      #1 x144       46.1%        0.859
+  uncapped   20/20                      #1 x144       46.1%        0.859
+
+=== which statement absorbs the corpus, at title vs at the shipped 1200 ===
+
+  cap title:
+    144 (17.0%)  #9 Version releases of developer libraries, frameworks and runtim
+    114 (13.4%)  #1 Frontier model releases from the major AI labs — new models, w
+     81 (9.5%)  #11 Next.js App Router internals — routing, caching, Server Action
+     69 (8.1%)  #13 Vue 3 Composition API and the Vue ecosystem — script setup, re
+     45 (5.3%)  #3 AI research published by the frontier labs — interpretability,
+
+  cap 1200:
+    145 (17.1%)  #1 Frontier model releases from the major AI labs — new models, w
+    134 (15.8%)  #7 Notable open-source AI projects the community is talking about
+    109 (12.8%)  #11 Next.js App Router internals — routing, caching, Server Action
+     99 (11.7%)  #9 Version releases of developer libraries, frameworks and runtim
+     50 (5.9%)  #15 TypeScript language releases and type-level techniques
+
+=== does a long body flatten the ranking? (per-Signal, at the shipped 1200) ===
+
+  body length     n     median REL+   median gap2   REL+ within 0.01 of floor
+  none            114   0.712         0.014           1 (0.9%)
+  1-200           209   0.667         0.022          20 (9.6%)
+  200-600          79   0.662         0.018          19 (24.1%)
+  600-1200        113   0.647         0.020          15 (13.3%)
+  1200+           334   0.653         0.019          37 (11.1%)
+
+  floor = 0.661, the profile's own median pairwise cosine (#21's line under every bar).
+  "within 0.01 of floor" is the share of Signals whose best match is
+  indistinguishable from "this is writing about software".
+
+=== the cases where own-full names one generic statement ===
+
+  #1 Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing
+
+  a sample of what it absorbed at 1200, with what the title alone would name:
+
+    https://simonwillison.net/2026/Aug/15/sighting-391300422
+      1200  0.472 gap 0.003  -> #1
+      title 0.524 gap 0.000  -> #6 Open-weight and locally-runnable models — embeddin
+
+    https://simonwillison.net/2026/Aug/13/llm-gemini
+      1200  0.679 gap 0.030  -> #1
+      title 0.659 gap 0.030  -> #4 Practical LLM application engineering — prompting,
+
+    https://vercel.com/blog/everything-hackable-will-get-hacked
+      1200  0.706 gap 0.010  -> #1
+      title 0.612 gap 0.023  -> #18 Rust for tooling and systems work — the language, 
+
+    https://astro.build/blog/whats-new-july-2026
+      1200  0.549 gap 0.030  -> #1
+      title 0.602 gap 0.034  -> #1 Frontier model releases from the major AI labs — n
+
+    https://openai.com/index/advancing-the-price-performance-frontier-with-gpt-5
+      1200  0.784 gap 0.063  -> #1
+      title 0.782 gap 0.081  -> #1 Frontier model releases from the major AI labs — n
+
+    https://openai.com/index/gpt-5-6-frontier-intelligence-efficiency
+      1200  0.770 gap 0.037  -> #1
+      title 0.783 gap 0.023  -> #1 Frontier model releases from the major AI labs — n
+
+    https://infoq.com/news/2026/08/aws-dynamodb-vector-search
+      1200  0.639 gap 0.007  -> #1
+      title 0.666 gap 0.019  -> #18 Rust for tooling and systems work — the language, 
+
+    https://arstechnica.com/culture/2026/08/visionquest-trailer-kicks-off-disney
+      1200  0.533 gap 0.005  -> #1
+      title 0.501 gap 0.042  -> #13 Vue 3 Composition API and the Vue ecosystem — scri
+
+    https://arstechnica.com/science/2026/08/so-much-solar-digging-into-the-list-
+      1200  0.551 gap 0.032  -> #1
+      title 0.604 gap 0.007  -> #1 Frontier model releases from the major AI labs — n
+
+    https://infoq.com/news/2026/08/cloudflare-agent-tracing
+      1200  0.644 gap 0.023  -> #1
+      title 0.679 gap 0.020  -> #2 AI provider platform and API changes — tool use, M
+
+    https://theregister.com/security/2026/08/15/chaindrop-worm-crawls-into-npm-s
+      1200  0.595 gap 0.006  -> #1
+      title 0.682 gap 0.030  -> #18 Rust for tooling and systems work — the language, 
+
+    https://theregister.com/offbeat/2026/08/15/legos-supersized-hubble-deserves-
+      1200  0.484 gap 0.034  -> #1
+      title 0.517 gap 0.009  -> #14 Tailwind CSS v4 — the engine rewrite, design token
