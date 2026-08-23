@@ -197,7 +197,7 @@ stored** as `text_basis`:
 
 | rung | text | share of corpus | `T+` |
 |---|---|---|---|
-| `own` | the ingested Item's title + extracted summary | **17.0%** | **0.70** |
+| `own` | the ingested Item's title + extracted summary, capped at **1200 chars** — a storage bound, not a relevance parameter (§4.1) | **17.0%** | **0.70** |
 | `citing` | **the citing Publisher's anchor text for that exact link** — one description, not a concatenation | **78.9%** | **0.67** |
 | `slug` | the canonical URL's path, tokenised, plus its host words | **4.1%** | **uncalibrated** |
 
@@ -329,7 +329,98 @@ floor rather than a signal about rungs.
 [Decide what the `own` rung embeds](https://github.com/SaKaNa-Y/Zis/issues/49),
 a 19× larger lever, governing all 849 `own` Signals. Nothing here answers it:
 title-alone wins 23 of 44 and loses badly on a thin title (`Go's Sweet 16`, 0.516
-against 0.647), so "embed the title" is measured wrong too.
+against 0.647), so "embed the title" is measured wrong too. **And #49 found that
+those two figures are themselves draft-profile numbers** — re-measured against the
+reader's own profile they are **20 of 44** and 0.516 against 0.691. See §4.1: the
+composition stands, and the 1200 cap survives as a **fetch-and-storage bound**
+rather than as a relevance parameter.
+
+### 4.1 The 1200-char cap is not a relevance knob
+
+**Settled by [Decide what the `own` rung embeds](https://github.com/SaKaNa-Y/Zis/issues/49).**
+Measurement:
+[`.scratch/zis/prototype/PROTOTYPE-calibration/`](../.scratch/zis/prototype/PROTOTYPE-calibration)
+(`rung-compose.mjs`, `rung-flatness.mjs`), swept over all **849** `own` Signals at
+eleven caps from title-alone to uncapped.
+
+**The composition is unchanged: title + extracted body, capped at 1200.** What
+changes is what the number *is*. It was never sited against relevance, and it
+cannot be, because **there is no dilution curve to site it on.**
+
+**The cap is binding on less than half the rung, and §4's own premise about it was
+wrong.** ADR-0013 recorded "median `own` text length 1200" — that is the contested
+44, not the 849. Over the whole rung: **397 of 849 (46.8%)** reach the cap,
+**114 (13.4%)** have no body at all, and **167** have a body under 100 characters.
+So the median `own` Signal is not at the cap and a cap change does not reach it.
+
+**Past ~300 characters the curve is flat.** Median `REL+` reads 0.659 at 300 and
+0.663 at 1200, 1800, 2400 and uncapped — and **argmax churn goes to zero past 1800**
+(21 of 849 from 1200→1800, then 0). Raising the cap is not a lever; it is a no-op
+with a re-embed bill.
+
+**Lowering it is not a lever either, because the body is noise rather than
+dilution.** Per-Signal, `REL+` at 1200 minus `REL+` at title-alone has a median of
+**−0.012** — but a p10 of **−0.083** and a p90 of **+0.061**, and on the 397
+Signals where the cap actually bites the body helps 171 and hurts 226. A quantity
+that moves both ways by four times its own median is not a length effect, and no
+single cap can be right for it.
+
+**Title-alone's apparent win is #4's select-for-pollution result a third time.**
+Title-alone posts the *highest* median `REL+` on the rung (0.681 against 0.663) and
+the *most* admissions at 0.70 (300 against 255) — and it earns them the way
+concatenated newsletter titles and bare `v1.0.0` anchors did. **The 114 no-body
+Signals admit at 57.0% against 25.9% for the 735 with a body**, so a short-text
+composition buys admissions by shortness. Cosine is not portable across text
+lengths; §4 keys `T+` per rung for exactly this reason, and the same argument
+forbids reading a cross-*composition* score comparison as a quality signal.
+**Title-alone also carries the lowest median gap-to-2nd (0.017), so what it buys in
+`REL+` it gives back to ADR-0012's `T_gap`.**
+
+**`T+[own]` = 0.70 therefore survives, and it survives on the floor rather than on
+inertia.** #21 sited it 0.039 above the profile's median pairwise cosine; that
+floor is **0.661** on the reader's real profile (#46), and median `REL+` at the
+shipped cap is 0.663 — 0.002 above it. A bar preserving that offset at each swept
+cap reads 0.700 everywhere from 400 to uncapped, and 0.718 only at the two
+short-text compositions this section refuses. **The composition does not move, so
+the bar does not move**, and no re-calibration is owed.
+
+**Candidate 3 — weighting the title against the body — is refused, and it is the
+one candidate that would have touched `embedding_version`.** Title-embedded-twice
+*lowers* median `REL+` to 0.653 and cuts admissions to 195; the normalised mean of
+`vec(title)` and `vec(title+body)` raises them to 0.693 and 384, which is
+title-alone's shortness effect arriving through a stored vector that is **not the
+embedding of any text**. Neither is measurable as *better* — there are 8 hand
+labels — and the second would make a stored vector unreproducible from stored
+columns, which is the shape #14's replayability requirement refuses.
+
+**What the measurement did find is not at this address at all.** Composition
+changes *which* Interest is named far more than *whether* one clears the bar: of
+the 168 Signals admitted at both title and 1200, **42 name a different Interest**.
+And the argmax concentrates on a handful of statements at every cap — the top three
+absorb **39.9%** of the rung at title-alone rising to **45.7%** at 1200, with one
+statement taking 145 Signals (*"Frontier model releases from the major AI labs"*
+absorbing a Disney trailer, an Astro release post and a DynamoDB feature). That is
+**ADR-0012's flatness**, reached through composition rather than through the
+profile, and it is `T_gap`'s to hold — not the cap's. Normalised entropy is
+0.914 at title and 0.859 at 1200, so **the long composition is measurably worse at
+using the profile while being measurably better at not selling short text**; there
+is no cap that is good at both.
+
+**So the cap is re-labelled rather than re-sited.** 1200 characters bounds what is
+extracted, stored and embedded per Item — a **storage and compute** number, owned
+by the retention policy and ADR-0008's compute budget, free to move on those
+grounds. **It may not be moved on relevance grounds, and a future proposal to tune
+it for relevance has to answer the flat curve first.**
+
+**ADR-0013's reopening condition does not fire, and the arithmetic is worth
+recording because it fires *the other way*.** That ADR upheld `own` ≻ `citing`
+partly on the finding that composition, not the rung, was the fault, and named its
+own reopening condition: a fixed composition that makes `own` *lose* more often.
+Over the contested 44, `own` beats `citing` on `REL+` **22 of 44** at the shipped
+cap and only **10 of 44** at title-alone. So the composition this section keeps is
+the one **most** favourable to the precedence, and the candidate it refuses is the
+one that would have reopened the ladder. Keeping the composition confirms ADR-0013
+rather than straining it.
 
 ## 5. Ordering
 
@@ -626,9 +717,25 @@ disagreement can check them rather than re-derive them.
    pairwise similarity *between* that reader's own statements, 0.659 — so a
    profile of broader or narrower statements moves the floor and the bar with it.
    The bar is a property of the pair (model, profile), not of the corpus alone.
+   **The floor itself is not**: [#46](https://github.com/SaKaNa-Y/Zis/issues/46)
+   re-measured it on the reader's real 20-statement profile and got **0.661**, so
+   0.659 was never an artifact of the draft — the *bars* stay profile-conditional,
+   the floor is a property of the model and the genre. Everything else measured
+   before #46 is draft-conditional and must be re-run rather than quoted;
+   [#49](https://github.com/SaKaNa-Y/Zis/issues/49) is the worked example, where
+   title-alone's 23-of-44 became 20-of-44.
 3. **The corpus window.** The per-day counts come from the last 30 days the
    corpus covers. The 2,064-day span behind it is **backfill**, and a rate taken
    over that span would be the error §8 warns about.
+4. **The text composition.** Added by
+   [#49](https://github.com/SaKaNa-Y/Zis/issues/49) and easy to miss because it
+   sits *below* the rung. `T+` is keyed per rung because cosine is not portable
+   across text lengths — and that argument does not stop at the rung boundary, so
+   a score measured under one composition may not be compared against a score
+   measured under another. This is what disqualifies title-alone's higher median
+   `REL+` as evidence, and it is why §4.1 fixes the composition and the cap
+   together: the cap may move on storage grounds, and if it ever does, condition 1's
+   reasoning applies to the numbers above.
 
 **What the calibration did not settle, and routed onward — now settled.** Whether
 the argmax Interest is a good enough *explanation*: it is **not**, and
@@ -648,3 +755,11 @@ invalidates three numbers, not two. `T_gap` itself is **fitted rather than sited
 8 labelled points, no holdout, and two candidate quantities that separated them
 equally well. It is a placeholder with a mechanism behind it, which is a weaker
 thing than the bars above.
+
+**And #49 hands `T_gap` more than it was carrying.** Composition changes *which*
+Interest is named far more than *whether* one clears the bar — 42 of the 168
+Signals admitted at both title-alone and the shipped cap name a different Interest
+— and the argmax concentrates on a few statements at every composition (top three
+absorb 39.9% to 45.7% of the rung). So the flatness ADR-0012 found in the profile
+is also reachable through the text, which means **no cap and no rung can fix a
+why-text; only the gap floor and the pick can.** That is #47's ground, not §4's.

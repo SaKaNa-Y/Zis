@@ -1,23 +1,25 @@
 {
   "interests": [
-    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
-    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
-    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
-    "TypeScript language releases and type-level techniques",
-    "Postgres — query planning, extensions, operational behaviour, and serverless Postgres platforms like Neon",
-    "Drizzle and other TypeScript ORMs — schema definition, migrations, query builder ergonomics",
+    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations",
+    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
     "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
     "Coding agents and agentic developer tooling — how they are built and where they fail",
     "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
-    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
-    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
-    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
-    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out",
+    "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits",
+    "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade",
     "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
-    "Software design writing — module boundaries, API design, and how to keep a codebase navigable",
-    "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
-    "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
-    "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations"
+    "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+    "React itself — its release cycle, the compiler, and the ecosystem built on top of it",
+    "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+    "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+    "TypeScript language releases and type-level techniques",
+    "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+    "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+    "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+    "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+    "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
   ],
   "rows": [
     {
@@ -39,19 +41,19 @@
       },
       "title": "Now we have a timeline of the OpenAI accidental attack against Hugging Face",
       "full": {
-        "rel": 0.6245508142116766,
-        "idx": 15,
-        "gap2": 0.000764973412369363
+        "rel": 0.6694709197939694,
+        "idx": 6,
+        "gap2": 0.04492010558229287
       },
       "title_": {
-        "rel": 0.659645068015489,
-        "idx": 16,
-        "gap2": 0.006119215706012815
+        "rel": 0.6625258717789995,
+        "idx": 6,
+        "gap2": 0.00288080376351052
       },
       "altS": {
-        "rel": 0.6651979262409411,
-        "idx": 16,
-        "gap2": 0.005554777376490128
+        "rel": 0.6660209848014828,
+        "idx": 6,
+        "gap2": 0.0008230585605416563
       }
     },
     {
@@ -73,18 +75,18 @@
       },
       "title": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers",
       "full": {
-        "rel": 0.7044133550789091,
-        "idx": 5,
-        "gap2": 0.022460863351932536
+        "rel": 0.6976977319114284,
+        "idx": 6,
+        "gap2": 0.01574524018445178
       },
       "title_": {
         "rel": 0.7505118887204933,
-        "idx": 7,
+        "idx": 4,
         "gap2": 0.0007905166410270281
       },
       "altS": {
         "rel": 0.7656397473382672,
-        "idx": 9,
+        "idx": 15,
         "gap2": 0.021288547006393377
       }
     },
@@ -108,18 +110,18 @@
       "title": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident",
       "full": {
         "rel": 0.7738918124290181,
-        "idx": 16,
+        "idx": 2,
         "gap2": 0.035399997829992036
       },
       "title_": {
         "rel": 0.7794389374783994,
-        "idx": 16,
+        "idx": 2,
         "gap2": 0.03358926928282524
       },
       "altS": {
         "rel": 0.6036356495104476,
-        "idx": 11,
-        "gap2": 0.018824781653218325
+        "idx": 16,
+        "gap2": 0.004658083094589149
       }
     },
     {
@@ -142,18 +144,18 @@
       "title": "Rewriting Bun in Rust",
       "full": {
         "rel": 0.7373175658273193,
-        "idx": 10,
+        "idx": 17,
         "gap2": 0.06033776733878682
       },
       "title_": {
         "rel": 0.7009330106558911,
-        "idx": 10,
+        "idx": 17,
         "gap2": 0.038556014854195575
       },
       "altS": {
-        "rel": 0.5940501429609787,
-        "idx": 13,
-        "gap2": 0.004180542313236946
+        "rel": 0.6261086394346049,
+        "idx": 6,
+        "gap2": 0.03205849647362624
       }
     },
     {
@@ -175,19 +177,19 @@
       },
       "title": "sqlite-utils 4.2.1",
       "full": {
-        "rel": 0.6220214218999506,
-        "idx": 3,
-        "gap2": 0.004715364047959136
+        "rel": 0.6422075208320657,
+        "idx": 8,
+        "gap2": 0.020186098932115093
       },
       "title_": {
-        "rel": 0.6487211426948779,
-        "idx": 5,
-        "gap2": 0.049016052451474335
+        "rel": 0.6435597966516557,
+        "idx": 8,
+        "gap2": 0.0532584924255588
       },
       "altS": {
-        "rel": 0.6487211426948779,
-        "idx": 5,
-        "gap2": 0.049016052451474335
+        "rel": 0.6435597966516557,
+        "idx": 8,
+        "gap2": 0.0532584924255588
       }
     },
     {
@@ -209,19 +211,19 @@
       },
       "title": "sqlite-utils 4.2",
       "full": {
-        "rel": 0.6639005210679562,
-        "idx": 5,
-        "gap2": 0.03827917911432288
+        "rel": 0.6226024819299878,
+        "idx": 14,
+        "gap2": 0.05403557873864773
       },
       "title_": {
-        "rel": 0.6438376937529081,
-        "idx": 5,
-        "gap2": 0.04974911462126641
+        "rel": 0.6339435494763298,
+        "idx": 8,
+        "gap2": 0.0398549703446881
       },
       "altS": {
-        "rel": 0.6438376937529081,
-        "idx": 5,
-        "gap2": 0.04974911462126641
+        "rel": 0.6339435494763298,
+        "idx": 8,
+        "gap2": 0.0398549703446881
       }
     },
     {
@@ -244,17 +246,17 @@
       "title": "llm-gemini 0.33",
       "full": {
         "rel": 0.6789007881375033,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.03048671555858884
       },
       "title_": {
         "rel": 0.6588239297362721,
-        "idx": 6,
+        "idx": 3,
         "gap2": 0.029575259755682093
       },
       "altS": {
         "rel": 0.6588239297362721,
-        "idx": 6,
+        "idx": 3,
         "gap2": 0.029575259755682093
       }
     },
@@ -277,19 +279,19 @@
       },
       "title": "alchemy-utils 0.1a1",
       "full": {
-        "rel": 0.6820587836703381,
-        "idx": 5,
-        "gap2": 0.007867789227987032
+        "rel": 0.7070170024350674,
+        "idx": 8,
+        "gap2": 0.03282600799271629
       },
       "title_": {
-        "rel": 0.6312581854244774,
-        "idx": 5,
-        "gap2": 0.001705191250849003
+        "rel": 0.6437376136993068,
+        "idx": 8,
+        "gap2": 0.014184619525678399
       },
       "altS": {
-        "rel": 0.6312581854244774,
-        "idx": 5,
-        "gap2": 0.001705191250849003
+        "rel": 0.6437376136993068,
+        "idx": 8,
+        "gap2": 0.014184619525678399
       }
     },
     {
@@ -311,19 +313,19 @@
       },
       "title": "alchemy-utils 0.1a0",
       "full": {
-        "rel": 0.6636411523539812,
-        "idx": 4,
-        "gap2": 0.027102624398537167
+        "rel": 0.5987205568601143,
+        "idx": 8,
+        "gap2": 0.010914435231594077
       },
       "title_": {
-        "rel": 0.6132965849320982,
-        "idx": 5,
-        "gap2": 0.010740189876643047
+        "rel": 0.6333444546855088,
+        "idx": 8,
+        "gap2": 0.03078805963005371
       },
       "altS": {
-        "rel": 0.6132965849320982,
-        "idx": 5,
-        "gap2": 0.010740189876643047
+        "rel": 0.6333444546855088,
+        "idx": 8,
+        "gap2": 0.03078805963005371
       }
     },
     {
@@ -346,18 +348,18 @@
       "title": "[$] A look at CrossPoint e-reader firmware",
       "full": {
         "rel": 0.6330046299371859,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.04462371317201641
       },
       "title_": {
         "rel": 0.7267040286039278,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.02159896467272715
       },
       "altS": {
-        "rel": 0.6869504679511942,
-        "idx": 9,
-        "gap2": 0.009550120442217147
+        "rel": 0.7860379037793913,
+        "idx": 8,
+        "gap2": 0.09908743582819712
       }
     },
     {
@@ -379,19 +381,19 @@
       },
       "title": "datasette-upload-dbs 0.5a0",
       "full": {
-        "rel": 0.611768818101847,
-        "idx": 5,
-        "gap2": 0.02108980205623645
+        "rel": 0.6134417143802648,
+        "idx": 8,
+        "gap2": 0.02637562295324425
       },
       "title_": {
-        "rel": 0.533877790768159,
-        "idx": 5,
-        "gap2": 0.002002001725299518
+        "rel": 0.5860272757128834,
+        "idx": 8,
+        "gap2": 0.054151486670023896
       },
       "altS": {
-        "rel": 0.533877790768159,
-        "idx": 5,
-        "gap2": 0.002002001725299518
+        "rel": 0.5860272757128834,
+        "idx": 8,
+        "gap2": 0.054151486670023896
       }
     },
     {
@@ -414,17 +416,17 @@
       "title": "Everything hackable will get hacked",
       "full": {
         "rel": 0.7056496459190833,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.010183016280145285
       },
       "title_": {
         "rel": 0.6115845431259371,
-        "idx": 10,
+        "idx": 17,
         "gap2": 0.022694269933509092
       },
       "altS": {
         "rel": 0.6227078713499752,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.004855556066569289
       }
     },
@@ -447,19 +449,19 @@
       },
       "title": "Introducing Muse Glimmer",
       "full": {
-        "rel": 0.7547520157541742,
-        "idx": 15,
-        "gap2": 0.03687780793330042
+        "rel": 0.7619765485955936,
+        "idx": 6,
+        "gap2": 0.00722453284141944
       },
       "title_": {
         "rel": 0.6428675599870299,
-        "idx": 15,
-        "gap2": 0.038199246556574584
+        "idx": 0,
+        "gap2": 0.014392608829008391
       },
       "altS": {
         "rel": 0.6456447310027694,
-        "idx": 15,
-        "gap2": 0.015453272040215071
+        "idx": 0,
+        "gap2": 0.013550525527430746
       }
     },
     {
@@ -481,18 +483,18 @@
       },
       "title": "datasette-auth-tokens 0.4a13",
       "full": {
-        "rel": 0.5791767545821572,
-        "idx": 5,
-        "gap2": 0.005762664550292618
+        "rel": 0.5907123778080178,
+        "idx": 8,
+        "gap2": 0.017298287776153165
       },
       "title_": {
         "rel": 0.5766731540851131,
-        "idx": 11,
+        "idx": 16,
         "gap2": 0.009467051883759847
       },
       "altS": {
         "rel": 0.5766731540851131,
-        "idx": 11,
+        "idx": 16,
         "gap2": 0.009467051883759847
       }
     },
@@ -516,18 +518,18 @@
       "title": "datasette 1.0a38",
       "full": {
         "rel": 0.6290747627332511,
-        "idx": 11,
-        "gap2": 0.025922201478378204
+        "idx": 16,
+        "gap2": 0.042097013049668175
       },
       "title_": {
-        "rel": 0.5852257604069032,
-        "idx": 5,
-        "gap2": 0.00001712600128089825
+        "rel": 0.6103613325277946,
+        "idx": 8,
+        "gap2": 0.025152698122172246
       },
       "altS": {
-        "rel": 0.5852257604069032,
-        "idx": 5,
-        "gap2": 0.00001712600128089825
+        "rel": 0.6103613325277946,
+        "idx": 8,
+        "gap2": 0.025152698122172246
       }
     },
     {
@@ -549,19 +551,19 @@
       },
       "title": "datasette 0.65.3",
       "full": {
-        "rel": 0.6107028897095571,
-        "idx": 3,
-        "gap2": 0.01612865873692526
+        "rel": 0.6372286315517632,
+        "idx": 8,
+        "gap2": 0.02652574184220613
       },
       "title_": {
-        "rel": 0.5814341741099978,
-        "idx": 1,
-        "gap2": 0.007706753955346368
+        "rel": 0.6170943394201622,
+        "idx": 8,
+        "gap2": 0.03566016531016447
       },
       "altS": {
-        "rel": 0.5814341741099978,
-        "idx": 1,
-        "gap2": 0.007706753955346368
+        "rel": 0.6170943394201622,
+        "idx": 8,
+        "gap2": 0.03566016531016447
       }
     },
     {
@@ -584,17 +586,17 @@
       "title": "Building an open Agentic Internet: readable, discoverable, callable, and payable",
       "full": {
         "rel": 0.6466293455917993,
-        "idx": 7,
+        "idx": 4,
         "gap2": 0.019091212492554077
       },
       "title_": {
         "rel": 0.7931524655001645,
-        "idx": 7,
+        "idx": 4,
         "gap2": 0.03800466402452651
       },
       "altS": {
         "rel": 0.7795438146367487,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.0005367263525243304
       }
     },
@@ -618,18 +620,18 @@
       "title": "The next generation of MCP",
       "full": {
         "rel": 0.6434904304160135,
-        "idx": 3,
-        "gap2": 0.0030302764514690272
+        "idx": 14,
+        "gap2": 0.012876440959968205
       },
       "title_": {
         "rel": 0.6604099059723166,
-        "idx": 10,
-        "gap2": 0.008099643129626521
+        "idx": 17,
+        "gap2": 0.00557883859703745
       },
       "altS": {
-        "rel": 0.6534916446787058,
-        "idx": 0,
-        "gap2": 0.0029732937958684147
+        "rel": 0.7101368368538439,
+        "idx": 8,
+        "gap2": 0.05664519217513808
       }
     },
     {
@@ -651,19 +653,19 @@
       },
       "title": "Astro 7.2",
       "full": {
-        "rel": 0.6327301573577391,
-        "idx": 15,
-        "gap2": 0.040816064804482854
+        "rel": 0.6542898204545757,
+        "idx": 8,
+        "gap2": 0.021559663096836656
       },
       "title_": {
         "rel": 0.6368506800928716,
-        "idx": 15,
-        "gap2": 0.008142871087767789
+        "idx": 0,
+        "gap2": 0.0010855408223110485
       },
       "altS": {
         "rel": 0.6368506800928716,
-        "idx": 15,
-        "gap2": 0.008142871087767789
+        "idx": 0,
+        "gap2": 0.0010855408223110485
       }
     },
     {
@@ -686,18 +688,18 @@
       "title": "Node.js 26.7.0 (Current)",
       "full": {
         "rel": 0.7291106681088646,
-        "idx": 0,
-        "gap2": 0.06726929486552446
+        "idx": 10,
+        "gap2": 0.002848533136455722
       },
       "title_": {
-        "rel": 0.6877099584331322,
-        "idx": 0,
-        "gap2": 0.08688406903655588
+        "rel": 0.6942686645384566,
+        "idx": 8,
+        "gap2": 0.006558706105324386
       },
       "altS": {
-        "rel": 0.6877099584331322,
-        "idx": 0,
-        "gap2": 0.08688406903655588
+        "rel": 0.6942686645384566,
+        "idx": 8,
+        "gap2": 0.006558706105324386
       }
     },
     {
@@ -720,18 +722,18 @@
       "title": "Enabling the next iteration of the borrow checker on nightly",
       "full": {
         "rel": 0.6468618521068373,
-        "idx": 10,
-        "gap2": 0.010348267795103339
+        "idx": 17,
+        "gap2": 0.011148298354472286
       },
       "title_": {
         "rel": 0.6514584847316875,
-        "idx": 0,
-        "gap2": 0.08132246247268304
+        "idx": 10,
+        "gap2": 0.07946444327945912
       },
       "altS": {
         "rel": 0.6514584847316875,
-        "idx": 0,
-        "gap2": 0.08132246247268304
+        "idx": 10,
+        "gap2": 0.07946444327945912
       }
     },
     {
@@ -754,18 +756,18 @@
       "title": "Next.js 16.3",
       "full": {
         "rel": 0.7987045509028814,
-        "idx": 0,
+        "idx": 10,
         "gap2": 0.11657472139979541
       },
       "title_": {
         "rel": 0.7286782291454859,
-        "idx": 0,
+        "idx": 10,
         "gap2": 0.11470315962241762
       },
       "altS": {
         "rel": 0.7496631066921858,
-        "idx": 0,
-        "gap2": 0.09528028731625116
+        "idx": 10,
+        "gap2": 0.08183518014738744
       }
     },
     {
@@ -788,18 +790,18 @@
       "title": "Node.js 26.6.0 (Current)",
       "full": {
         "rel": 0.729109545564628,
-        "idx": 0,
-        "gap2": 0.06609433455151481
+        "idx": 10,
+        "gap2": 0.003232604115107285
       },
       "title_": {
-        "rel": 0.687903256155484,
-        "idx": 0,
-        "gap2": 0.09016385531390203
+        "rel": 0.6937475348993353,
+        "idx": 8,
+        "gap2": 0.005844278743851294
       },
       "altS": {
-        "rel": 0.6887077660286205,
-        "idx": 0,
-        "gap2": 0.06728354271564452
+        "rel": 0.6993971490202189,
+        "idx": 8,
+        "gap2": 0.010689382991598384
       }
     },
     {
@@ -822,18 +824,18 @@
       "title": "Node.js 24.19.0 (LTS)",
       "full": {
         "rel": 0.7116450964403824,
-        "idx": 0,
-        "gap2": 0.053398023467837286
+        "idx": 10,
+        "gap2": 0.01207683039385643
       },
       "title_": {
         "rel": 0.673810107686041,
-        "idx": 0,
-        "gap2": 0.04747975199569243
+        "idx": 10,
+        "gap2": 0.01011036862549719
       },
       "altS": {
-        "rel": 0.6616488553515709,
-        "idx": 0,
-        "gap2": 0.02451633750680715
+        "rel": 0.7155051832293737,
+        "idx": 8,
+        "gap2": 0.05385632787780281
       }
     },
     {
@@ -855,18 +857,18 @@
       },
       "title": "What’s new in Svelte: August 2026",
       "full": {
-        "rel": 0.6258034479094801,
-        "idx": 1,
-        "gap2": 0.017593202406643416
+        "rel": 0.6332679350984175,
+        "idx": 8,
+        "gap2": 0.007464487188937441
       },
       "title_": {
         "rel": 0.6224980996901527,
-        "idx": 1,
-        "gap2": 0.03718760968541501
+        "idx": 12,
+        "gap2": 0.011867471982120792
       },
       "altS": {
         "rel": 0.652375719991129,
-        "idx": 1,
+        "idx": 12,
         "gap2": 0.011705673426097851
       }
     },
@@ -889,19 +891,19 @@
       },
       "title": "Ten advances in mathematics and theoretical computer science",
       "full": {
-        "rel": 0.7041739758801886,
-        "idx": 16,
-        "gap2": 0.017864186647654212
+        "rel": 0.7299287148981666,
+        "idx": 6,
+        "gap2": 0.02575473901797798
       },
       "title_": {
         "rel": 0.7045066617253244,
-        "idx": 16,
+        "idx": 2,
         "gap2": 0.0005586222475647551
       },
       "altS": {
         "rel": 0.7928154716252415,
-        "idx": 15,
-        "gap2": 0.050859101153430286
+        "idx": 0,
+        "gap2": 0.011085066049409398
       }
     },
     {
@@ -924,18 +926,18 @@
       "title": "What's new in Astro - July 2026",
       "full": {
         "rel": 0.5490521673379284,
-        "idx": 15,
-        "gap2": 0.011892438572948638
+        "idx": 0,
+        "gap2": 0.029703186262886483
       },
       "title_": {
         "rel": 0.6021556378760161,
-        "idx": 15,
-        "gap2": 0.014385499021931647
+        "idx": 0,
+        "gap2": 0.034351101155788655
       },
       "altS": {
         "rel": 0.6374009499639656,
-        "idx": 16,
-        "gap2": 0.012638538279975076
+        "idx": 2,
+        "gap2": 0.012245039130517665
       }
     },
     {
@@ -958,17 +960,17 @@
       "title": "CodePen 2.0",
       "full": {
         "rel": 0.62455438050508,
-        "idx": 3,
-        "gap2": 0.0001453827484994008
+        "idx": 14,
+        "gap2": 0.0057573664403237634
       },
       "title_": {
         "rel": 0.7077861282761514,
-        "idx": 14,
+        "idx": 19,
         "gap2": 0.01446249937405597
       },
       "altS": {
         "rel": 0.6536317571996153,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.04730635690041707
       }
     },
@@ -992,17 +994,17 @@
       "title": "Advancing the price-performance frontier with GPT-5.6",
       "full": {
         "rel": 0.7843540099314505,
-        "idx": 15,
-        "gap2": 0.08927029185702962
+        "idx": 0,
+        "gap2": 0.06315456909421924
       },
       "title_": {
         "rel": 0.7818241905433795,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.08137713543119085
       },
       "altS": {
         "rel": 0.6886248013791948,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.019849505228093478
       }
     },
@@ -1025,19 +1027,19 @@
       },
       "title": "The AI Aesthetic",
       "full": {
-        "rel": 0.6303882461795541,
-        "idx": 2,
-        "gap2": 0.004884871191889517
+        "rel": 0.6357213737037473,
+        "idx": 6,
+        "gap2": 0.005333127524193126
       },
       "title_": {
         "rel": 0.7512683215648701,
-        "idx": 17,
+        "idx": 1,
         "gap2": 0.0006924148043289113
       },
       "altS": {
         "rel": 0.7649840970117237,
-        "idx": 16,
-        "gap2": 0.022842276794528882
+        "idx": 2,
+        "gap2": 0.0115043035399931
       }
     },
     {
@@ -1060,17 +1062,17 @@
       "title": "How GPT-5.6 fuses frontier intelligence with frontier efficiency",
       "full": {
         "rel": 0.7699051155074043,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.036968543471360804
       },
       "title_": {
         "rel": 0.7830211679434316,
-        "idx": 15,
+        "idx": 0,
         "gap2": 0.02342582553856254
       },
       "altS": {
         "rel": 0.6604701819124037,
-        "idx": 12,
+        "idx": 18,
         "gap2": 0.03661569382370544
       }
     },
@@ -1094,17 +1096,17 @@
       "title": "Check out the New Node.js API Documentation Preview",
       "full": {
         "rel": 0.6870605461743076,
-        "idx": 0,
+        "idx": 10,
         "gap2": 0.010669890826385253
       },
       "title_": {
         "rel": 0.7040382400587284,
-        "idx": 0,
+        "idx": 10,
         "gap2": 0.024457294816482955
       },
       "altS": {
         "rel": 0.6771119682434296,
-        "idx": 1,
+        "idx": 12,
         "gap2": 0.02085201256680269
       }
     },
@@ -1128,17 +1130,17 @@
       "title": "Security incident disclosure — July 2026",
       "full": {
         "rel": 0.6803207327988874,
-        "idx": 11,
+        "idx": 16,
         "gap2": 0.08825700012695337
       },
       "title_": {
         "rel": 0.7010611879235671,
-        "idx": 11,
+        "idx": 16,
         "gap2": 0.09319339455265996
       },
       "altS": {
         "rel": 0.5889610193493346,
-        "idx": 16,
+        "idx": 2,
         "gap2": 0.00015191087607446807
       }
     },
@@ -1161,19 +1163,19 @@
       },
       "title": "Astro 7.1",
       "full": {
-        "rel": 0.6349238903206463,
-        "idx": 4,
-        "gap2": 0.012622409970655335
+        "rel": 0.6488188332943061,
+        "idx": 8,
+        "gap2": 0.015903475880736595
       },
       "title_": {
         "rel": 0.6396576538026089,
-        "idx": 15,
-        "gap2": 0.002791855438336155
+        "idx": 0,
+        "gap2": 0.0018770021204344012
       },
       "altS": {
         "rel": 0.6396576538026089,
-        "idx": 15,
-        "gap2": 0.002791855438336155
+        "idx": 0,
+        "gap2": 0.0018770021204344012
       }
     },
     {
@@ -1196,18 +1198,18 @@
       "title": "Announcing Rust 1.97.1",
       "full": {
         "rel": 0.7121579501159272,
-        "idx": 10,
-        "gap2": 0.04947707325588813
+        "idx": 17,
+        "gap2": 0.03914070983573348
       },
       "title_": {
         "rel": 0.7676478643795173,
-        "idx": 10,
-        "gap2": 0.08282634389111565
+        "idx": 17,
+        "gap2": 0.04348369049273115
       },
       "altS": {
         "rel": 0.7676478643795173,
-        "idx": 10,
-        "gap2": 0.08282634389111565
+        "idx": 17,
+        "gap2": 0.04348369049273115
       }
     },
     {
@@ -1230,18 +1232,18 @@
       "title": "Announcing Rust 1.97.0",
       "full": {
         "rel": 0.6745886341524128,
-        "idx": 10,
-        "gap2": 0.05528014540106818
+        "idx": 17,
+        "gap2": 0.02248180616654405
       },
       "title_": {
         "rel": 0.7678632178189932,
-        "idx": 10,
-        "gap2": 0.08662327544398496
+        "idx": 17,
+        "gap2": 0.04541768713014771
       },
       "altS": {
         "rel": 0.7766988629531628,
-        "idx": 10,
-        "gap2": 0.16358769973558962
+        "idx": 17,
+        "gap2": 0.16218690226475552
       }
     },
     {
@@ -1264,17 +1266,17 @@
       "title": "Next.js 16.3: AI Improvements",
       "full": {
         "rel": 0.7222361104004574,
-        "idx": 7,
-        "gap2": 0.037252320833133235
+        "idx": 4,
+        "gap2": 0.03461022555206672
       },
       "title_": {
         "rel": 0.7251634224910273,
-        "idx": 17,
+        "idx": 1,
         "gap2": 0.010953030081112924
       },
       "altS": {
         "rel": 0.7841917482009433,
-        "idx": 17,
+        "idx": 1,
         "gap2": 0.002323015311525234
       }
     },
@@ -1298,18 +1300,18 @@
       "title": "Next.js 16.3: Instant Navigations",
       "full": {
         "rel": 0.8138450685827394,
-        "idx": 0,
+        "idx": 10,
         "gap2": 0.08081579256588078
       },
       "title_": {
         "rel": 0.7591525591118276,
-        "idx": 0,
-        "gap2": 0.11938931569362199
+        "idx": 10,
+        "gap2": 0.12068136089807957
       },
       "altS": {
         "rel": 0.6644200280851611,
-        "idx": 0,
-        "gap2": 0.009927658786617721
+        "idx": 10,
+        "gap2": 0.016342808332828196
       }
     },
     {
@@ -1332,18 +1334,18 @@
       "title": "Announcing Rust 1.96.0",
       "full": {
         "rel": 0.6792175957569007,
-        "idx": 10,
-        "gap2": 0.05806580933554939
+        "idx": 17,
+        "gap2": 0.02289684001535186
       },
       "title_": {
         "rel": 0.7682361754396703,
-        "idx": 10,
-        "gap2": 0.09085776567080717
+        "idx": 17,
+        "gap2": 0.05358204903194386
       },
       "altS": {
         "rel": 0.7766988629531628,
-        "idx": 10,
-        "gap2": 0.16358769973558962
+        "idx": 17,
+        "gap2": 0.16218690226475552
       }
     },
     {
@@ -1366,18 +1368,18 @@
       "title": "Announcing TypeScript 6.0",
       "full": {
         "rel": 0.7653121816398738,
-        "idx": 3,
-        "gap2": 0.10113446981940666
+        "idx": 14,
+        "gap2": 0.12384050630377685
       },
       "title_": {
         "rel": 0.7889969013984053,
-        "idx": 3,
-        "gap2": 0.11132145405897309
+        "idx": 14,
+        "gap2": 0.09280932233794437
       },
       "altS": {
-        "rel": 0.6285830021170261,
-        "idx": 5,
-        "gap2": 0.005877764256263074
+        "rel": 0.622705237860763,
+        "idx": 19,
+        "gap2": 0.0031211301639971767
       }
     },
     {
@@ -1399,19 +1401,19 @@
       },
       "title": "Go’s Sweet 16",
       "full": {
-        "rel": 0.6469003721027977,
-        "idx": 15,
-        "gap2": 0.0014698552096761297
+        "rel": 0.6907523969211445,
+        "idx": 6,
+        "gap2": 0.03127237264628013
       },
       "title_": {
         "rel": 0.5155783219224325,
-        "idx": 9,
-        "gap2": 0.010157599356282354
+        "idx": 15,
+        "gap2": 0.01769682022700292
       },
       "altS": {
-        "rel": 0.7139666115934019,
-        "idx": 1,
-        "gap2": 0.01988331294626422
+        "rel": 0.7574468832214242,
+        "idx": 8,
+        "gap2": 0.04348027162802226
       }
     },
     {
@@ -1434,17 +1436,17 @@
       "title": "What’s new in Svelte: October 2025",
       "full": {
         "rel": 0.6357361991860379,
-        "idx": 3,
-        "gap2": 0.01929471567183716
+        "idx": 14,
+        "gap2": 0.00505098840817142
       },
       "title_": {
-        "rel": 0.602298489985173,
-        "idx": 1,
-        "gap2": 0.021034673214465727
+        "rel": 0.6176708435931845,
+        "idx": 8,
+        "gap2": 0.01537235360801148
       },
       "altS": {
         "rel": 0.6677256240757377,
-        "idx": 9,
+        "idx": 15,
         "gap2": 0.03303941291042145
       }
     },
@@ -1467,19 +1469,19 @@
       },
       "title": "Astro 5.14",
       "full": {
-        "rel": 0.6314332937613338,
-        "idx": 0,
-        "gap2": 0.014462890681400276
+        "rel": 0.6474038850563708,
+        "idx": 8,
+        "gap2": 0.00369014709751303
       },
       "title_": {
         "rel": 0.6358872088697263,
-        "idx": 15,
-        "gap2": 0.005232789046834552
+        "idx": 0,
+        "gap2": 0.004531512150107053
       },
       "altS": {
-        "rel": 0.6553731009106682,
-        "idx": 3,
-        "gap2": 0.015805003976922527
+        "rel": 0.7811337760439867,
+        "idx": 8,
+        "gap2": 0.10170751371844688
       }
     },
     {
@@ -1502,18 +1504,18 @@
       "title": "What’s new in Svelte: April 2025",
       "full": {
         "rel": 0.6359163763659997,
-        "idx": 3,
-        "gap2": 0.021873863064084897
+        "idx": 14,
+        "gap2": 0.017298175867258236
       },
       "title_": {
-        "rel": 0.6119828572805099,
-        "idx": 1,
-        "gap2": 0.0129941018542159
+        "rel": 0.6137762074267411,
+        "idx": 8,
+        "gap2": 0.0017933501462311652
       },
       "altS": {
-        "rel": 0.6010251528658351,
-        "idx": 13,
-        "gap2": 0.0028673706011651534
+        "rel": 0.6367372155118631,
+        "idx": 8,
+        "gap2": 0.031023845325880983
       }
     }
   ]

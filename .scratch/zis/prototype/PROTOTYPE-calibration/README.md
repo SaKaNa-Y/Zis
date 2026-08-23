@@ -22,6 +22,8 @@ node argmax-replay.mjs  # the 30-day replay under a gap floor            (#35)
 node rung-precedence.mjs # the WHOLE `own` rung, eligibility filter off  (#42)
 node rung-length.mjs    # reads rung-precedence.json — no embedding      (#42)
 node rung-title.mjs     # title-alone as a third candidate text          (#42)
+node rung-compose.mjs   # the cap sweep over all 849 `own` Signals       (#49)
+node rung-flatness.mjs  # reads rung-compose.json — no embedding         (#49)
 ```
 
 The corpus comes from `../PROTOTYPE-clustering/cache/` — 958 cached responses, so
@@ -52,6 +54,8 @@ weights into `node_modules`.
 | `rung-precedence.mjs` | **#42** — `argmax-spread.mjs`'s rung comparison with the Strength ≥2 filter **dropped**. Its first output is the one that matters: of 849 `own` Signals only **44** have a `citing` text to lose to, so the whole precedence question governs 0.9% of the corpus |
 | `rung-length.mjs` | **#42** — reads `rung-precedence.json`, no embedding and no network. Text lengths and the same-title case: **29 of 44 `citing` texts are under 25 characters**, which is what disqualifies both score-maximising tiebreaks |
 | `rung-title.mjs` | **#42** — the third text §4 never considered: the Item's **title alone**, against `own`-full and `citing`. This is where #35's flagship failures stop being about rungs |
+| `rung-compose.mjs` | **#49** — the cap sweep ADR-0013 handed on: eleven compositions from title-alone to uncapped, over **all 849** `own` Signals rather than #42's 44. Reports the dilution curve, argmax churn, the admission delta at 0.70, and candidate 3 (title weighted against body) |
+| `rung-flatness.mjs` | **#49** — reads `rung-compose.json`, no embedding and no network. Argmax **concentration** per cap: which statements absorb the rung, and whether a long body flattens the ranking rather than diluting it. This is where the cap question stops being a cap question |
 | `findings.txt` / `.json` | output of `run.mjs` |
 | `argmax-check.txt` / `.json` | output of `argmax-check.mjs` |
 | `argmax-margin.txt` / `.json` | output of `argmax-margin.mjs` |
@@ -59,6 +63,8 @@ weights into `node_modules`.
 | `argmax-replay.txt` / `.json` | output of `argmax-replay.mjs` |
 | `rung-precedence.txt` / `.json` | output of `rung-precedence.mjs` |
 | `rung-title.txt` / `.json` | output of `rung-title.mjs` |
+| `rung-compose.txt` / `.json` | output of `rung-compose.mjs` |
+| `rung-flatness.txt` | output of `rung-flatness.mjs` |
 
 ## The hand labels, and why they are in a script
 
@@ -69,10 +75,22 @@ corpus**, so every accuracy figure in that ticket rests on 8 hand judgements. Th
 live in the script rather than in prose so the sort is auditable and so a
 disagreement can be re-run rather than argued.
 
-The three `rung-*.mjs` scripts **claim no accuracy figure at all**, for that reason:
+The five `rung-*.mjs` scripts **claim no accuracy figure at all**, for that reason:
 at 849 Signals there are still only 8 labels, so they report *populations*,
 *disagreement rates*, and *text properties* — every one of which is a fact about
-the corpus rather than about whether an answer is right.
+the corpus rather than about whether an answer is right. `rung-compose.mjs` prints
+the labelled rows per cap anyway, under a note saying so: **only 3 of the 9
+labelled URLs are on the `own` rung**, which is too few to license a composition
+and is printed so nobody reaches for them.
+
+**One trap this directory now has a worked example of.** `rung-precedence.txt`,
+`rung-length` and `rung-title.txt` were written *before*
+[#46](https://github.com/SaKaNa-Y/Zis/issues/46) replaced `interests.draft.md`
+with the reader's real profile, so every argmax in them is a draft number. #49
+re-ran `rung-title.mjs` and title-alone's headline figure moved from **23/44 to
+20/44**. Any `.txt` in this directory is only as current as the profile at its
+commit — **re-run rather than quote**, and check `git log` on the output file
+against `git log` on `interests.draft.md`.
 
 This is also why `T_gap` is **fitted, not sited**: 8 points, no holdout, and *two*
 different quantities (gap to 2nd, spread to 5th) separated them equally well —
