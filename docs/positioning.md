@@ -100,9 +100,13 @@ commercial, not technical**, which is the strongest kind — it does not close a
 engineering gets cheaper.
 
 The honest scale note: 5–12 is below every documented precedent, and thin days are
-the risk, not busy ones. That is handled as a standing target on supply and on the
-bar — a trailing-14-day median of ≥5 entries, missed by *reporting* the bar as
-miscalibrated rather than lowering it ([#9](https://github.com/SaKaNa-Y/Zis/issues/9)).
+the risk, not busy ones. **That is handled by a rule, not by a number**
+([ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md)): no change
+to `E1`, `T+` or `T_gap` may be justified by brief density, so the bar cannot be
+lowered to make thin days look fuller. The ≥5 target this line used to cite is
+retired — it was denominated in the one quantity a lowered bar inflates. What is
+watched instead is a **supply regression**, and what is promised about Brief size
+is nothing.
 
 ### 3.3 Why NewsBlur is the hard row, and still loses
 
@@ -405,10 +409,24 @@ enough that the claim's weight rests on supply** —
 *position*, not merely for density
 ([`ranking-model.md`](ranking-model.md) §9).
 
-Two things this is not. It is **not** licence to lower `T_gap` — §9's rule is that
-a missed density target is reported rather than closed by moving a bar, and a floor
-lowered until the Brief fills is an adaptive bar reintroduced through the
-explanation instead of through the score. And it is **not** a reason to weaken
+**Stale by register, and deliberately not re-measured here.** Every entry count in
+§7.1a — the "one entry per month", and the 6-interest/4-convergence figures behind
+it — comes off [#21](https://github.com/SaKaNa-Y/Zis/issues/21)'s replay over #6's
+**44-Publisher** corpus, which had three broken adapters and Cooper Press
+triple-counted. `source-register.md` §8 rules those figures **not transferable** to
+the 73-Publisher register, and §8.1 adds that a single-snapshot replay understates
+its own older days besides. Read them as the shape of an argument, not as current
+values. Re-measuring them belongs to
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54), whose `T_gap` replay produces
+them as a by-product; duplicating that work here would leave two measurements to
+keep in sync.
+
+Two things this is not. It is **not** licence to lower `T_gap` — under
+[ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md) and
+`ranking-model.md` §9.1, density is not an admissible justification for moving a
+bar at all, and a floor lowered until the Brief fills is an adaptive bar
+reintroduced through the explanation instead of through the score. And it is
+**not** a reason to weaken
 `T_gap`'s purpose: the entries it removed were carrying why-texts the reader would
 not have written, which is the claim failing *visibly* rather than quietly.
 

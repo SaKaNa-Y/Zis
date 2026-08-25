@@ -171,8 +171,13 @@ that it couldn't.**
   entries fall 10 → 5, the trailing-14 median 1 → 0, empty days 21/30 → 25/30. No
   floor keeps more than one entry without also keeping a clearly-wrong one (the
   GitHub changelog clears a 0.030 floor at 0.032). This follows §9's standing rule:
-  a bar that misses the density target is **reported** as miscalibrated, never
-  lowered, because an adaptive bar is padding wearing a formula.
+  the floor was **not lowered** to buy those entries back, because an adaptive bar
+  is padding wearing a formula. (This clause originally read "a bar that misses the
+  density target is *reported* as miscalibrated, never lowered".
+  [ADR-0016](0016-brief-density-is-an-observation-not-a-target.md) retired the
+  target and the reporting mechanism; **the conclusion here is unchanged and its
+  authority moves there** — `ranking-model.md` §9.1 now forbids justifying a `T_gap`
+  change by density at all, which is a stronger form of the same rule.)
   **Re-measured on the reader's own profile** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)):
   the interest route goes **3 entries, not 1**; Brief entries **7 not 5**; empty days
   **24/30 not 25/30**; 12 suppressed by the floor, not 17. **Density roughly tripled

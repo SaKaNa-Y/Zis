@@ -133,8 +133,14 @@ say *wrong cluster* is the page showing the evidence.
 ## 5. Short and empty were designed first
 
 Built before the five-entry state, per [#15](https://github.com/SaKaNa-Y/Zis/issues/15)'s
-note and #9's target of a trailing-14-day median of ≥5: these are among the
-most-rendered faces of the product, not edge cases.
+note: these are among the most-rendered faces of the product, not edge cases.
+**That justification is now stronger, and it no longer rests on a target.** This
+section originally cited #9's trailing-14-day median of ≥5, which
+[ADR-0016](./adr/0016-brief-density-is-an-observation-not-a-target.md) has retired.
+What replaces it is the measurement: trailing-14 median eligible supply is **3**, the
+median Brief is **1**, and the reader's own stated need is **3** entries — which
+binds nothing, but does mean the short state is the ordinary state rather than the
+degraded one.
 
 Because there is no `Card`, **there is no container to look empty**. A one-entry
 Brief is one entry in the same rhythm; nothing gapes. The empty state is a
