@@ -40,8 +40,13 @@ Computed for a reader `u` and a Signal `s` at cut time `t`.
 | `DECAY(s)` | `0.5 ^ (FRESH(s) / H)`, `H` = **36h** |
 | `REL+(s,u)` | `MAX` over the reader's Interests of `cos(vec(s), vec(i))` (ADR-0003) |
 | `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — `own` **0.70**, `citing` **0.67**, `slug` **uncalibrated** (§4) |
-| `GAP(s,u)` | `REL+(s,u) − ` the **second**-highest `cos(vec(s), vec(i))`. How far the named Interest beat the runner-up (§6, ADR-0012) |
-| `T_gap` | the flatness floor, **provisional 0.038 and explicitly uncalibrated** (§6). Computed and stored; **never rendered**. On the reader's own profile it **selects for wrongness** and its own ordering evidence is withdrawn ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)) — its fate is [#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s |
+| `GAP(s,u)` | `REL+(s,u) − ` the **second**-highest `cos(vec(s), vec(i))`. How far the named Interest beat the runner-up. **Computed and stored; it gates nothing and is never rendered** (§6, ADR-0012 as withdrawn by **ADR-0018**) |
+
+**`T_gap` is gone.** It was a floor on `GAP` at a provisional 0.038, and
+**ADR-0018** dropped it: a gap cannot see a confident wrong answer, so the
+mechanism ADR-0012 claimed for it does not exist. `GAP` itself survives as a stored
+column with no gate behind it — see §6. A model swap therefore invalidates **two**
+numbers, not three (§10).
 
 `H` = 36h is **measured, not assumed**: on the corpus the median gap from a
 Signal's first Citation to its second distinct Publisher is **30.4h** and to its
@@ -126,7 +131,7 @@ An eligible Signal is admitted by exactly one route, recorded on the
 `BriefEntry` as its **Admission**:
 
 ```
-MATCHED(s,u)  =  REL+(s,u) >= T+[text_basis(s)]  AND  GAP(s,u) >= T_gap
+MATCHED(s,u)  =  REL+(s,u) >= T+[text_basis(s)]
 
 interest      MATCHED(s,u)
 
@@ -135,13 +140,12 @@ convergence   STRENGTH(s) >= 3  AND  NOT MATCHED(s,u)
 not admitted  STRENGTH(s) == 2  AND  NOT MATCHED(s,u)
 ```
 
-**The `GAP` conjunct is ADR-0012 and it is not a second relevance bar.** `T+` asks
-whether the best Interest is close enough; `GAP` asks whether there *was* a best
-one, or whether every Interest scored the same and the winner is rounding noise.
-A Signal that clears `T+` on a flat ranking has no explanation to render, so it
-does not take the interest route — see §6, which is where the condition is
-justified, because it is a constraint the explanation imposes on admission rather
-than the other way round (ADR-0006).
+**There was a second conjunct here and it is withdrawn.** ADR-0012 added
+`GAP(s,u) >= T_gap` — a Signal clearing `T+` on a *flat* ranking has no explanation
+to render, so it would not take the interest route. **ADR-0018** removed it: the
+argument needed a sharp gap to mean a trustworthy winner, and it does not. The
+interest route is one condition again. `GAP` is still computed and stored (§1) and
+gates nothing. See §6 for the refutation and for the defect this leaves standing.
 
 The `convergence` route is the filter-bubble puncture: *many independent voices
 converged on this and you never asked for it*. Its bar is **≥3, and ≥2 would be
@@ -503,63 +507,88 @@ stronger: an inert lever is worse than a weak one, because the reader would be
 editing in the dark. **No guidance surface is added** — refused at
 `positioning.md` §8.4, and §7's per-Interest state is not reopened to house it.
 
-**So a why-text is admissible only if the ranking that produced it was not flat**
-— the `GAP` conjunct in §3. The mechanism is §10's floor taken one step further:
-the reader's statements sit at a median pairwise cosine of **0.659**, so a generic
-text scores about the same against all of them and the winner is decided by noise,
-while a specific text makes one Interest pull clear. **Flatness is the profile
-saying it has no opinion, in the only vocabulary it has.** On the admitted set the
-three unambiguously correct why-texts are the three largest gaps, with no overlap.
+### The floor that was built here, and why it is gone
 
-**That last sentence is withdrawn** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)).
-On the reader's own profile the gaps run 0.108 `RIGHT`, **0.081 `missed`**, 0.060
-`RIGHT`, 0.041 `missed`, 0.035 `near`, 0.026 `RIGHT`, 0.014 `missed`, 0.004
-`missed` — a wrong winner is the *second*-largest gap, above a correct entry, and
-the overlap is total. The spread to 5th fails the same way: the same wrong winner is
-third-largest. **Neither quantity orders the admitted set any more, and no floor in
-the sweep excludes that failure.** The mechanism argument above is unaffected in
-form and unsupported in fact. `T_gap` is kept anyway, because removing it needs the
-same holdout that re-siting it needs — put to
-[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54).
+ADR-0012 answered the section above with a second condition: **a why-text is
+admissible only if the ranking that produced it was not flat** — `GAP >= T_gap`,
+provisional at 0.038. **ADR-0018 has withdrawn it.** The reasoning is worth keeping
+in full, because the premise is true and will tempt someone to rebuild the rule.
 
-**`T_gap` is provisional at 0.038 and uncalibrated**, on the `T+[slug]` precedent
-— fitted on 8 labelled points with no holdout, and two different quantities
-separated them equally well, which is the signature of fitting rather than
-measuring. Re-site it before quoting it as evidence. Unlike `T+[slug]`,
-"uncalibrated" cannot mean "fails the route": `slug` excluded 4% of the corpus,
-this would delete the relevance mechanism entirely.
+The argument was two claims joined. **(i)** The reader's statements sit at a median
+pairwise cosine of **0.659**, so a generic text scores about the same against all of
+them and the winner is decided by noise, while a specific text makes one Interest
+pull clear — *flatness is the profile saying it has no opinion, in the only
+vocabulary it has*. **This is true and it stands.** **(ii)** Therefore a floor on
+the gap filters wrongness. **This needed the converse of (i)** — a sharp gap meaning
+a trustworthy winner — and one admitted entry refutes it outright:
 
-**Failing `T_gap` fails the interest route outright**, and the Signal can still
-arrive by `convergence` at Strength ≥3. There is deliberately no third state:
+```
+REL+ 0.680  S=2  citing   GAP 0.081     text: "announced Grok 4.6"
+   -> 0.680  #9  Version releases of developer libraries, frameworks and runtimes
+      0.599  #11 Next.js App Router internals
+      ...   #1 Frontier model releases — the right answer — is NOT in the top five
+```
+
+Flatness is the profile *reporting* no opinion; this is the profile *having* an
+opinion that is wrong, and a gap cannot tell that from a confident right answer. The
+fault is an **embedding-knowledge fault** — the model does not know Grok is a
+frontier model — so it sits in the vectors, not in the ranking, and **no arithmetic
+over those vectors can detect it**. No floor in the swept range excludes this entry,
+and the tighter the floor the more it dominates: at 0.050 the interest route is two
+entries, one correct and this one.
+
+**Three quantities have now been tried and all three interleave the verdicts** — gap
+to 2nd, spread to 5th, and text length. Read ADR-0018 before proposing a fourth.
+
+Two pieces of prose retired with the floor, and both were arguments *about rates*.
+#47's finding that the floor **selects for wrongness** was true of the admitted set
+(3 right of 8 → 1 of 3) and read as a claim about what the reader sees, which the
+replay does not support (1 right of 6 → 1 of 3, the *other* direction). At n=6 and
+n=3 one entry moves the rate by 17 and 33 points. **Nothing about this decision rests
+on a rate**, in either direction.
+
+**What the removal restores, reported and justifying nothing.** Over the 30-day
+replay at the settled bars — `argmax-replay.mjs` at `gapFloor 0.000`, the control
+that reproduces the settled model exactly — the interest route is **6 entries**,
+Brief entries **10**, trailing-14 median **1**, empty days **21/30**. Under §9.1
+these are observations: density is not why the floor was dropped, and the decision
+would be the same had they gone the other way. They are still off the clustering
+prototype's **48-Publisher** cache rather than the 73-Publisher register, so
+`source-register.md` §8's non-transferability applies unchanged.
+
+**The price of the removal, accepted with the number written down.** The interest
+route is a bare argmax over cosine, and on the reader's own profile it names an
+Interest they would not have written on **4 of 8** admitted entries. ADR-0011 makes
+*the reason each story appears is a sentence you wrote* one of two structural
+claims, so this is a **named Phase-0 defect**. It is accepted because gating did not
+improve the claim — it made the sample smaller while the reader still got a wrong
+sentence more often than not — and the route to fixing it is
+[Decide whether a deterministic selector beats the argmax over cosine](https://github.com/SaKaNa-Y/Zis/issues/61).
+The claim itself is **not** softened; ADR-0011 forbids rewording a claim to survive
+its own measurement.
+
+**There is still no third state.** A Signal that fails `T+` can arrive by
+`convergence` at Strength ≥3 and otherwise does not arrive.
 [#10](https://github.com/SaKaNa-Y/Zis/issues/10) puts no badge anywhere in the
 product and makes the section heading the explanation, so *"matched, weakly"* has
-nowhere to render, and a section invented to house it is a badge under another
-name.
+nowhere to render, and a section invented to house it is a badge under another name.
 
 **`GAP` is stored and never rendered.** `positioning.md` §8.2 refuses a relevance
-margin on the Signal page because *Strength is countable and a cosine is not*, and
-a difference of two cosines is doubly uncountable. That refusal stands unamended:
-what it bans is **showing** a margin, not **gating** on one.
+margin on the Signal page because *Strength is countable and a cosine is not*, and a
+difference of two cosines is doubly uncountable. That refusal stands unamended — and
+now nothing gates on one either. The column is kept because it is free (a
+subtraction over two cosines already computed) and because it is the one class of
+evidence a future selector needs that can only be accumulated by running.
 
-**The price, recorded rather than discovered later.** Over the 30-day replay at the
-settled bars, `T_gap` takes the interest route from **6 entries to 1**; Brief
-entries 10 → 5, trailing-14 median 1 → 0, empty days 21/30 → 25/30. No floor keeps
-more than one entry without also keeping a clearly-wrong one. This is §9's rule
-applied, not an exception to it: **the floor was not lowered to buy those entries
-back, and under §9.1 it may not be** — density is not an admissible justification
-for moving `T_gap`. **On the reader's own profile the price is smaller
-and buys less** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)): the interest
-route keeps **3 entries not 1**, Brief entries **7 not 5**, empty days **24/30 not
-25/30** — but the three survivors are **1 right in 3, against 3 in 8 unfiltered**,
-so the floor **selects for wrongness** on the profile that counts.
-
-**What `T_gap` suppresses but cannot diagnose.** Two of the four failures — a
+**What nothing suppresses and nothing can diagnose.** Two of the four failures — a
 software-job-market essay, a GitHub product changelog — have **no right answer
 anywhere in the 18 statements**, so the argmax was not choosing badly among
 candidates; there were none. That fault is **not detectable at runtime**: both the
 gap to 2nd and the spread to 5th interleave it with genuine near-misses, and it is
-the judgement the cosine already failed at. `T_gap` suppresses both faults
-together. Coverage is
+the judgement the cosine already failed at. `T_gap` used to suppress both faults
+together without distinguishing them, and with the floor withdrawn (ADR-0018)
+**neither is suppressed at all** — which is why the price above is 4 of 8 rather
+than 1 of 3. Coverage is
 [Decide whether the Interest Profile carries the why-text it is asked to](https://github.com/SaKaNa-Y/Zis/issues/41)'s
 question, not this section's.
 
@@ -668,7 +697,11 @@ separate.
 
 ### 9.1 The rule — no number, and it bites on the justification
 
-**No change to `E1`, `T+` or `T_gap` may be justified by brief density.**
+**No change to `E1`, `T+` or the interest route's selector may be justified by brief
+density.** (This read *"`E1`, `T+` or `T_gap`"* until **ADR-0018** withdrew
+`T_gap`. The rule is unchanged in force and now names the surface rather than one
+retired number, so it reaches a replacement selector too — see
+[#61](https://github.com/SaKaNa-Y/Zis/issues/61).)
 
 No threshold, no median, nothing to miss. It fires on a *justification*, not on a
 count, and it is enforced in review. An adaptive bar remains what ADR-0006 called
@@ -678,10 +711,13 @@ guarantee, because the bar would then depend on other days' data, so replaying o
 Brief would require replaying its neighbours.
 
 This is **stronger** than the target it replaces, because it does not wait for a
-count to fall before it applies. Its first live customer is
-[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54):
-`T_gap` may be decided on whether the floor is a mechanism or a fitted artifact,
-**never** on how many entries removing it would add.
+count to fall before it applies. **Its first live customer has now been through it
+and the rule held.**
+[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54)
+dropped `T_gap` (**ADR-0018**) on the mechanism question alone — and removing it
+adds entries, so the rule was binding in the direction that actually tempts, not
+the convenient one. The restored counts are reported in §6 and justify nothing
+there.
 
 ### 9.2 The alarm — on supply, shaped as a run
 
@@ -826,20 +862,21 @@ than this section took it: the 0.659 floor does not only set where the *bar*
 belongs, it means a generic text scores alike against every Interest, so the
 argmax over a flat ranking is noise. See §6 for `GAP` and `T_gap`.
 
-**A fourth condition, added by that answer.** `T_gap` is conditional on the same
-`(model, profile)` pair as `T+`, and **more tightly** — it reads the profile's
-internal separation directly rather than sitting relative to it. A model swap now
-invalidates three numbers, not two. `T_gap` itself is **fitted rather than sited**:
-8 labelled points, no holdout, and two candidate quantities that separated them
-equally well. It is a placeholder with a mechanism behind it, which is a weaker
-thing than the bars above. **Weaker still after
-[#47](https://github.com/SaKaNa-Y/Zis/issues/47)**: on the reader's own profile
-neither candidate quantity separates the data *at all*, so what is in doubt is no
-longer the value but whether there is a mechanism here — and `T+`/`T_gap` are
-deliberately **not** re-sited, because eight labelled points cannot be split into a
-fit set and a holdout. Both questions go to
-[#54](https://github.com/SaKaNa-Y/Zis/issues/54), whose first job is deciding
-whether a labelled holdout is worth building inside Phase 0.
+**A fourth condition was added by that answer, and has since been deleted.**
+`T_gap` was conditional on the same `(model, profile)` pair as `T+` and **more
+tightly**, reading the profile's internal separation directly rather than sitting
+relative to it — so a model swap invalidated three numbers rather than two. It was
+**fitted rather than sited**: 8 labelled points, no holdout, and two candidate
+quantities that separated them equally well.
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47) found neither quantity separates
+the reader's own profile at all, which moved the question from *what is the right
+value* to *is there a mechanism here* — and
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54) answered **no** (**ADR-0018**).
+**So a model swap invalidates two numbers again**, and `T+` is the only one of them
+this section sited. The labelled holdout was **not** built inside Phase 0, and its
+requirement re-attaches to
+[#61](https://github.com/SaKaNa-Y/Zis/issues/61) rather than to a threshold that no
+longer exists.
 
 **And #49 hands `T_gap` more than it was carrying.** Composition changes *which*
 Interest is named far more than *whether* one clears the bar — 42 of the 168
@@ -848,3 +885,6 @@ Signals admitted at both title-alone and the shipped cap name a different Intere
 absorb 39.9% to 45.7% of the rung). So the flatness ADR-0012 found in the profile
 is also reachable through the text, which means **no cap and no rung can fix a
 why-text; only the gap floor and the pick can.** That is #47's ground, not §4's.
+**And the floor half is now gone** (**ADR-0018**), so **the pick carries all of
+it** — [#61](https://github.com/SaKaNa-Y/Zis/issues/61). The cap is unaffected and
+still may not be moved on relevance grounds.

@@ -76,6 +76,16 @@ enforcing it. Its first live customer is [#54](https://github.com/SaKaNa-Y/Zis/i
 the gap floor may be decided on whether it is a mechanism or a fitted artifact,
 **never** on how many entries removing it would add.
 
+> **That customer has been through, and the rule held**
+> ([ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)). `T_gap` was
+> dropped on the mechanism question alone — and note the direction: removing it
+> *adds* entries, so the rule bound against the temptation that actually existed.
+> Two wording consequences. The rule now reads *"`E1`, `T+` or the interest route's
+> selector"*, since `T_gap` no longer exists and the rule must still reach whatever
+> replaces it ([#61](https://github.com/SaKaNa-Y/Zis/issues/61)); and this ADR's
+> §9.4-derived figure *"0 once `T_gap` applies"* reverts to the control's **1**.
+> `ranking-model.md` §9.1 is the live text.
+
 **2. The alarm, on supply, shaped as a run.** The watched quantity is the
 **longest run of consecutive days with zero eligible Signals at Strength ≥2** —
 supply, not Brief entries, so no threshold can inflate it; a run rather than a

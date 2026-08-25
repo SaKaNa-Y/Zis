@@ -1,13 +1,25 @@
 # A flat Interest ranking has no explanation
 
 Status: accepted, amended by
-[#47](https://github.com/SaKaNa-Y/Zis/issues/47) — see
-[Amendment (#47)](#amendment-47-the-readers-own-profile) at the foot. **No decision
-below moves.** Two pieces of *evidence* do: the coverage fault in
-[What this does not fix, and cannot](#what-this-does-not-fix-and-cannot) is **not
-observed** on the reader's own profile, and the gap-ordering claim closing
-[Why a gap and not a better winner](#the-decision) is **withdrawn**. Read the
-amendment before quoting any number from this file.
+[#47](https://github.com/SaKaNa-Y/Zis/issues/47), **and its central decision
+withdrawn by
+[ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)**.
+
+**The `GAP >= T_gap` conjunct in [The decision](#the-decision) is gone**, and with
+it `T_gap`. The title of this file remains true — a flat ranking really does have no
+explanation — but the *rule* it produced does not follow from it, because a gap
+cannot distinguish a flat ranking's noise from a **confident wrong answer**. Read
+ADR-0018 before rebuilding anything on this file's mechanism paragraph.
+
+**Everything else here stands**: the withdrawal of ADR-0003's self-repair clause,
+the coverage finding, the latent no-right-answer defect, the no-third-state rule,
+and the ban on rendering a margin (which is now moot in one direction — nothing
+gates on `GAP` either). Two pieces of *evidence* were already withdrawn by #47 — the
+coverage fault in [What this does not fix, and cannot](#what-this-does-not-fix-and-cannot)
+is **not observed** on the reader's own profile, and the gap-ordering claim closing
+[Why a gap and not a better winner](#the-decision) is **withdrawn** — and ADR-0018
+withdraws a third, #47's own *"selects for wrongness"*. Read both the amendment and
+ADR-0018 before quoting any number from this file.
 
 Settled by
 [Decide whether the argmax Interest is a good enough explanation](https://github.com/SaKaNa-Y/Zis/issues/35),
@@ -64,7 +76,12 @@ quality nit absorbed by a mechanism already in the design.
 > worse than a weak one because the reader would be editing in the dark. Full table
 > in the amendment.
 
-## The decision
+## The decision — WITHDRAWN by [ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)
+
+> The rule below is **no longer in force.** The interest route is
+> `REL+ >= T+[text_basis]` alone; `GAP` is still computed and stored and gates
+> nothing. Kept here in full because the premise under it is true and the record of
+> how a true premise produced a wrong rule is the point.
 
 **A why-text is admissible only if the ranking that produced it was not flat.**
 
@@ -100,6 +117,12 @@ with no overlap.
 > in *form* and unsupported in *fact*; the decision stands because removing
 > `T_gap` needs the same holdout that re-siting it needs. This is the amendment's
 > central finding.
+>
+> **And the decision no longer stands** ([ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)).
+> The mechanism paragraph's *form* was the problem: it needed the **converse** —
+> a sharp gap meaning a trustworthy winner — and `announced Grok 4.6` refutes that
+> at `GAP` 0.081 with the right statement not even in the top five. The holdout was
+> never the blocker; it would only have sited a value.
 
 **Failing `T_gap` fails the interest route outright.** A Signal can still arrive by
 `convergence` at Strength ≥3, which reads no text. There is no third state:
@@ -180,10 +203,19 @@ that it couldn't.**
   change by density at all, which is a stronger form of the same rule.)
   **Re-measured on the reader's own profile** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)):
   the interest route goes **3 entries, not 1**; Brief entries **7 not 5**; empty days
-  **24/30 not 25/30**; 12 suppressed by the floor, not 17. **Density roughly tripled
-  and accuracy did not follow** — the three survivors are 1 right in 3, worse than
-  the unfiltered 3 in 8, so on this profile the floor selects *for* wrongness. The
-  price is therefore smaller than recorded here and bought less than claimed.
+  **24/30 not 25/30**; 12 suppressed by the floor, not 17. The price is therefore
+  smaller than recorded here and bought less than claimed.
+  **The accuracy half of this bullet is retired**
+  ([ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)). It read *"the
+  three survivors are 1 right in 3, worse than the unfiltered 3 in 8, so the floor
+  selects for wrongness"* — true of the **admitted set**, and the opposite on the
+  **replay**, where the six unfiltered entries are 1 right in 6 and the floor's rate
+  is *better*. At n=6 and n=3 one entry moves the rate by 17 and 33 points, so both
+  readings are noise wearing a percentage. Same defect as the ordering evidence this
+  amendment withdrew: a real measurement carrying more weight than its `n` supports.
+  With the floor gone the figures that matter are the control's — interest route
+  **6**, Brief **10**, empty days **21/30** — reported under `ranking-model.md` §9.1
+  and justifying nothing.
 - **`positioning.md` §7.1's separability falsifier still does not fire, at any
   floor tested** — every surviving interest-route entry is Strength 2, so
   co-citation alone would not have surfaced it. But it now rests on **one entry per
@@ -212,6 +244,12 @@ that it couldn't.**
   [Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54).
   The holdout requirement is **not** waived; that ticket's first job is to decide
   whether building one is justified inside Phase 0.
+  **Answered: only a fit** ([ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)).
+  A third quantity — text length — was tried and interleaves the verdicts like the
+  first two. The holdout was **not** built inside Phase 0, because with no threshold
+  left there is nothing for it to site; the requirement re-attaches to
+  [Decide whether a deterministic selector beats the argmax over cosine](https://github.com/SaKaNa-Y/Zis/issues/61),
+  where labels would measure a selector instead of a bar.
 
 ## Amendment (#47): the reader's own profile
 
@@ -291,3 +329,11 @@ both goes to
 whose opening evidence is the *job-market essay naming #2 by 0.004 over #8, which
 was the right answer* — the strongest single indication that the fix is **pick
 better**, not **suppress**.
+
+**That ticket has answered, and the indication was right**
+([ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md)): `T_gap` is a fit
+and is dropped, *pick better* becomes
+[#61](https://github.com/SaKaNa-Y/Zis/issues/61), and the holdout requirement moves
+there with it. One correction to this section's own conclusion — the *"selects for
+wrongness"* finding is retired as denominator-dependent; see the consequences
+bullet above. The decision does not rest on it, or on any rate.
