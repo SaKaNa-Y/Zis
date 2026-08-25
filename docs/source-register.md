@@ -190,12 +190,34 @@ forbids is **article-body fetches from `kentcdodds.com`** at ingestion stage 4.
 `ai-train=no` alone (Val Town, Phoronix, Vercel) does not restrict Zis, which
 trains nothing.
 
-**Not excluded, and worth saying**: Bluesky **feed generators** are the largest
-untapped supply in the candidate set and are *not* in the register, because a
-feed generator is a stream of *other people's* posts. Attributing it to one
-Publisher makes a single voice that cites everything; attributing each post to its
-author needs Publishers Zis has not registered. That is a modelling question, not
-a curation one, and it is left open rather than answered badly.
+**On authorship** ([ADR-0017](./adr/0017-a-sources-publisher-must-own-the-utterance-or-the-venue.md)):
+Bluesky **feed generators** are excluded, and so is any third-party curated stream
+— Flipboard Tech, a Google News RSS query, any "best of" feed over a venue its
+selector does not own. **A Source's Publisher must own either the utterance or the
+venue; owning only the selection is not enough.** This paragraph used to hold the
+question open and call feed generators *"the largest untapped supply in the
+candidate set"* — **do not quote that phrase again**: it is denominated in the brief
+density [ADR-0016](./adr/0016-brief-density-is-an-observation-not-a-target.md)
+retired, and §8 measures supply as not the lever anyway. Two grounds refuse them
+independently: authorship, and **ADR-0015 rule 3 generalized** — a `*.bsky.social`
+author's only address is a path on a shared host, and a feed generator's is a path
+under a DID owning none of the content. Note what this register keys, since it is
+easy to misread: a Publisher's `hosts` are its *own* web addresses and a
+`bluesky-author` Source is keyed by **DID**, which is why 18 author feeds sharing
+`public.api.bsky.app` never collided. An author with a **custom-domain handle**
+(`una.im`, `crawshaw.io`) is the `netflixtechblog.com` case and stays registerable
+by hand. The rule bites on a Source's *identity*, never on its Items, so reposts
+inside an author feed and submissions on HN are untouched — those are
+Citation-level questions with their own answers.
+
+**Still worth reading by hand, and only by hand**: the 11 feed generators verified
+in `.scratch/zis/research/candidate-sources-platforms.md` §3.3 remain a cheap
+**curation instrument** — five read unauthenticated via `app.bsky.feed.getFeed`, so
+a curator can open one to *find* candidate authors, who then enter the register
+normally with an asserted owner. There is no runtime role: discovery runs on the
+explicitly unstable `app.bsky.unspecced.*`, one "popular" feed already answers
+`XRPCNotSupported`, and a poll would land on `public.api.bsky.app`, which §7 records
+as the run's longest pole and a sequential chain.
 
 ## 7. What this register costs to run, and to keep true
 

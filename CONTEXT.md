@@ -17,7 +17,12 @@ _Avoid_: Entity, Voice, Outlet, Actor
 
 **Source**:
 One configured pollable endpoint belonging to a Publisher. A Publisher may have
-many Sources; "HN top stories" is one Source, "Show HN" is another.
+many Sources; "HN top stories" is one Source, "Show HN" is another. "Belonging"
+is a claim about the Items, not just the endpoint: a Source's Publisher must own
+either the **utterance** or the **venue** it was uttered in, and a candidate that
+owns only the **selection** over someone else's venue is not a Source at all.
+A newsletter issue is something its Publisher said; an HN submission was made to
+HN; a third party's curated stream of other people's posts is neither.
 _Avoid_: Feed, Account, Channel
 
 **Transport**:
@@ -30,7 +35,10 @@ A Source whose Items exist to cite other people's work rather than to carry thei
 own — a newsletter issue or a link roundup. Its value to the corpus is the list of
 addresses it points at, which is why an Aggregator whose Items are excerpts must
 have the cited list recovered before those Citations exist at all. A Publisher may
-speak through both Aggregator and ordinary Sources.
+speak through both Aggregator and ordinary Sources. An Aggregator still owns its
+Items — a roundup is a thing its Publisher said, about other people's work — which
+is what separates it from a third party's selection over a venue it does not own,
+and that is not a Source.
 _Avoid_: Newsletter, Roundup, Digest (that is the delivery of a Brief), Curator
 
 **Dormant**:
