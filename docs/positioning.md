@@ -392,12 +392,23 @@ not quote a configuration the product does not run.)*
 
 ### 7.1a The condition to actually watch: the claim hollowing out without falsifying
 
-`T_gap` ([ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md)) takes
-the interest route from **6 entries to 1** over the same 30 days. The falsifier
-above **still does not fire** — that one surviving entry is Strength 2, so the
-profile is still selecting something convergence would not have — but the claim it
-protects is now resting on **one entry per month**, with roughly four fifths of a
-Brief arriving by `convergence` and **no Interest named at all**.
+**The condition stands; the numbers under it have changed twice and are now back
+where they started.** `T_gap`
+([ADR-0012](adr/0012-a-flat-interest-ranking-has-no-explanation.md)) took the
+interest route from **6 entries to 1** over the same 30 days — re-measured on the
+reader's own profile, 6 to **3** — and the claim this section protects was resting
+on that. **ADR-0018 has withdrawn the floor**, so the interest route is **6 entries
+against 4 by `convergence`** again, and the hollowing this section was written about
+was substantially `T_gap`'s doing.
+
+**Keep watching anyway.** The condition is about a general failure — a binary test
+reporting *healthy* while the claim it guards goes vacuous — not about one floor,
+and the floor's removal bought the entries back at a measured cost of **4 of 8
+wrong why-texts** (`ranking-model.md` §6), which is the claim failing *visibly*
+rather than quietly. Note also which instrument actually noticed: **the falsifier
+never fired, at any floor in the sweep, including the one that reduced the route to
+a single entry.** It was this watch that saw the problem, which is a standing
+argument for a condition of this shape over a binary one.
 
 This is recorded as a distinct condition because §7.1 is written as a binary and
 would report *healthy* all the way down to a single entry, and then to zero only if
@@ -409,26 +420,32 @@ enough that the claim's weight rests on supply** —
 *position*, not merely for density
 ([`ranking-model.md`](ranking-model.md) §9).
 
-**Stale by register, and deliberately not re-measured here.** Every entry count in
-§7.1a — the "one entry per month", and the 6-interest/4-convergence figures behind
-it — comes off [#21](https://github.com/SaKaNa-Y/Zis/issues/21)'s replay over #6's
-**44-Publisher** corpus, which had three broken adapters and Cooper Press
-triple-counted. `source-register.md` §8 rules those figures **not transferable** to
-the 73-Publisher register, and §8.1 adds that a single-snapshot replay understates
-its own older days besides. Read them as the shape of an argument, not as current
-values. Re-measuring them belongs to
-[#54](https://github.com/SaKaNa-Y/Zis/issues/54), whose `T_gap` replay produces
-them as a by-product; duplicating that work here would leave two measurements to
-keep in sync.
+**Stale by register, and it stays stale — the route that was going to fix it does
+not.** Every entry count in §7.1 and §7.1a comes off a replay over the clustering
+prototype's **48-Publisher** corpus, which had three broken adapters and Cooper
+Press triple-counted. `source-register.md` §8 rules those figures **not
+transferable** to the 73-Publisher register, and §8.1 adds that a single-snapshot
+replay understates its own older days besides. Read them as the shape of an
+argument, not as current values.
 
-Two things this is not. It is **not** licence to lower `T_gap` — under
-[ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md) and
-`ranking-model.md` §9.1, density is not an admissible justification for moving a
-bar at all, and a floor lowered until the Brief fills is an adaptive bar
-reintroduced through the explanation instead of through the score. And it is
-**not** a reason to weaken
-`T_gap`'s purpose: the entries it removed were carrying why-texts the reader would
-not have written, which is the claim failing *visibly* rather than quietly.
+This section previously routed the re-measurement to
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54) on the ground that its `T_gap`
+replay would produce current values as a by-product. **It did not, and that is
+recorded rather than re-routed**: `argmax-replay.mjs` reads the 48-Publisher cache,
+so re-running it against the register needs an interest-and-embedding pass over the
+supply prototype's data — a running pipeline this phase forbids. It therefore
+**travels with Phase 1**, alongside
+[ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md) §9.2's
+provisional alarm value, rather than becoming a ticket that could never reach the
+frontier.
+
+One thing this is not: it is **not** licence to move a bar to buy entries back.
+Under ADR-0016 and `ranking-model.md` §9.1, density is not an admissible
+justification for moving `E1`, `T+`, or the interest route's selector at all, and a
+bar lowered until the Brief fills is an adaptive bar reintroduced through the
+explanation instead of through the score. That rule bound in exactly this direction
+when `T_gap` was withdrawn: removing the floor *adds* entries, and the decision was
+taken on the mechanism alone.
 
 ### 7.2 The test of the standing assumption: reader behaviour
 

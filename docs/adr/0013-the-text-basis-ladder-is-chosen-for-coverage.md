@@ -100,7 +100,12 @@ frontier labs"*, for a post about mathematics results.
 tiebreak — and the rung is a coverage decision, not a quality one.**
 
 Quality of the why-text is not refused; it is **assigned elsewhere**. It belongs to
-`T_gap` (ADR-0012) and to what a rung *embeds*, never to which rung wins. The rung
+`T_gap` (ADR-0012) and to what a rung *embeds*, never to which rung wins.
+(**`T_gap` is gone** —
+[ADR-0018](0018-a-gap-cannot-see-a-confident-wrong-answer.md) — so that half of the
+assignment moves to the **selector**,
+[#61](https://github.com/SaKaNa-Y/Zis/issues/61). The assignment *away from the
+rung* is what this section decided, and it is unaffected.) The rung
 choice is disqualified as a quality lever on both counts a lever needs: it reaches
 0.9% of the corpus, and every rule measurable over this corpus names *worse* on a
 third of the set it governs.

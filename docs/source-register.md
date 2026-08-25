@@ -280,8 +280,11 @@ yields 5 needs the ceiling near 15 — several hundred Publishers on this slope,
 which is a different product and collides with ADR-0008 long before it arrives.
 
 **The bar was not lowered to close the gap, and under ADR-0016 §9.1 it may not
-be** — density is not an admissible justification for moving `E1`, `T+` or
-`T_gap`. That rule is what survives of #9's target; the *number* did not, because
+be** — density is not an admissible justification for moving `E1`, `T+` or the
+interest route's selector (this named `T_gap` until
+[ADR-0018](adr/0018-a-gap-cannot-see-a-confident-wrong-answer.md) withdrew it; the
+rule is unchanged in force and now reaches a replacement selector too). That rule is
+what survives of #9's target; the *number* did not, because
 the shortfall stopped being attributable to an unmeasured corpus. It has been
 measured, twice, on a clean window, every branch of its escalation is closed, and
 a target that reports *miscalibrated* every morning forever was doing no work.
