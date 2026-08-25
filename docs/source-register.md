@@ -223,7 +223,14 @@ calendar days. Any re-measurement must refetch **every** Source into one window:
 comparing a freshly-fetched addition against a cached incumbent understates the
 addition, which is why the incumbent cache was set aside rather than reused.
 
-## 8. The density target is missed, and supply is not the lever it was hoped to be
+## 8. Supply is not the lever it was hoped to be, and there is no longer a target to miss
+
+**Retired by
+[ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md)
+([#56](https://github.com/SaKaNa-Y/Zis/issues/56)): the ≥5 density target this
+section was written against no longer exists.** The measurement below stands
+unchanged and is the reason it no longer exists. Read §8.1 before quoting any
+count in it.
 
 The amendment to #11 made brief density this register's primary job: *"enough
 distinct Publishers citing overlapping URLs that Strength ≥2 happens routinely."*
@@ -240,7 +247,9 @@ would credit a backfilled Signal to a day years earlier:
 
 **Read what that 3 is.** It is the count of Signals *eligible* at Strength ≥2 —
 the ceiling **before** any Interest match and before `T+`. The Brief lands well
-under it. #9's target is a trailing-14-day median Brief of **≥5**.
+under it, at a median of 1. #9's target was a trailing-14-day median Brief of
+**≥5**; the reader, asked directly, states **3** entries make a morning worth
+opening, and that number binds nothing (ADR-0016 §3).
 
 So: **a 66% increase in Publishers bought a 50% increase in the ceiling, and the
 ceiling is still below the target.** Supply responds to curation, sublinearly, and
@@ -248,15 +257,51 @@ lands short. Reaching a ceiling high enough that a bar admitting a third of it
 yields 5 needs the ceiling near 15 — several hundred Publishers on this slope,
 which is a different product and collides with ADR-0008 long before it arrives.
 
-**The target stands and is reported as missed.** This follows #9's own precedent,
-which missed the same target by *reporting* the bar as miscalibrated rather than
-lowering it, and the map's standing rule that density is "never a reason to raise
-the ceiling". An adaptive target is padding wearing a formula. What changes is
-that the shortfall is no longer attributable to an unmeasured corpus: it has been
-measured, twice, on a clean window, and **whether ≥5 is the right target for a
-corpus that can supply 3** is now a live question rather than an assumption —
-routed to
-[Decide whether a trailing-14-day median of ≥5 is the right density target](https://github.com/SaKaNa-Y/Zis/issues/56).
+**The bar was not lowered to close the gap, and under ADR-0016 §9.1 it may not
+be** — density is not an admissible justification for moving `E1`, `T+` or
+`T_gap`. That rule is what survives of #9's target; the *number* did not, because
+the shortfall stopped being attributable to an unmeasured corpus. It has been
+measured, twice, on a clean window, every branch of its escalation is closed, and
+a target that reports *miscalibrated* every morning forever was doing no work.
+What this register still owes is an **alarm, not a target**: the watched quantity
+is the **longest run of consecutive days with zero eligible Signals at Strength
+≥2** — provisionally **2**, from the series in §8.1 — which fires on a supply
+*regression* (a dead Publisher, a broken adapter, a newly-disallowing
+`robots.txt`) rather than on a shortfall against an aspiration.
+
+## 8.1 Every count above is understated on its older days, and structurally so
+
+**A single-snapshot replay cannot see its own past.** An older day can only be
+reconstructed from Items still present in a *current* feed; publisher-side
+retention has already deleted the rest. So the further back the window reaches,
+the emptier it looks, for reasons that have nothing to do with supply.
+
+The per-day series at Strength ≥2 for the 30 days ending 2026-08-22, fetched in
+one pass on 2026-08-23
+([`rep-FINAL.log`](https://github.com/SaKaNa-Y/Zis/blob/main/.scratch/zis/prototype/PROTOTYPE-supply/rep-FINAL.log)):
+
+```
+4,0,0,2,2,2,5,1,1,0,3,6,4,3,0,0,2,0,8,2,4,3,3,4,3,4,6,17,1,3
+```
+
+| half of the window | eligible Signals | empty days |
+|---|---|---|
+| first 16 days | 33 | **5** |
+| last 14 days | **60** | **1** |
+
+Nearly twice the supply in the more recent half, and five of the six blanks in the
+older one. **So "6 empty days of 30" — and #21's "18 of 30" before it — are partly
+measuring feed retention rather than supply, and neither is a steady-state
+figure.** The longest run of consecutive empty days is **2**, twice; there is no
+3-day blank streak in the window at all.
+
+Two consequences. The supply alarm's value is **provisional and may not fire until
+re-sited on 30 days of forward-running data** — an alarm sited on a biased window
+buys either false alarms or silence. And a **future re-measurement of this register
+must not be compared against this table day-for-day** unless it was fetched the
+same way over the same window depth; the comparable figures are the recent-half
+ones. This is `ranking-model.md` §10's "these numbers are conditional" applied to
+counts instead of cosines.
 
 **One honest consequence for the positioning.** `positioning.md` §7's separability
 falsifier and §7.1a's "one entry per month" note both rest on entry counts drawn

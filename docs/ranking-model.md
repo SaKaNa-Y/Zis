@@ -545,8 +545,9 @@ what it bans is **showing** a margin, not **gating** on one.
 settled bars, `T_gap` takes the interest route from **6 entries to 1**; Brief
 entries 10 → 5, trailing-14 median 1 → 0, empty days 21/30 → 25/30. No floor keeps
 more than one entry without also keeping a clearly-wrong one. This is §9's rule
-applied, not an exception to it: a bar that misses the density target is reported
-as miscalibrated, never lowered. **On the reader's own profile the price is smaller
+applied, not an exception to it: **the floor was not lowered to buy those entries
+back, and under §9.1 it may not be** — density is not an admissible justification
+for moving `T_gap`. **On the reader's own profile the price is smaller
 and buys less** ([#47](https://github.com/SaKaNa-Y/Zis/issues/47)): the interest
 route keeps **3 entries not 1**, Brief entries **7 not 5**, empty days **24/30 not
 25/30** — but the three survivors are **1 right in 3, against 3 in 8 unfiltered**,
@@ -646,86 +647,125 @@ Two clauses that are easy to lose:
 spanning one day to several years, not a daily rate. Steady-state daily supply is
 materially lower, and any capacity claim quoting 27 as a per-day figure is wrong.
 
-## 9. Brief density is a target on the bar, not an input to it
+## 9. Brief density is an observation, not a target
+
+**Superseded and rewritten by
+[ADR-0016](./adr/0016-brief-density-is-an-observation-not-a-target.md)
+([#56](https://github.com/SaKaNa-Y/Zis/issues/56)). This section previously set a
+target — "over a trailing 14 days, the median Brief holds ≥5 entries" — with the
+mechanism that a miss is reported to the operator. There is no longer a target,
+and nothing reports a Brief as too short.** Read the ADR for why; what follows is
+what binds.
 
 [#14](https://github.com/SaKaNa-Y/Zis/issues/14) settled that Briefs may be
-honestly short and say so. #9's amendment adds that a bar set so high that Briefs
+honestly short and say so. #9's amendment added that a bar set so high that Briefs
 are *routinely* near-empty is a failure even though each individual short Brief is
-honest. Both hold, as follows.
+honest. **The first half stands. The second half was denominated wrong** — it was
+stated as a promise about Brief entries, which is the quantity furthest downstream
+and the one a lowered threshold inflates, so the metric guarding against a retreat
+paid out for it. Three objects were fused into that one number; they are now
+separate.
 
-**Target**: over a trailing 14 days, the median Brief holds **≥5 entries**.
+### 9.1 The rule — no number, and it bites on the justification
 
-**Mechanism when the target is missed**: the system reports the bar as
-miscalibrated to the operator. It does **not** move the bar.
+**No change to `E1`, `T+` or `T_gap` may be justified by brief density.**
 
-An adaptive bar that lowered itself when recent Briefs ran short is padding
-wearing a formula — on a quiet day it descends until the Brief fills, which is
-precisely what #14 banned — and it breaks sealing's reproducibility guarantee,
-because the bar would then depend on other days' data, so replaying one Brief
-would require replaying its neighbours.
+No threshold, no median, nothing to miss. It fires on a *justification*, not on a
+count, and it is enforced in review. An adaptive bar remains what ADR-0006 called
+it — padding wearing a formula, which on a quiet day descends until the Brief
+fills, exactly what #14 banned — and it would break sealing's reproducibility
+guarantee, because the bar would then depend on other days' data, so replaying one
+Brief would require replaying its neighbours.
 
-A chronically short Brief is therefore a **bug report about the bar and the
-source list**. Its escalation path is
-[Curate the initial source list](https://github.com/SaKaNa-Y/Zis/issues/11) —
-more distinct Publishers means more Signals at Strength ≥2 — and then an explicit
-edit to `T+`. **Not** available as a lever, per the map's standing constraint:
-shortening full-text retention, which is irreversible under ADR-0005, costs
-Interest-matching text, and frees storage rather than the compute that actually
-binds.
+This is **stronger** than the target it replaces, because it does not wait for a
+count to fall before it applies. Its first live customer is
+[Decide whether the gap floor is a mechanism or a fitted artifact](https://github.com/SaKaNa-Y/Zis/issues/54):
+`T_gap` may be decided on whether the floor is a mechanism or a fitted artifact,
+**never** on how many entries removing it would add.
 
-### The target is currently missed by a factor of five, and not by the bar
+### 9.2 The alarm — on supply, shaped as a run
 
-This is measured, and it is the most important number the calibration produced.
-Replaying the corpus's last 30 days from **Citation timestamps** — never from
-dividing 27 by anything convenient — the eligible supply is:
+The one watched quantity is the **longest run of consecutive days with zero
+eligible Signals at Strength ≥2**.
+
+Two deliberate choices. It sits on **supply**, not Brief entries, so no threshold
+can inflate it and it moves only when the register moves — which is the only lever
+that still exists. And it is a **run**, not a median, because a median of 3 is
+compatible with a week of nothing followed by a week of fives, and a *streak* of
+blank mornings is what stops a daily habit forming.
+
+**Value: provisional 2**, the longest run in the 30-day replay
+([`PROTOTYPE-supply/rep-FINAL.log`](https://github.com/SaKaNa-Y/Zis/blob/main/.scratch/zis/prototype/PROTOTYPE-supply/rep-FINAL.log)),
+and **it may not fire until re-sited on 30 days of forward-running data** — see
+§9.4. When it does fire, the diagnosis it points at is a *regression*: a dead
+Publisher, a broken adapter, a newly-disallowing `robots.txt`. #6 shipped three
+broken adapters and 25 robots-disallowed feeds and nothing noticed, which is the
+failure this alarm exists for and the ≥5 target never caught.
+
+### 9.3 The observation — reported, promising nothing
+
+Brief size is reported, because it is what the reader sees. Recorded alongside it
+as context, and **explicitly non-binding: the reader states that 3 entries make a
+morning worth opening.** It triggers nothing. A 2-entry Tuesday is Tuesday.
+
+That number is the reader's own, asked directly, which is precisely what ≥5 was
+not. For scale, the measured trailing-14-day median of *eligible* supply is also
+**3** — so the stated need describes a product this corpus can feed, and the gap
+between 3 eligible and the 1 that lands is `T+`, `T_gap` and the Interest match,
+not the source list.
+
+### 9.4 What the corpus actually supplies, and why every figure here is provisional
+
+Replaying the corpus from **Citation timestamps** — never from dividing 27 by
+anything convenient — bucketing each Signal on the day its **second distinct
+non-origin Publisher** cites it:
 
 | | |
 |---|---|
-| days with **zero** eligible Signals | **18 of 30** |
-| most eligible Signals on any one day | **3** |
-| trailing-14-day median Brief size | **1** |
+| eligible Signals at Strength ≥2 | **163** over 73 Publishers |
+| trailing-14-day median **eligible/day** | **3** (a ceiling: pre-Interest, pre-`T+`) |
+| empty days in the last 30 | **6** |
+| **longest run of empty days** | **2** |
+| trailing-14-day median **Brief** | **1**, and **0** once `T_gap` applies |
 
-and that median is **1 at every bar tested, including a bar low enough to admit
-every eligible Signal**. At a flat `T+` = 0.50 the 30 days yield 21 admissions; at
-a flat 0.70, **5 interest plus 4 convergence**. At the settled **per-rung** bars —
-`own` 0.70 / `citing` 0.67 — it is **6 interest plus 4 convergence**, one more,
-because the citing bar is the lower of the two. The trailing-14 median never moves
-off 1, because it is not set by the bar — it is set by the 18 days on which `E1`
-has nothing to offer at all.
+That Brief median is **1 at every bar tested, including a bar low enough to admit
+every eligible Signal.** At a flat `T+` = 0.50 the 30 days yield 21 admissions; at
+a flat 0.70, 5 interest plus 4 convergence; at the settled per-rung bars — `own`
+0.70 / `citing` 0.67 — 6 interest plus 4 convergence. It never moves off 1,
+because it is not set by the bar. `T+` is not what is binding and **lowering it
+buys nothing**.
 
-**`T_gap` (§6, ADR-0012) makes this materially worse, and that is accepted rather
-than traded away.** Over the same replay it takes the interest route from **6
-entries to 1**: Brief entries 10 → 5, trailing-14 median **1 → 0**, empty days
-21/30 → 25/30. No floor tested keeps more than one interest entry without also
-keeping a why-text the reader would not have written. This section's mechanism is
-what governs that outcome — the target is missed, so the miss is **reported**, and
-neither `T+` nor `T_gap` moves to close it. A floor lowered until the Brief fills
-would be an adaptive bar reintroduced through the explanation instead of through
-the score.
+**But no count here is a steady-state figure, and the bias is structural.** A
+single-snapshot replay understates its own older days: an older day can only be
+reconstructed from Items still present in a current feed, and publisher-side
+retention has already deleted the rest. In the window ending 2026-08-22, fetched
+in one pass on 2026-08-23, the **first 16 days hold 33 eligible Signals and 5 of
+the 6 blanks; the last 14 hold 60 and one**. So #21's "18 of 30 days empty" and
+`source-register.md` §8's "6 of 30" are both partly measuring feed retention. That
+is why §9.2's value is provisional, and it is the same discipline as §10's "these
+cosines are conditional", applied to counts instead of scores.
+
+### 9.5 What none of this licenses
+
+- **Not a reason to weaken `E1`.** A Strength-1 floor admits 4,910 of the corpus's
+  4,937 Signals — the anxiety inbox the product exists to delete.
+- **Not a reason to move the ceiling**, in either direction (#14, upheld twice).
+- **Not a reason to shorten full-text retention**, which is irreversible under
+  ADR-0005, costs Interest-matching text, and frees storage rather than the compute
+  that actually binds (#8).
+- **Not evidence the product is unworkable.** A short Brief is honest by
+  construction (#14) and #10 made it structural — with no `Card` there is no
+  container to look empty. What changed is only that nobody promises otherwise.
 
 One consequence worth stating plainly, because no test we have written trips on
-it: with the interest route at one entry per month, **four fifths of a Brief
-arrives by `convergence` with no Interest named at all**. `positioning.md` §7.1's
-separability falsifier still does not fire — every surviving interest entry is
-Strength 2, so co-citation alone would not have surfaced it — but a claim can
-hollow out without falsifying, and the standing escalation onto
-[#11](https://github.com/SaKaNa-Y/Zis/issues/11) is now load-bearing for the
-*position*, not only for density.
-
-So the escalation above resolves, today, entirely onto its **first** branch.
-**`T+` is not what is binding and lowering it would buy nothing**: there is no
-value of `T+` at which this corpus reaches a trailing-14 median of 5, so the
-"explicit edit to `T+`" clause is not the available lever and must not be reached
-for first. What binds is **distinct-Publisher supply**, which is
-[#11](https://github.com/SaKaNa-Y/Zis/issues/11)'s work.
-
-Two things this does **not** license. It is not a reason to raise or lower the
-ceiling (#14 upheld) and it is not a reason to weaken `E1` — a Strength-1 floor
-would admit 4,910 of the corpus's 4,937 Signals, which is the anxiety inbox the
-product exists to delete. And it is **not** evidence that the product is
-unworkable: a short Brief is honest by construction (#14), and the honest reading
-of these numbers is that Zis currently has a **source-list problem wearing a
-threshold's clothes**.
+it: with the interest route at roughly one entry per month, **four fifths of a
+Brief arrives by `convergence` with no Interest named at all.**
+`positioning.md` §7.1's separability falsifier still does not fire — every
+surviving interest entry is Strength 2, so co-citation alone would not have
+surfaced it — but a claim can hollow out without falsifying. Under this section
+that is an **observation about the position**, not a density miss, and it is
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s to re-measure on the current
+register.
 
 ## 10. How the numbers were sited, and what they are conditional on
 

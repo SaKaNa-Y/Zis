@@ -63,8 +63,14 @@ absolute-relevance-bar ruling by accident rather than by decision.
 - **The invisible rejected class is accepted.** Strength 2 with no Interest match
   is the largest rejected population and the reader never learns it existed. That
   is what never padding means.
-- **Brief density is a target on the bar, never an input to it.** An adaptive bar
-  is padding wearing a formula, and it would make one Brief's content depend on
-  other days' data, breaking sealing's reproducibility guarantee.
+- ~~**Brief density is a target on the bar, never an input to it.**~~ **This clause
+  is superseded by
+  [ADR-0016](0016-brief-density-is-an-observation-not-a-target.md)** — there is no
+  density target, because it was denominated in the one quantity a lowered bar
+  inflates. **The prohibition it carried is unchanged and now stronger**: density is
+  never an *input* to the bar, and under ADR-0016 it is not an admissible
+  *justification* for changing one either. An adaptive bar is still padding wearing
+  a formula, and it would still make one Brief's content depend on other days'
+  data, breaking sealing's reproducibility guarantee.
 - Any future change that sums two of these quantities into one rank is a reversal
   of this decision and of ADR-0003's deterministic why-text, not a refinement.

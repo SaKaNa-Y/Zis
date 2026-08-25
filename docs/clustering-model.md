@@ -70,8 +70,14 @@ and putting an entry on a day that would otherwise be blank — not by preventin
 duplicates. This is the ledger
 [Calibrate the relevance bar against the corpus](https://github.com/SaKaNa-Y/Zis/issues/21)
 showed is the scarce one: **18 of the last 30 days carry no eligible Signal at
-all**, and the trailing-14-day median Brief size is **1** against `ranking-model.md`
-§9's ≥5 target, *with the relevance bar switched off entirely*.
+all**, and the trailing-14-day median Brief size is **1** — *with the relevance bar
+switched off entirely*. (This line used to read that median "against
+`ranking-model.md` §9's ≥5 target". **There is no target**:
+[ADR-0016](adr/0016-brief-density-is-an-observation-not-a-target.md) retired it,
+and `source-register.md` §8.1 adds that the 18-of-30 figure is partly measuring
+publisher-side feed retention rather than supply. Neither correction touches the
+argument here — a merge rule still earns its place by recovering split votes — but
+do not re-quote either number as a current value.)
 
 Two consequences for anyone proposing a cascade layer:
 
