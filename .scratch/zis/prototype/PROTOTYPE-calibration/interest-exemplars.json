@@ -1,0 +1,2129 @@
+{
+  "floors": {
+    "base": 0.6607407972700937,
+    "labs": 0.6702267583629382,
+    "models": 0.6616195719514157
+  },
+  "variants": {
+    "base": [
+      "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing",
+      "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations",
+      "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models",
+      "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval",
+      "Coding agents and agentic developer tooling — how they are built and where they fail",
+      "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop",
+      "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out",
+      "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits",
+      "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade",
+      "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice",
+      "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions",
+      "React itself — its release cycle, the compiler, and the ecosystem built on top of it",
+      "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse",
+      "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library",
+      "TypeScript language releases and type-level techniques",
+      "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability",
+      "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups",
+      "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling",
+      "RSS, feeds, and the open web — readers, aggregators, and independent publishing",
+      "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
+    ],
+    "labs": [
+      "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing (OpenAI, Anthropic, Google DeepMind, Meta, xAI, Mistral, DeepSeek)",
+      "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations (OpenAI, Anthropic, Google, AWS Bedrock)",
+      "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models (OpenAI, Anthropic, Google DeepMind)",
+      "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval (LangChain, LlamaIndex, DSPy)",
+      "Coding agents and agentic developer tooling — how they are built and where they fail (Claude Code, Cursor, Copilot, Aider)",
+      "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop (Hugging Face, Ollama, llama.cpp, vLLM)",
+      "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out (Hugging Face, GitHub)",
+      "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits (OpenAI, Anthropic, Nvidia, SoftBank, xAI)",
+      "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade (Node, Deno, Bun, Go, Rust, Python)",
+      "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice (Vite, esbuild, Rollup, pnpm, Turborepo, GitHub Actions)",
+      "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions (Vercel)",
+      "React itself — its release cycle, the compiler, and the ecosystem built on top of it (React, Meta)",
+      "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse (Vue, Nuxt, Pinia, VueUse)",
+      "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library (Tailwind Labs)",
+      "TypeScript language releases and type-level techniques (TypeScript, Microsoft)",
+      "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability (Chrome, Safari, Firefox, WebKit)",
+      "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups (OWASP, Cloudflare)",
+      "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling (Rust, Cargo, Tokio, SWC, Biome)",
+      "RSS, feeds, and the open web — readers, aggregators, and independent publishing (RSS, Atom, ActivityPub)",
+      "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
+    ],
+    "models": [
+      "Frontier model releases from the major AI labs — new models, what capabilities changed, benchmark results, and pricing (GPT, Claude, Gemini, Grok, Llama, DeepSeek, Mistral)",
+      "AI provider platform and API changes — tool use, MCP, context handling, agent APIs, and deprecations (OpenAI API, Anthropic API, Gemini API, MCP, Bedrock)",
+      "AI research published by the frontier labs — interpretability, alignment and safety work, and scientific results obtained with models (interpretability, alignment, evals)",
+      "Practical LLM application engineering — prompting, tool use, structured output, evaluation, retrieval (prompting, RAG, evals, structured output)",
+      "Coding agents and agentic developer tooling — how they are built and where they fail (Claude Code, Cursor, Copilot, Codex, Aider, Devin)",
+      "Open-weight and locally-runnable models — embeddings, quantization, running inference on a laptop (Llama, Qwen, Mistral, GGUF, Ollama, llama.cpp, vLLM)",
+      "Notable open-source AI projects the community is talking about — what one does and whether it is worth trying out (GitHub stars, Hugging Face trending)",
+      "The AI industry as a business — funding rounds, valuations, acquisitions, executive moves, and lawsuits (OpenAI, Anthropic, Nvidia, xAI, funding, valuation, lawsuit)",
+      "Version releases of developer libraries, frameworks and runtimes — what changed, what breaks, and whether to upgrade (Node, Deno, Bun, Vite, React, TypeScript, Go, Rust, Python)",
+      "Developer tooling and build systems — Vite, bundlers, package managers, monorepo and CI practice (Vite, Rollup, esbuild, pnpm, npm, Turborepo, CI)",
+      "Next.js App Router internals — routing, caching, Server Actions, and what changes between major versions (Next.js, Vercel, App Router, Server Actions)",
+      "React itself — its release cycle, the compiler, and the ecosystem built on top of it (React 19, React Compiler, hooks, Suspense)",
+      "Vue 3 Composition API and the Vue ecosystem — script setup, reactivity, Pinia, VueUse (Vue 3, script setup, Pinia, VueUse, Nuxt)",
+      "Tailwind CSS v4 — the engine rewrite, design tokens, and building a design system without a component library (Tailwind v4, design tokens, utility classes)",
+      "TypeScript language releases and type-level techniques (TypeScript 5, generics, satisfies, type inference)",
+      "Web platform features landing in browsers — CSS, HTML elements, and Baseline availability (CSS, HTML, Baseline, Chrome, Safari, Firefox)",
+      "Web application security — SSRF, authentication design, session handling, and real vulnerability writeups (SSRF, XSS, CSRF, OAuth, sessions, CVE)",
+      "Rust for tooling and systems work — the language, the ecosystem, and Rust-based JavaScript tooling (Rust, Cargo, Tokio, SWC, Biome, Rolldown, oxc)",
+      "RSS, feeds, and the open web — readers, aggregators, and independent publishing (RSS, Atom, JSON Feed, ActivityPub)",
+      "Software design writing — module boundaries, API design, and how to keep a codebase navigable"
+    ]
+  },
+  "rows": [
+    {
+      "url": "https://youtube.com/watch?v=87DyyMV0kCY",
+      "strength": 4,
+      "basis": "citing",
+      "text": "the next bit in full",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 6,
+            "rel": 0.5904901005046092
+          },
+          {
+            "n": 12,
+            "rel": 0.5770085132691771
+          },
+          {
+            "n": 19,
+            "rel": 0.5764743377887582
+          },
+          {
+            "n": 11,
+            "rel": 0.5592441443415932
+          },
+          {
+            "n": 4,
+            "rel": 0.5531870958907901
+          }
+        ],
+        "labs": [
+          {
+            "n": 19,
+            "rel": 0.5919479679217614
+          },
+          {
+            "n": 6,
+            "rel": 0.5835931262464251
+          },
+          {
+            "n": 4,
+            "rel": 0.5707601561606246
+          },
+          {
+            "n": 11,
+            "rel": 0.5626827069533474
+          },
+          {
+            "n": 12,
+            "rel": 0.5610795915505522
+          }
+        ],
+        "models": [
+          {
+            "n": 19,
+            "rel": 0.5965001511854764
+          },
+          {
+            "n": 6,
+            "rel": 0.5934231108618593
+          },
+          {
+            "n": 4,
+            "rel": 0.5779451681715677
+          },
+          {
+            "n": 12,
+            "rel": 0.5689707159666628
+          },
+          {
+            "n": 1,
+            "rel": 0.5613679338593294
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://z.ai/blog/glm-5.3",
+      "strength": 3,
+      "basis": "citing",
+      "text": "self-reported vendor numbers",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 8,
+            "rel": 0.6037822239644388
+          },
+          {
+            "n": 4,
+            "rel": 0.5923786027737727
+          },
+          {
+            "n": 19,
+            "rel": 0.5915401483128627
+          },
+          {
+            "n": 1,
+            "rel": 0.5886465661308887
+          },
+          {
+            "n": 16,
+            "rel": 0.5885770000947108
+          }
+        ],
+        "labs": [
+          {
+            "n": 4,
+            "rel": 0.6036654899716961
+          },
+          {
+            "n": 19,
+            "rel": 0.5947350821099285
+          },
+          {
+            "n": 8,
+            "rel": 0.590950954722363
+          },
+          {
+            "n": 20,
+            "rel": 0.5860820394935674
+          },
+          {
+            "n": 2,
+            "rel": 0.5855431445281024
+          }
+        ],
+        "models": [
+          {
+            "n": 19,
+            "rel": 0.5992840004096621
+          },
+          {
+            "n": 8,
+            "rel": 0.5949780046437505
+          },
+          {
+            "n": 4,
+            "rel": 0.5935119056311826
+          },
+          {
+            "n": 20,
+            "rel": 0.5860820394935674
+          },
+          {
+            "n": 3,
+            "rel": 0.5851402418997892
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://anthropic.com/research/riemann-zeta",
+      "strength": 3,
+      "basis": "citing",
+      "text": "Learning more about Claude's mathematical capabilities (7 minute read)",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 3,
+            "rel": 0.6431503332674844
+          },
+          {
+            "n": 1,
+            "rel": 0.6327745703193695
+          },
+          {
+            "n": 6,
+            "rel": 0.6284481956286764
+          },
+          {
+            "n": 7,
+            "rel": 0.6195351763833639
+          },
+          {
+            "n": 14,
+            "rel": 0.5894335468035646
+          }
+        ],
+        "labs": [
+          {
+            "n": 3,
+            "rel": 0.6491930365529507
+          },
+          {
+            "n": 6,
+            "rel": 0.6328126627681688
+          },
+          {
+            "n": 5,
+            "rel": 0.6226959412715818
+          },
+          {
+            "n": 1,
+            "rel": 0.619685387668022
+          },
+          {
+            "n": 7,
+            "rel": 0.6106868170281776
+          }
+        ],
+        "models": [
+          {
+            "n": 3,
+            "rel": 0.6576919565203229
+          },
+          {
+            "n": 6,
+            "rel": 0.6485497383842802
+          },
+          {
+            "n": 1,
+            "rel": 0.6338279748774294
+          },
+          {
+            "n": 5,
+            "rel": 0.618382918745573
+          },
+          {
+            "n": 7,
+            "rel": 0.6136694862885407
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Aug/7/openai-timeline",
+      "strength": 3,
+      "basis": "own",
+      "text": "Now we have a timeline of the OpenAI accidental attack against Hugging Face. <p>OpenAI gave a last-minute presentation at the Black Hat security on Wednesday about \"the Hugging Face Incident\" (<a href=\"https://simonwillison.net/2026/Jul/22/openai-cyberattack/\">previously</a> on this blog). <a href=\"https://www.youtube.com/watch?v=87DyyMV0kCY\">The video</a> was published yesterday. It's short and information dense and well worth watching, in particular because it provides full details of what happened and how things played out inside OpenAI. I've used the video to construct the timeline below.</p> <p><lite-youtube videoid=\"87DyyMV0kCY\" js-api=\"js-api\" title=\"Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" playlabel=\"Play: Black Hat USA 2026: The 'Breaking' News: The OpenAI–Hugging Face Incident\" > </lite-youtube></p> <p>Here's the timeline. My favourite detail is at the end: OpenAI found out that they were responsible for the attack on Hugging Face when they reached out to ask to have their credentials revoked (after their internal investigation) and learned that they had been revoked already since they were used in that attack!</p> <ul> <li> <strong>May 7",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 7,
+            "rel": 0.6694709197939694
+          },
+          {
+            "n": 1,
+            "rel": 0.6245508142116766
+          },
+          {
+            "n": 3,
+            "rel": 0.6237858407993072
+          },
+          {
+            "n": 17,
+            "rel": 0.600473078278586
+          },
+          {
+            "n": 8,
+            "rel": 0.5967007513110005
+          }
+        ],
+        "labs": [
+          {
+            "n": 7,
+            "rel": 0.7240665239060075
+          },
+          {
+            "n": 3,
+            "rel": 0.6686083085549449
+          },
+          {
+            "n": 1,
+            "rel": 0.6598761677478334
+          },
+          {
+            "n": 8,
+            "rel": 0.6516268665247291
+          },
+          {
+            "n": 2,
+            "rel": 0.6369195760397999
+          }
+        ],
+        "models": [
+          {
+            "n": 7,
+            "rel": 0.6994116567654798
+          },
+          {
+            "n": 8,
+            "rel": 0.6580626584836395
+          },
+          {
+            "n": 17,
+            "rel": 0.6495259255528244
+          },
+          {
+            "n": 3,
+            "rel": 0.6408695811597953
+          },
+          {
+            "n": 2,
+            "rel": 0.635178270958131
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://anthropic.com/news/fable-mythos-access",
+      "strength": 3,
+      "basis": "citing",
+      "text": "https://www.anthropic.com/news/fable-mythos-access",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 19,
+            "rel": 0.5743694115007294
+          },
+          {
+            "n": 7,
+            "rel": 0.5661447428929911
+          },
+          {
+            "n": 1,
+            "rel": 0.5623476118063488
+          },
+          {
+            "n": 16,
+            "rel": 0.5501560765498805
+          },
+          {
+            "n": 3,
+            "rel": 0.5480872489742035
+          }
+        ],
+        "labs": [
+          {
+            "n": 3,
+            "rel": 0.6376598932430708
+          },
+          {
+            "n": 1,
+            "rel": 0.6079721300837648
+          },
+          {
+            "n": 2,
+            "rel": 0.5997078200624553
+          },
+          {
+            "n": 19,
+            "rel": 0.5912983962425856
+          },
+          {
+            "n": 7,
+            "rel": 0.5752581942669883
+          }
+        ],
+        "models": [
+          {
+            "n": 19,
+            "rel": 0.594153887047076
+          },
+          {
+            "n": 2,
+            "rel": 0.5869940329998589
+          },
+          {
+            "n": 3,
+            "rel": 0.5857757795483579
+          },
+          {
+            "n": 8,
+            "rel": 0.5817996848407598
+          },
+          {
+            "n": 7,
+            "rel": 0.5787309132203236
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8",
+      "strength": 2,
+      "basis": "citing",
+      "text": "tends to overthink",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 6,
+            "rel": 0.5244614869434179
+          },
+          {
+            "n": 3,
+            "rel": 0.5236365895186419
+          },
+          {
+            "n": 1,
+            "rel": 0.5081434544517619
+          },
+          {
+            "n": 7,
+            "rel": 0.4941494143791559
+          },
+          {
+            "n": 5,
+            "rel": 0.490772199839361
+          }
+        ],
+        "labs": [
+          {
+            "n": 3,
+            "rel": 0.5315627953881302
+          },
+          {
+            "n": 6,
+            "rel": 0.522324478751411
+          },
+          {
+            "n": 5,
+            "rel": 0.501566263028158
+          },
+          {
+            "n": 7,
+            "rel": 0.488404841200747
+          },
+          {
+            "n": 2,
+            "rel": 0.48589763573659395
+          }
+        ],
+        "models": [
+          {
+            "n": 3,
+            "rel": 0.5403317436115502
+          },
+          {
+            "n": 6,
+            "rel": 0.5308848837196473
+          },
+          {
+            "n": 5,
+            "rel": 0.4962338866171368
+          },
+          {
+            "n": 4,
+            "rel": 0.49467673340540774
+          },
+          {
+            "n": 7,
+            "rel": 0.4851185981593222
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Gemini 3.7 Flash",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 9,
+            "rel": 0.5565798251411229
+          },
+          {
+            "n": 13,
+            "rel": 0.5515274581652404
+          },
+          {
+            "n": 1,
+            "rel": 0.5480232345719129
+          },
+          {
+            "n": 4,
+            "rel": 0.5158037821956746
+          },
+          {
+            "n": 2,
+            "rel": 0.5036087536851617
+          }
+        ],
+        "labs": [
+          {
+            "n": 13,
+            "rel": 0.5519075834580873
+          },
+          {
+            "n": 9,
+            "rel": 0.5490444954841509
+          },
+          {
+            "n": 1,
+            "rel": 0.5465718978565905
+          },
+          {
+            "n": 4,
+            "rel": 0.5239852178541482
+          },
+          {
+            "n": 11,
+            "rel": 0.5161704637398173
+          }
+        ],
+        "models": [
+          {
+            "n": 1,
+            "rel": 0.5987924917045033
+          },
+          {
+            "n": 13,
+            "rel": 0.555681475574762
+          },
+          {
+            "n": 2,
+            "rel": 0.5378053806558561
+          },
+          {
+            "n": 4,
+            "rel": 0.5370134280847497
+          },
+          {
+            "n": 17,
+            "rel": 0.5262983416745783
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://deepseek.com/harness/en",
+      "strength": 2,
+      "basis": "citing",
+      "text": "DeepSeek Harness (Website)",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 16,
+            "rel": 0.6300161302079782
+          },
+          {
+            "n": 14,
+            "rel": 0.6277078778305561
+          },
+          {
+            "n": 19,
+            "rel": 0.6274601956520578
+          },
+          {
+            "n": 10,
+            "rel": 0.6167656586835428
+          },
+          {
+            "n": 1,
+            "rel": 0.6146000576463867
+          }
+        ],
+        "labs": [
+          {
+            "n": 1,
+            "rel": 0.6564236390457333
+          },
+          {
+            "n": 3,
+            "rel": 0.6497559723509185
+          },
+          {
+            "n": 19,
+            "rel": 0.6461059776444745
+          },
+          {
+            "n": 14,
+            "rel": 0.6414285622343988
+          },
+          {
+            "n": 10,
+            "rel": 0.6304542767099811
+          }
+        ],
+        "models": [
+          {
+            "n": 19,
+            "rel": 0.6523867358701648
+          },
+          {
+            "n": 1,
+            "rel": 0.6510825853845448
+          },
+          {
+            "n": 14,
+            "rel": 0.6429036800149217
+          },
+          {
+            "n": 3,
+            "rel": 0.619709128819265
+          },
+          {
+            "n": 10,
+            "rel": 0.6169255446646872
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://x.com/SpaceXAI/status/2087562800982077492",
+      "strength": 2,
+      "basis": "citing",
+      "text": "announced Grok 4.6",
+      "label": "missed",
+      "wanted": 1,
+      "top": {
+        "base": [
+          {
+            "n": 9,
+            "rel": 0.68011355243838
+          },
+          {
+            "n": 11,
+            "rel": 0.5986366800137713
+          },
+          {
+            "n": 10,
+            "rel": 0.5872758973729799
+          },
+          {
+            "n": 15,
+            "rel": 0.5849775894400452
+          },
+          {
+            "n": 12,
+            "rel": 0.5789731502747851
+          }
+        ],
+        "labs": [
+          {
+            "n": 9,
+            "rel": 0.692102210258491
+          },
+          {
+            "n": 11,
+            "rel": 0.6121106130041203
+          },
+          {
+            "n": 10,
+            "rel": 0.6073726024799055
+          },
+          {
+            "n": 1,
+            "rel": 0.5898166572404567
+          },
+          {
+            "n": 15,
+            "rel": 0.5888547099470423
+          }
+        ],
+        "models": [
+          {
+            "n": 9,
+            "rel": 0.665469629411839
+          },
+          {
+            "n": 1,
+            "rel": 0.6303777750630034
+          },
+          {
+            "n": 10,
+            "rel": 0.591573091534154
+          },
+          {
+            "n": 14,
+            "rel": 0.5860552796752625
+          },
+          {
+            "n": 12,
+            "rel": 0.5849739543230692
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://x.com/kunchenguid/status/2087567139318477117",
+      "strength": 2,
+      "basis": "citing",
+      "text": "spent a day taking it apart",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 14,
+            "rel": 0.5336911377781516
+          },
+          {
+            "n": 12,
+            "rel": 0.4938929069874472
+          },
+          {
+            "n": 18,
+            "rel": 0.48604081523783627
+          },
+          {
+            "n": 9,
+            "rel": 0.4721707164508099
+          },
+          {
+            "n": 13,
+            "rel": 0.47062248148362196
+          }
+        ],
+        "labs": [
+          {
+            "n": 14,
+            "rel": 0.5441428346001881
+          },
+          {
+            "n": 18,
+            "rel": 0.4854692610676799
+          },
+          {
+            "n": 12,
+            "rel": 0.4844530707152156
+          },
+          {
+            "n": 9,
+            "rel": 0.475531753887636
+          },
+          {
+            "n": 10,
+            "rel": 0.4752552055260518
+          }
+        ],
+        "models": [
+          {
+            "n": 14,
+            "rel": 0.535666680961335
+          },
+          {
+            "n": 18,
+            "rel": 0.47548798223412586
+          },
+          {
+            "n": 4,
+            "rel": 0.4722633697354027
+          },
+          {
+            "n": 12,
+            "rel": 0.4682328789686286
+          },
+          {
+            "n": 9,
+            "rel": 0.46367990895393346
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html",
+      "strength": 2,
+      "basis": "citing",
+      "text": "AI is removing the middle class of software engineering (5 minute read)",
+      "label": "missed",
+      "wanted": 8,
+      "top": {
+        "base": [
+          {
+            "n": 2,
+            "rel": 0.7289796833146774
+          },
+          {
+            "n": 8,
+            "rel": 0.7249203166085239
+          },
+          {
+            "n": 1,
+            "rel": 0.71207460657873
+          },
+          {
+            "n": 3,
+            "rel": 0.7022303327012336
+          },
+          {
+            "n": 7,
+            "rel": 0.699601640106658
+          }
+        ],
+        "labs": [
+          {
+            "n": 2,
+            "rel": 0.7279914232977227
+          },
+          {
+            "n": 8,
+            "rel": 0.7228094047148805
+          },
+          {
+            "n": 7,
+            "rel": 0.6967894711346377
+          },
+          {
+            "n": 5,
+            "rel": 0.6958397730160035
+          },
+          {
+            "n": 3,
+            "rel": 0.6940847691065634
+          }
+        ],
+        "models": [
+          {
+            "n": 8,
+            "rel": 0.7159516697759489
+          },
+          {
+            "n": 3,
+            "rel": 0.7090156071689797
+          },
+          {
+            "n": 2,
+            "rel": 0.7061002325711178
+          },
+          {
+            "n": 5,
+            "rel": 0.700067759287164
+          },
+          {
+            "n": 7,
+            "rel": 0.6908164275540256
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://x.com/bot/status/2087224798078517251",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Grok Bot",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 7,
+            "rel": 0.6406965060091705
+          },
+          {
+            "n": 2,
+            "rel": 0.6275147891457409
+          },
+          {
+            "n": 3,
+            "rel": 0.602468704642763
+          },
+          {
+            "n": 1,
+            "rel": 0.601533473499248
+          },
+          {
+            "n": 5,
+            "rel": 0.593507039962199
+          }
+        ],
+        "labs": [
+          {
+            "n": 7,
+            "rel": 0.6408091132420782
+          },
+          {
+            "n": 2,
+            "rel": 0.626844228681581
+          },
+          {
+            "n": 19,
+            "rel": 0.6052552211190767
+          },
+          {
+            "n": 3,
+            "rel": 0.5954527638276786
+          },
+          {
+            "n": 18,
+            "rel": 0.5942510919195106
+          }
+        ],
+        "models": [
+          {
+            "n": 7,
+            "rel": 0.6346423415928597
+          },
+          {
+            "n": 19,
+            "rel": 0.61992101340473
+          },
+          {
+            "n": 1,
+            "rel": 0.6167627766388032
+          },
+          {
+            "n": 2,
+            "rel": 0.6045032561030217
+          },
+          {
+            "n": 3,
+            "rel": 0.5960465186548831
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content",
+      "strength": 2,
+      "basis": "citing",
+      "text": "support document",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 9,
+            "rel": 0.6192742549838804
+          },
+          {
+            "n": 15,
+            "rel": 0.6188998243855636
+          },
+          {
+            "n": 13,
+            "rel": 0.6164310334620043
+          },
+          {
+            "n": 4,
+            "rel": 0.5962700541296951
+          },
+          {
+            "n": 2,
+            "rel": 0.5869524342060216
+          }
+        ],
+        "labs": [
+          {
+            "n": 13,
+            "rel": 0.6150136105976024
+          },
+          {
+            "n": 9,
+            "rel": 0.6149795036845758
+          },
+          {
+            "n": 15,
+            "rel": 0.6119202873392955
+          },
+          {
+            "n": 17,
+            "rel": 0.6023266163292981
+          },
+          {
+            "n": 4,
+            "rel": 0.5989425309439891
+          }
+        ],
+        "models": [
+          {
+            "n": 13,
+            "rel": 0.6180003983254395
+          },
+          {
+            "n": 9,
+            "rel": 0.6124795618772474
+          },
+          {
+            "n": 14,
+            "rel": 0.6069695789943622
+          },
+          {
+            "n": 4,
+            "rel": 0.5982016307086775
+          },
+          {
+            "n": 17,
+            "rel": 0.5971031023506252
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://blog.cloudflare.com/kitesurf",
+      "strength": 2,
+      "basis": "own",
+      "text": "Introducing Kitesurf: The agent-first browser that runs in V8 isolates on Cloudflare Workers. Should we build our own browser? This is one of those questions that has come up every few months internally at Cloudflare for years. Unsurprisingly, it’s the kind that triggers long threads with multiple reasons and persuasive arguments on why we should do it. The browser is obviously the most important software we use every day on our computers; it’s arguably the operating system of the Internet. We’re a company on a mission to help build a better Internet — who wouldn’t want to take on the challenge of building a new browser? But we never quite found the balance between the technical difficulty of such an endeavour and the unique problems we’d be solving by doing it. And so, the idea was shelved, over and over again. Until now. Something magical happened: we reached a tipping point where a series of powerful technical advancements in our Developer Platform became a reality, while the advent of AI agents and the demand for a new kind of browser became critical at the same time. Running WebAssembly (Wasm) in Workers is now very mature. Primitives like dynamic workers , SQLite-based Durabl",
+      "label": "near",
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 7,
+            "rel": 0.6976977319114284
+          },
+          {
+            "n": 2,
+            "rel": 0.6819524917269766
+          },
+          {
+            "n": 5,
+            "rel": 0.6813789780366889
+          },
+          {
+            "n": 14,
+            "rel": 0.6728413337536003
+          },
+          {
+            "n": 12,
+            "rel": 0.6727849650396722
+          }
+        ],
+        "labs": [
+          {
+            "n": 2,
+            "rel": 0.7101760775581974
+          },
+          {
+            "n": 7,
+            "rel": 0.6949260754503742
+          },
+          {
+            "n": 16,
+            "rel": 0.6916489438281463
+          },
+          {
+            "n": 5,
+            "rel": 0.689247100550684
+          },
+          {
+            "n": 17,
+            "rel": 0.688043563153525
+          }
+        ],
+        "models": [
+          {
+            "n": 14,
+            "rel": 0.6991574412742579
+          },
+          {
+            "n": 2,
+            "rel": 0.6915291548506485
+          },
+          {
+            "n": 5,
+            "rel": 0.6907976117751761
+          },
+          {
+            "n": 7,
+            "rel": 0.6854714134266212
+          },
+          {
+            "n": 16,
+            "rel": 0.6814219261454206
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-07-28",
+      "strength": 2,
+      "basis": "citing",
+      "text": "2026-07-28 specification",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 14,
+            "rel": 0.5791667168157334
+          },
+          {
+            "n": 11,
+            "rel": 0.5785669753499969
+          },
+          {
+            "n": 9,
+            "rel": 0.5666995931148914
+          },
+          {
+            "n": 1,
+            "rel": 0.5618734202839684
+          },
+          {
+            "n": 16,
+            "rel": 0.5591167750382167
+          }
+        ],
+        "labs": [
+          {
+            "n": 14,
+            "rel": 0.5850667430847428
+          },
+          {
+            "n": 11,
+            "rel": 0.5774782149534424
+          },
+          {
+            "n": 4,
+            "rel": 0.5722725627686552
+          },
+          {
+            "n": 17,
+            "rel": 0.5618139705304184
+          },
+          {
+            "n": 9,
+            "rel": 0.5494163747782431
+          }
+        ],
+        "models": [
+          {
+            "n": 14,
+            "rel": 0.5933666141945787
+          },
+          {
+            "n": 4,
+            "rel": 0.5641794811505605
+          },
+          {
+            "n": 12,
+            "rel": 0.5446487731091062
+          },
+          {
+            "n": 17,
+            "rel": 0.5435716081921713
+          },
+          {
+            "n": 11,
+            "rel": 0.5435068174765034
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://seangoedecke.com/llms-reward-expertise",
+      "strength": 2,
+      "basis": "citing",
+      "text": "LLMs reward expertise (5 minute read)",
+      "label": "RIGHT",
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 4,
+            "rel": 0.7536102424975014
+          },
+          {
+            "n": 8,
+            "rel": 0.6452497440109866
+          },
+          {
+            "n": 1,
+            "rel": 0.6332848814915496
+          },
+          {
+            "n": 3,
+            "rel": 0.6263475068081357
+          },
+          {
+            "n": 19,
+            "rel": 0.6106748662042617
+          }
+        ],
+        "labs": [
+          {
+            "n": 4,
+            "rel": 0.7454142115482236
+          },
+          {
+            "n": 3,
+            "rel": 0.6326374019333534
+          },
+          {
+            "n": 19,
+            "rel": 0.6199652442468777
+          },
+          {
+            "n": 5,
+            "rel": 0.6160828206758039
+          },
+          {
+            "n": 8,
+            "rel": 0.6128107233796607
+          }
+        ],
+        "models": [
+          {
+            "n": 4,
+            "rel": 0.7553962476782342
+          },
+          {
+            "n": 3,
+            "rel": 0.64423858274479
+          },
+          {
+            "n": 8,
+            "rel": 0.6271575799632212
+          },
+          {
+            "n": 19,
+            "rel": 0.6236953011950104
+          },
+          {
+            "n": 10,
+            "rel": 0.6185218202517295
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731",
+      "strength": 2,
+      "basis": "citing",
+      "text": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "label": "RIGHT",
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 1,
+            "rel": 0.6707426775156445
+          },
+          {
+            "n": 7,
+            "rel": 0.644419519920929
+          },
+          {
+            "n": 3,
+            "rel": 0.6306133035686341
+          },
+          {
+            "n": 2,
+            "rel": 0.6252479332533147
+          },
+          {
+            "n": 9,
+            "rel": 0.6114263826611636
+          }
+        ],
+        "labs": [
+          {
+            "n": 1,
+            "rel": 0.704323529279539
+          },
+          {
+            "n": 3,
+            "rel": 0.6797753808920542
+          },
+          {
+            "n": 7,
+            "rel": 0.6603734156227667
+          },
+          {
+            "n": 2,
+            "rel": 0.6384421118428425
+          },
+          {
+            "n": 9,
+            "rel": 0.6136989159890144
+          }
+        ],
+        "models": [
+          {
+            "n": 1,
+            "rel": 0.6842980005211232
+          },
+          {
+            "n": 7,
+            "rel": 0.6545326320295515
+          },
+          {
+            "n": 3,
+            "rel": 0.6491092594248474
+          },
+          {
+            "n": 2,
+            "rel": 0.6272810383125517
+          },
+          {
+            "n": 6,
+            "rel": 0.6204842037966956
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Stacked pull requests are now in public preview (3 minute read)",
+      "label": "missed",
+      "wanted": 10,
+      "top": {
+        "base": [
+          {
+            "n": 19,
+            "rel": 0.6701016359239833
+          },
+          {
+            "n": 15,
+            "rel": 0.6286075017596517
+          },
+          {
+            "n": 9,
+            "rel": 0.6277332616338945
+          },
+          {
+            "n": 16,
+            "rel": 0.6093418389199723
+          },
+          {
+            "n": 11,
+            "rel": 0.6044506860435643
+          }
+        ],
+        "labs": [
+          {
+            "n": 19,
+            "rel": 0.6869906826052363
+          },
+          {
+            "n": 9,
+            "rel": 0.6368896434279339
+          },
+          {
+            "n": 10,
+            "rel": 0.634469493900214
+          },
+          {
+            "n": 15,
+            "rel": 0.6215751546068691
+          },
+          {
+            "n": 16,
+            "rel": 0.612013714303996
+          }
+        ],
+        "models": [
+          {
+            "n": 19,
+            "rel": 0.6969757236120993
+          },
+          {
+            "n": 9,
+            "rel": 0.6327974591821671
+          },
+          {
+            "n": 4,
+            "rel": 0.6226200058952296
+          },
+          {
+            "n": 10,
+            "rel": 0.6136566781480798
+          },
+          {
+            "n": 14,
+            "rel": 0.6080949128948129
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://codepen.io/2/whats-new",
+      "strength": 2,
+      "basis": "citing",
+      "text": "CodePen 2.0",
+      "label": "missed",
+      "wanted": 16,
+      "top": {
+        "base": [
+          {
+            "n": 20,
+            "rel": 0.7077861282761514
+          },
+          {
+            "n": 18,
+            "rel": 0.6933236289020954
+          },
+          {
+            "n": 5,
+            "rel": 0.6898562433858217
+          },
+          {
+            "n": 10,
+            "rel": 0.6812193169133732
+          },
+          {
+            "n": 14,
+            "rel": 0.6749223373858235
+          }
+        ],
+        "labs": [
+          {
+            "n": 20,
+            "rel": 0.7077861282761514
+          },
+          {
+            "n": 5,
+            "rel": 0.7021435195125121
+          },
+          {
+            "n": 4,
+            "rel": 0.6880862380208371
+          },
+          {
+            "n": 10,
+            "rel": 0.6823888322898345
+          },
+          {
+            "n": 14,
+            "rel": 0.6811142234337901
+          }
+        ],
+        "models": [
+          {
+            "n": 20,
+            "rel": 0.7077861282761514
+          },
+          {
+            "n": 5,
+            "rel": 0.7007340509767234
+          },
+          {
+            "n": 14,
+            "rel": 0.6793564005648246
+          },
+          {
+            "n": 10,
+            "rel": 0.6772590375760166
+          },
+          {
+            "n": 4,
+            "rel": 0.6752746609430131
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://youtube.com/watch?v=Xs-U7SY2uNE",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Stop Reviewing Diffs. Start Reviewing Systems",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 9,
+            "rel": 0.6353378448541669
+          },
+          {
+            "n": 12,
+            "rel": 0.617966858963518
+          },
+          {
+            "n": 4,
+            "rel": 0.608529272044477
+          },
+          {
+            "n": 19,
+            "rel": 0.5954548837236474
+          },
+          {
+            "n": 10,
+            "rel": 0.5944762175472492
+          }
+        ],
+        "labs": [
+          {
+            "n": 9,
+            "rel": 0.6355745418199161
+          },
+          {
+            "n": 4,
+            "rel": 0.6233792018731279
+          },
+          {
+            "n": 12,
+            "rel": 0.6199056829154647
+          },
+          {
+            "n": 10,
+            "rel": 0.6074783968141266
+          },
+          {
+            "n": 19,
+            "rel": 0.6011898599830379
+          }
+        ],
+        "models": [
+          {
+            "n": 4,
+            "rel": 0.6286267602675857
+          },
+          {
+            "n": 9,
+            "rel": 0.6213959698408806
+          },
+          {
+            "n": 19,
+            "rel": 0.6021312524668111
+          },
+          {
+            "n": 10,
+            "rel": 0.5965227280351428
+          },
+          {
+            "n": 12,
+            "rel": 0.5946771793101149
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://huggingface.co/blog/agent-intrusion-technical-timeline",
+      "strength": 2,
+      "basis": "own",
+      "text": "Anatomy of a Frontier Lab Agent Intrusion: A Technical Timeline of the July 2026 Incident.",
+      "label": "near",
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 3,
+            "rel": 0.7738918124290181
+          },
+          {
+            "n": 1,
+            "rel": 0.738491814599026
+          },
+          {
+            "n": 2,
+            "rel": 0.6994300357148948
+          },
+          {
+            "n": 17,
+            "rel": 0.697936958877744
+          },
+          {
+            "n": 5,
+            "rel": 0.6910900360886307
+          }
+        ],
+        "labs": [
+          {
+            "n": 3,
+            "rel": 0.7527951407323145
+          },
+          {
+            "n": 1,
+            "rel": 0.7083664388312636
+          },
+          {
+            "n": 17,
+            "rel": 0.7070290350577334
+          },
+          {
+            "n": 2,
+            "rel": 0.7066647566835556
+          },
+          {
+            "n": 5,
+            "rel": 0.6944570981811287
+          }
+        ],
+        "models": [
+          {
+            "n": 3,
+            "rel": 0.7682336018295107
+          },
+          {
+            "n": 17,
+            "rel": 0.7097534141118109
+          },
+          {
+            "n": 1,
+            "rel": 0.7069709232272139
+          },
+          {
+            "n": 5,
+            "rel": 0.6958597860500715
+          },
+          {
+            "n": 2,
+            "rel": 0.6846489720583715
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://noahpinion.blog/p/what-will-more-intelligence-actually",
+      "strength": 2,
+      "basis": "citing",
+      "text": "What will more intelligence actually do for us? (20 minute read)",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 3,
+            "rel": 0.5968869004434535
+          },
+          {
+            "n": 1,
+            "rel": 0.5863862222081286
+          },
+          {
+            "n": 7,
+            "rel": 0.5812269912294307
+          },
+          {
+            "n": 8,
+            "rel": 0.5703670095502186
+          },
+          {
+            "n": 2,
+            "rel": 0.560115403108317
+          }
+        ],
+        "labs": [
+          {
+            "n": 3,
+            "rel": 0.6357424436632186
+          },
+          {
+            "n": 1,
+            "rel": 0.5957272934780061
+          },
+          {
+            "n": 2,
+            "rel": 0.5891011060735005
+          },
+          {
+            "n": 8,
+            "rel": 0.5694468657993722
+          },
+          {
+            "n": 7,
+            "rel": 0.5671540561141132
+          }
+        ],
+        "models": [
+          {
+            "n": 3,
+            "rel": 0.6079373927959372
+          },
+          {
+            "n": 1,
+            "rel": 0.5748999610662759
+          },
+          {
+            "n": 2,
+            "rel": 0.5746570807042551
+          },
+          {
+            "n": 8,
+            "rel": 0.5724824033819937
+          },
+          {
+            "n": 7,
+            "rel": 0.5710463362567183
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://simonwillison.net/2026/Jul/21/cat-and-thariq",
+      "strength": 2,
+      "basis": "citing",
+      "text": "A Fireside Chat with Cat and Thariq from the Claude Code team (44 minute read)",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 7,
+            "rel": 0.6006550462401491
+          },
+          {
+            "n": 5,
+            "rel": 0.5996276635258906
+          },
+          {
+            "n": 19,
+            "rel": 0.5719938924107616
+          },
+          {
+            "n": 1,
+            "rel": 0.567872722880836
+          },
+          {
+            "n": 3,
+            "rel": 0.5649823427726343
+          }
+        ],
+        "labs": [
+          {
+            "n": 5,
+            "rel": 0.6243833391043384
+          },
+          {
+            "n": 7,
+            "rel": 0.6182017686525032
+          },
+          {
+            "n": 19,
+            "rel": 0.6043051785169031
+          },
+          {
+            "n": 3,
+            "rel": 0.5927509492406048
+          },
+          {
+            "n": 8,
+            "rel": 0.5798462276283403
+          }
+        ],
+        "models": [
+          {
+            "n": 7,
+            "rel": 0.6229492307860642
+          },
+          {
+            "n": 5,
+            "rel": 0.621331907254713
+          },
+          {
+            "n": 19,
+            "rel": 0.6046952606888306
+          },
+          {
+            "n": 3,
+            "rel": 0.5819317503699818
+          },
+          {
+            "n": 6,
+            "rel": 0.5802048522898029
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://x.com/Alibaba_Qwen/status/2078759124914098291",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Qwen3.8 has launched (1 minute read)",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 9,
+            "rel": 0.6279406898829019
+          },
+          {
+            "n": 13,
+            "rel": 0.5935331359857531
+          },
+          {
+            "n": 15,
+            "rel": 0.5789481382626495
+          },
+          {
+            "n": 11,
+            "rel": 0.5774063205619915
+          },
+          {
+            "n": 1,
+            "rel": 0.573954013810023
+          }
+        ],
+        "labs": [
+          {
+            "n": 9,
+            "rel": 0.6457312350933551
+          },
+          {
+            "n": 11,
+            "rel": 0.6019051120475666
+          },
+          {
+            "n": 13,
+            "rel": 0.6003832113961253
+          },
+          {
+            "n": 1,
+            "rel": 0.5911059715737342
+          },
+          {
+            "n": 10,
+            "rel": 0.5875220432709435
+          }
+        ],
+        "models": [
+          {
+            "n": 9,
+            "rel": 0.6299980150853837
+          },
+          {
+            "n": 13,
+            "rel": 0.5996539615158154
+          },
+          {
+            "n": 1,
+            "rel": 0.5890915217733809
+          },
+          {
+            "n": 19,
+            "rel": 0.5881301561320152
+          },
+          {
+            "n": 10,
+            "rel": 0.5785869804053242
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://bun.com/blog/bun-in-rust",
+      "strength": 2,
+      "basis": "own",
+      "text": "Rewriting Bun in Rust. Why & how we rewrote Bun from Zig to Rust",
+      "label": "RIGHT",
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 18,
+            "rel": 0.7373175658273193
+          },
+          {
+            "n": 15,
+            "rel": 0.6769797984885325
+          },
+          {
+            "n": 14,
+            "rel": 0.6673468912450246
+          },
+          {
+            "n": 13,
+            "rel": 0.6414834497784121
+          },
+          {
+            "n": 20,
+            "rel": 0.6309879478788291
+          }
+        ],
+        "labs": [
+          {
+            "n": 18,
+            "rel": 0.7556564100452235
+          },
+          {
+            "n": 9,
+            "rel": 0.718412348155374
+          },
+          {
+            "n": 14,
+            "rel": 0.6823085889816385
+          },
+          {
+            "n": 15,
+            "rel": 0.6645577830205531
+          },
+          {
+            "n": 13,
+            "rel": 0.6531524422645586
+          }
+        ],
+        "models": [
+          {
+            "n": 18,
+            "rel": 0.752503651662457
+          },
+          {
+            "n": 14,
+            "rel": 0.7051247134956561
+          },
+          {
+            "n": 9,
+            "rel": 0.6907087361604952
+          },
+          {
+            "n": 15,
+            "rel": 0.6489971031808557
+          },
+          {
+            "n": 13,
+            "rel": 0.6470709734226358
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://anthropic.com/news/claude-fable-5-mythos-5",
+      "strength": 2,
+      "basis": "citing",
+      "text": "Mythos and Fable",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 13,
+            "rel": 0.5329232121423342
+          },
+          {
+            "n": 3,
+            "rel": 0.5186070443142232
+          },
+          {
+            "n": 19,
+            "rel": 0.5170270599760203
+          },
+          {
+            "n": 7,
+            "rel": 0.5137767260606222
+          },
+          {
+            "n": 1,
+            "rel": 0.5074499642036806
+          }
+        ],
+        "labs": [
+          {
+            "n": 13,
+            "rel": 0.5400730473426645
+          },
+          {
+            "n": 18,
+            "rel": 0.5341424278624245
+          },
+          {
+            "n": 3,
+            "rel": 0.5311162029474898
+          },
+          {
+            "n": 15,
+            "rel": 0.5222919989830359
+          },
+          {
+            "n": 9,
+            "rel": 0.5205632681458764
+          }
+        ],
+        "models": [
+          {
+            "n": 3,
+            "rel": 0.5434025455656577
+          },
+          {
+            "n": 13,
+            "rel": 0.5411048759398032
+          },
+          {
+            "n": 18,
+            "rel": 0.5295165362439693
+          },
+          {
+            "n": 4,
+            "rel": 0.5243171781176671
+          },
+          {
+            "n": 14,
+            "rel": 0.5196965847285998
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://youtube.com/watch?v=uT7MVcCQ4rw",
+      "strength": 2,
+      "basis": "citing",
+      "text": "What's new in Web UI: 2026 Edition ✨ @bram.us and I go over 35+ new CSS, HTML, and JS features to help you build beautiful web experiences Video just went live: www.youtube.com/watch?v=uT7M...",
+      "label": null,
+      "wanted": null,
+      "top": {
+        "base": [
+          {
+            "n": 16,
+            "rel": 0.662726342513288
+          },
+          {
+            "n": 14,
+            "rel": 0.6530311507621682
+          },
+          {
+            "n": 13,
+            "rel": 0.6192487322378462
+          },
+          {
+            "n": 11,
+            "rel": 0.6159661680642684
+          },
+          {
+            "n": 19,
+            "rel": 0.5896160533739657
+          }
+        ],
+        "labs": [
+          {
+            "n": 16,
+            "rel": 0.6933257280796046
+          },
+          {
+            "n": 14,
+            "rel": 0.6745147454476494
+          },
+          {
+            "n": 13,
+            "rel": 0.6347206702649422
+          },
+          {
+            "n": 19,
+            "rel": 0.6222969241486602
+          },
+          {
+            "n": 11,
+            "rel": 0.6208493584280643
+          }
+        ],
+        "models": [
+          {
+            "n": 16,
+            "rel": 0.6995816560298316
+          },
+          {
+            "n": 14,
+            "rel": 0.6846155052015416
+          },
+          {
+            "n": 9,
+            "rel": 0.6466238413714883
+          },
+          {
+            "n": 13,
+            "rel": 0.6394036837856412
+          },
+          {
+            "n": 11,
+            "rel": 0.6340251168528623
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+=== #61 — is the INTEREST side of the cosine a lever? ===
+
+ADR-0003 caps a statement at 200 chars. Checked, not assumed:
+
+  base    longest 133 chars   over cap: 0
+  labs    longest 185 chars   over cap: 0
+  models  longest 177 chars   over cap: 0
+
+=== the floor under every bar (median pairwise cosine, n=190 pairs) ===
+
+  base    0.6607
+  labs    0.6702
+  models  0.6616
+
+  base -> labs   +0.0095
+  base -> models +0.0009
+
+  A floor that MOVES means `T+` must be re-sited to preserve #21's offset.
+  That is this candidate's hidden price: it is not a drop-in.
+
+=== the case ADR-0018 says any successor must answer ===
+
+  text: "announced Grok 4.6"   rung citing  S=2
+  the right answer is #1 Frontier model releases. ADR-0018: not in the top five.
+
+  base    winner # 9 at 0.680   #1 sits at rank 7 (0.572)   gap2 0.081
+          top5: #9@0.680  #11@0.599  #10@0.587  #15@0.585  #12@0.579
+  labs    winner # 9 at 0.692   #1 sits at rank 4 (0.590)   gap2 0.080
+          top5: #9@0.692  #11@0.612  #10@0.607  #1@0.590  #15@0.589
+  models  winner # 9 at 0.665   #1 sits at rank 2 (0.630)   gap2 0.035
+          top5: #9@0.665  #1@0.630  #10@0.592  #14@0.586  #12@0.585
+
+=== the 8 hand-labelled rows (9 entries; kitesurf is not admitted) ===
+
+  verdict  wanted   base            labs            models          text
+  missed   #1      # 9@0.680       # 9@0.692       # 9@0.665       "announced Grok 4.6"
+  missed   #8      # 2@0.729       # 2@0.728       # 8@0.716*      "AI is removing the middle class of software "
+  near     —       # 7@0.698       # 2@0.710       #14@0.699       "Introducing Kitesurf: The agent-first browse"
+  RIGHT    —       # 4@0.754       # 4@0.745       # 4@0.755       "LLMs reward expertise (5 minute read)"
+  RIGHT    —       # 1@0.671       # 1@0.704       # 1@0.684       "deepseek-ai/DeepSeek-V4-Flash-0731"
+  missed   #10     #19@0.670       #19@0.687       #19@0.697       "Stacked pull requests are now in public prev"
+  missed   #16     #20@0.708       #20@0.708       #20@0.708       "CodePen 2.0"
+  near     —       # 3@0.774       # 3@0.753       # 3@0.768       "Anatomy of a Frontier Lab Agent Intrusion: A"
+  RIGHT    —       #18@0.737       #18@0.756       #18@0.753       "Rewriting Bun in Rust. Why & how we rewrote "
+
+  `*` marks the variant naming the statement the reader would have written.
+
+=== the three RIGHT rows — does the candidate break what already works? ===
+
+  "LLMs reward expertise (5 minute read)"
+    base    # 4 @ 0.754
+    labs    # 4 @ 0.745
+    models  # 4 @ 0.755
+  "deepseek-ai/DeepSeek-V4-Flash-0731"
+    base    # 1 @ 0.671
+    labs    # 1 @ 0.704
+    models  # 1 @ 0.684
+  "Rewriting Bun in Rust. Why & how we rewrote Bun from"
+    base    #18 @ 0.737
+    labs    #18 @ 0.756
+    models  #18 @ 0.753
+
+=== admission over the 27 eligible, at shipped bars and at offset-preserving bars ===
+
+  base    admitted  8 at shipped bars,  8 at bars +0.0000   argmax changed on 0/27 eligible
+  labs    admitted 11 at shipped bars, 11 at bars +0.0095   argmax changed on 9/27 eligible
+  models  admitted  8 at shipped bars,  8 at bars +0.0009   argmax changed on 10/27 eligible
+
+  Under §9.1 these counts justify nothing: no change to `E1`, `T+` or a
+  selector may be justified by how many entries it adds.
+
