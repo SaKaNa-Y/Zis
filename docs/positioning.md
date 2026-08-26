@@ -638,5 +638,27 @@ reopened to house it**: §7's per-Interest state reports a *fact* about a statem
 (*this cannot match*), whereas *"try narrowing this"* is advice with no evidence
 behind it — which is where ADR-0009's line falls.
 
-Neither refusal touches `T_gap`. Whether the gap floor is a mechanism or a fit is
-[#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s question.
+**A third refusal joins them, and it is the one a reader would try first —
+ADR-0019**, [#61](https://github.com/SaKaNa-Y/Zis/issues/61). Told the system does
+not know Grok is a frontier model, the natural response is *"then I will write the
+model names into my Interest"*. Measured over the reader's own 20 statements at two
+strengths: with *Grok* written literally into `#1 Frontier model releases`, the entry
+**still** names `#9 Version releases of developer libraries…`. The right answer moves
+from rank 7 to rank 2 and does not win, one of the four failures grows **more**
+confident of the wrong answer, and the one row that flips is the entry ADR-0018
+recorded as the right answer losing by **0.004**. Adding exemplars also **re-sites
+`T+`** — it moves the profile's median pairwise cosine, which is the floor under
+every bar — so a reader editing a sentence would trigger a re-calibration.
+
+**Two independently-measured inert levers is what closes this section rather than
+deferring it.** Narrowing a statement is inert (#47); enriching one is inert
+(ADR-0019). A guidance surface needs something honest to point the reader **toward**,
+and there is nothing: in both cases the sentence each failure needed was already in
+the profile, and no edit to the reader's phrasing was ever the fix. **No reopening
+condition is added here either**, for §8.4's standing reason — the obvious trigger
+would be the constraint being refused, smuggled back in as a condition.
+
+Neither of the first two refusals touches `T_gap`, which was
+[#54](https://github.com/SaKaNa-Y/Zis/issues/54)'s question and is now settled:
+ADR-0018 withdrew the floor, and the successor selector question closed with
+ADR-0019.

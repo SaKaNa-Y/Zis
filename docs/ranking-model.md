@@ -507,6 +507,42 @@ stronger: an inert lever is worse than a weak one, because the reader would be
 editing in the dark. **No guidance surface is added** — refused at
 `positioning.md` §8.4, and §7's per-Interest state is not reopened to house it.
 
+**The second lever the reader holds is also measured inert — ADR-0019**,
+[Decide whether a deterministic selector beats the argmax over cosine](https://github.com/SaKaNa-Y/Zis/issues/61).
+#47 measured **sharpness**, how tightly a statement scopes a topic. The obvious
+remaining edit is the *other* property of a sentence: whether it names the **proper
+nouns the corpus actually uses**. A reader told the system does not know Grok is a
+frontier model reaches for this first, and it is not the same lever — so it was
+measured separately (`interest-exemplars.mjs`), at two strengths, over the reader's
+own 20 statements.
+
+**It does not work, and the maximal version is the one that fails.** With the word
+*Grok* written literally into `#1 Frontier model releases from the major AI labs`,
+`announced Grok 4.6` **still** names `#9 Version releases of developer libraries,
+frameworks and runtimes` — 0.665 against 0.630. The right answer rises from rank 7
+to rank 2 and does not win. `#9` is not winning on a vocabulary gap the reader can
+close: *announced*, a product name and a dotted version number **are** a
+version-release announcement on the surface, so the winner is a defensible reading
+of the text and only knowing that Grok is a model breaks the tie. Of the other three
+failures, `CodePen 2.0` is unchanged to three decimals under both variants, the
+GitHub changelog grows **more** confident of the wrong answer (0.670 → 0.697), and
+the one row that flips is the job-market essay — the entry ADR-0018 recorded as the
+right answer *losing by 0.004*, which any perturbation could have moved.
+
+Two costs, recorded so the churn is not misread as improvement. The lever **re-sites
+`T+`**: adding exemplars moves the profile's median pairwise cosine — §4's floor
+under every bar — by up to **+0.0095**, and §10 already makes `T+` conditional on
+`(model, profile)`, so this is a re-calibration triggered by a reader editing a
+sentence. And its gain has §4.1's **select-for-pollution** shape a fourth time: **11
+admissions against 8** at the shipped bars, still 11 at offset-preserving bars, with
+the argmax churning on **9 of 27** eligible Signals (**10 of 27** at the stronger
+variant) against one label improving. Under §9.1 those counts justify nothing.
+
+**So two independently-measured inert levers now sit on the reader's side of this
+mechanism**, which is what closes the guidance question rather than deferring it:
+there is nothing honest to guide the reader *toward*. `positioning.md` §8.4 gains no
+reopening condition from this either.
+
 ### The floor that was built here, and why it is gone
 
 ADR-0012 answered the section above with a second condition: **a why-text is
@@ -540,6 +576,17 @@ entries, one correct and this one.
 **Three quantities have now been tried and all three interleave the verdicts** — gap
 to 2nd, spread to 5th, and text length. Read ADR-0018 before proposing a fourth.
 
+**And the class ADR-0018 closed is wider than it stated — ADR-0019.** ADR-0018 ruled
+out *arithmetic over the vectors*, which left the obvious opening: change the vectors
+instead. The Signal side was already spent (#42's rung, #49's composition and cap);
+the **Interest** side was untouched and is the only place Phase 0 can change them
+cheaply. It is now measured and it fails on the same entry. **The wrong Interest is
+not reachable from either side of the cosine**, so a fix must add knowledge the
+embedding does not have — and every mechanism that can is a second model on the
+relevance path. A fifth arithmetic quantity is refused **unmeasured** on that class
+argument, entropy over all 20 Interests included, even though `rung-flatness.mjs`
+already computes it.
+
 Two pieces of prose retired with the floor, and both were arguments *about rates*.
 #47's finding that the floor **selects for wrongness** was true of the admitted set
 (3 right of 8 → 1 of 3) and read as a claim about what the reader sees, which the
@@ -562,10 +609,24 @@ Interest they would not have written on **4 of 8** admitted entries. ADR-0011 ma
 *the reason each story appears is a sentence you wrote* one of two structural
 claims, so this is a **named Phase-0 defect**. It is accepted because gating did not
 improve the claim — it made the sample smaller while the reader still got a wrong
-sentence more often than not — and the route to fixing it is
+sentence more often than not — and the route to fixing it was
 [Decide whether a deterministic selector beats the argmax over cosine](https://github.com/SaKaNa-Y/Zis/issues/61).
 The claim itself is **not** softened; ADR-0011 forbids rewording a claim to survive
 its own measurement.
+
+**That route has now been walked and it ends here — ADR-0019.** No selector replaces
+the argmax in Phase 0, and the defect stands with its number. Three things are
+settled by that ADR rather than left open. **The reader's own statements are not the
+fix** (the paragraph above, second lever). **A re-ranker is out of scope, not
+refused** — it is the one candidate that genuinely adds world knowledge and it is
+probably the eventual answer; it is simply a second model and a fresh ADR-0008 bill,
+which is past a destination that forbids production code. And **dropping the
+`matched: "…"` clause is refused outright**: explaining by Publishers and origin
+alone makes 4-of-8 vanish by construction, but a route that names no sentence is not
+a softer form of ADR-0011's claim, it is that claim deleted, and it would leave the
+interest route indistinguishable from `convergence`. The **labelled holdout** ADR-0018
+attached to #61 is not owed, since no candidate survived to be priced; it travels to
+Phase 1 with §7.1a's staleness and ADR-0016 §9.2's alarm value.
 
 **There is still no third state.** A Signal that fails `T+` can arrive by
 `convergence` at Strength ≥3 and otherwise does not arrive.

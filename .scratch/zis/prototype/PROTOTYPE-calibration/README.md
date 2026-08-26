@@ -24,6 +24,7 @@ node rung-length.mjs    # reads rung-precedence.json — no embedding      (#42)
 node rung-title.mjs     # title-alone as a third candidate text          (#42)
 node rung-compose.mjs   # the cap sweep over all 849 `own` Signals       (#49)
 node rung-flatness.mjs  # reads rung-compose.json — no embedding         (#49)
+node interest-exemplars.mjs # the INTEREST side of the cosine               (#61)
 ```
 
 The corpus comes from `../PROTOTYPE-clustering/cache/` — 958 cached responses, so
@@ -64,7 +65,9 @@ weights into `node_modules`.
 | `rung-precedence.txt` / `.json` | output of `rung-precedence.mjs` |
 | `rung-title.txt` / `.json` | output of `rung-title.mjs` |
 | `rung-compose.txt` / `.json` | output of `rung-compose.mjs` |
+| `interest-exemplars.mjs` | **#61** — the first script to touch the **Interest** side of the cosine rather than the Signal side. Re-embeds the reader's 20 statements with exemplars at two strengths (`labs`, organisations only; `models`, product names too) and re-measures the argmax over the 27 eligible. **The candidate is falsified**: with *Grok* written into `#1`, `announced Grok 4.6` still names `#9`. Also reports the moved floor, which is the candidate's hidden `T+` bill |
 | `rung-flatness.txt` | output of `rung-flatness.mjs` |
+| `interest-exemplars.txt` / `.json` | output of `interest-exemplars.mjs` |
 
 ## The hand labels, and why they are in a script
 
@@ -91,6 +94,12 @@ re-ran `rung-title.mjs` and title-alone's headline figure moved from **23/44 to
 20/44**. Any `.txt` in this directory is only as current as the profile at its
 commit — **re-run rather than quote**, and check `git log` on the output file
 against `git log` on `interests.draft.md`.
+
+**A second trap, and `interest-exemplars.mjs` is its worked example.** With 8 labels,
+any *candidate* an agent writes after reading which 4 rows failed is fitted to those
+rows — so a run like that can only ever **falsify**, never confirm. Write the hazard
+into the script header before running it, and if the candidate survives, do not
+believe it. #61's did not survive, which is the only reason its result is quotable.
 
 This is also why `T_gap` is **fitted, not sited**: 8 points, no holdout, and *two*
 different quantities (gap to 2nd, spread to 5th) separated them equally well —
