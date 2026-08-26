@@ -116,7 +116,23 @@ required stage the ordering omitted.
 | 5 | **canonicalize** | L1–L5 cascade, unchanged from the clustering spec. Hydrated URLs flow through the identical path. |
 | 6 | **citation-worthiness** | Drop reference-only and intra-publisher outbound Citations *before* Strength is counted. |
 | 7 | **alias merge** | Deterministic rules only. Never time-gated (ADR-0004). |
-| 8 | **strength** | `COUNT(DISTINCT publisher_id)` with the self-citation guard. |
+| 8 | **strength** | `COUNT(DISTINCT publisher_id)` with the self-citation guard — scoped to the Publisher and keyed on the Signal's target ([ADR-0020](adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md)). |
+
+### Stage 0 — the host-ownership assertion, which fails the run
+
+Before stage 1, the run asserts
+[ADR-0020](adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md)'s
+invariant over the Items already in the corpus:
+
+> Every host a Publisher's own Items are published on must resolve to that
+> Publisher, unless it is a **Transport venue host, which is owned by nobody**.
+
+The Transport venue set is **derived from each Source's transport, never listed**.
+This is deliberately **not a CI check**: CI has no corpus, so a static check can only
+read `source-register.json` against itself, and the hole is only visible once Items
+exist. It fails the **ingest run** — ADR-0008 makes the wake the unit of cost, and a
+wake that would silently mis-count Strength is worth losing. `clustering-model.md`
+§4 records the two silent registry failures this replaces.
 
 ### Daily, inside the wake that crosses the cut hour
 

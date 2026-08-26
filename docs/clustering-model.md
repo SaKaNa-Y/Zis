@@ -217,6 +217,16 @@ s=2  developer.mozilla.org/…/Document_Object_Model  (typescript, cloudflare)
 Three unrelated posts linking the Node docs in passing is not three voices saying
 "this is today's story". **2 false clusters removed, 0 true clusters lost.**
 
+**Filter 2 keys on the same host registry as §4's self-citation guard, and it stays
+per-Citation — that is deliberate, and #44 measured it rather than assuming it.**
+Against the 2,312 shipped drops, a registry completed from the corpus's own evidence
+makes **0** additional drops and authorship makes **0**. *"Is this link internal
+navigation?"* genuinely is a question about one Citation's host, where §4's *"is this
+Publisher an independent voice on this story?"* is a question about the Signal. The
+two consumers share a table for different reasons, and that is correct rather than
+accidental — do not re-open it by analogy to
+[ADR-0020](adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md).
+
 ---
 
 ## 4. Cluster formation
@@ -303,10 +313,37 @@ with it, so they are not re-derived:
 ### Strength
 
 `COUNT(DISTINCT publisher_id)` over the Signal's Citations, with the
-**self-citation guard**: a Citation whose Link's host is owned by the citing
-Publisher is *origin provenance*, not a vote. Burst suppression is then structural
-— five posts from one voice is one vote, and a vendor's GitHub release + YouTube
-video + Bluesky post is one vote, because all three hang off one `Publisher`.
+**self-citation guard**: **a Publisher that owns the Signal's _target_ does not
+vote on that Signal at all.** The target is the Signal's root — the member every
+alias merge folds *into* — so provenance is a relationship to the story, not to a
+URL ([ADR-0020](adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md)).
+Burst suppression is then structural — five posts from one voice is one vote, and a
+vendor's GitHub release + YouTube video + Bluesky post is one vote, because all
+three hang off one `Publisher`.
+
+**`origin` is single-valued and derived**: the Publisher owning the target, or none.
+
+The guard **used to be scoped to the Citation** — *a Citation whose Link's host is
+owned by the citing Publisher is origin provenance, not a vote* — and that is the
+one defect #44 found at admission. Per-Citation, a Publisher could be `origin`
+**and** a voter on the same Signal: caught on its own host, counted on a different
+member. One admitted voter-set in #6's corpus:
+
+```
+- 3 | interconnects, simonwillison, tldr
++ 2 | interconnects, tldr
+  target  simonwillison.net/2026/Aug/7/openai-timeline   [owned by simonwillison]
+  member  news.ycombinator.com/item?id=49220609
+```
+
+Strength 3 from two independent voices, at exactly `ranking-model.md`'s
+`convergence` threshold — so it entered a Brief with no Interest match, on a number
+the reader could not have counted. Target-keying removes it at no cost: `s≥2`
+26 → 26, `s≥3` **5 → 4**, negative-control false positives unchanged at 3. **5 → 4
+is a removed false Strength-3, not a lost one** — #39's reading of 27 → 26. This
+guard can only ever subtract votes, so §1's supply ledger would refuse every version
+of it; it is judged on the invariant, `positioning.md`'s **Strength is a number the
+reader can count by hand**.
 
 **`host → publisher_id` must be UNIQUE, enforced at the schema level.** Two
 Publishers sharing a host silently disables the self-citation guard. `github` and
@@ -315,20 +352,60 @@ a Map, the second registration won, and **GitHub appeared as an independent vote
 its own changelog**. That is the vendor-manufactures-its-own-cluster failure arriving
 through a data-modelling slip rather than a rule.
 
-**The guard is keyed on a host registry, so it misses hosts a Publisher owns in
-fact but is not registered as owning — and a vehicle fold is the shape that
-weaponizes the gap.** Found by #39 while auditing the guard-leak folds above, on
-two live cases. Willison's Bluesky post citing his own article: `bsky.app` is not
-one of that Publisher's `hosts`, so his citation of his *own* vehicle post reads as
-a vote, and folding the vehicle into his article lands that vote on his own story —
-Strength 2 from one voice plus TLDR. And Cloudflare's blog post folded into its own
-investor-relations release on `cloudflare.net`, an unregistered second host,
-producing Strength 2 with Cloudflare as both `origin` and a voter. The
-Citations-not-hrefs correction above removes both instances, which is the strongest
-argument for it. **Whether the registry itself is the wrong shape is
-[Decide what the self-citation guard keys on when a Publisher's hosts are
-unregistered](https://github.com/SaKaNa-Y/Zis/issues/44)**, not settled here — the
-two cases measured are narrower than the class.
+**The registry is NOT the wrong shape, and #44 settled that by measuring it.** #39
+handed on two live cases outside it — Willison's Bluesky post citing his own article
+(`bsky.app` is not one of his `hosts`) and Cloudflare's blog post folded into its own
+investor-relations release on `cloudflare.net`, an unregistered second host — and the
+Citations-not-hrefs correction above removes both instances. Measured over the same
+corpus, the *class* behind them does not indict the registry:
+
+- **The registry has exactly one hole and completing it changes nothing.** Every host
+  a Publisher's own Items are published on, minus what it is registered as owning, is
+  **10 of 48 Publishers and one host: `bsky.app`** — shared by all ten, so
+  registering it *is* the `github.blog` failure above, and the UNIQUE rule forbids it.
+  Completing the registry from that evidence moves **57** Signals and **0** at
+  Strength ≥2.
+- **Authorship — a key that needs no list — inverts the vehicle rule.** Pass 1
+  already writes a `self` Citation for every Item's own address, so Link → author is
+  a fact the corpus carries and cannot go stale. Applied to any *member* Link it is
+  30% precise: of 10 admission changes, **7 destroy a legitimate vote**, four of them
+  HN's own submissions. **An alias merge deliberately folds a pointer into the thing,
+  so after the merge the vehicle's author is the voter, by design** — a guard
+  suppressing the author of any member suppresses the voice the merge rule exists to
+  preserve. Applied to the *target* instead, it adds **nothing** above the registry:
+  only **0.7%** of cited Links are authored in-corpus.
+
+**Two shapes reach no key at all, and they are a named Phase-0 defect rather than a
+mechanism.** Ownership on a shared platform is **path-keyed**: Kent C. Dodds' Bluesky
+post promoting *"New Better with Kent"*, his own YouTube video, gives Strength 2 where
+there is **one** independent voice — `youtube.com` cannot be registered to him
+([ADR-0015](adr/0015-shared-ownership-must-be-asserted-by-the-register.md)) and the
+video was never ingested, so authorship cannot see it either. **One measured instance
+at Strength 2, plus one arguable second** (una.im citing a Chrome for Developers video
+she appears in — a person is not the organization, so it may not be one voice).
+And an unregistered second host is **unfalsifiable**: `cloudflare.net` is a cited host
+only, so nothing in the corpus can find it, and ADR-0015 already assigns that to the
+register. Every mechanism for either is a second unverifiable list with the same
+silent failure mode #44 was opened to escape. **Do not quote the count as zero** — it
+needs forward-running data to know whether one instance is the rate or the floor, so
+it travels to Phase 1 on #61's precedent, not waived and deliberately not a ticket.
+
+**The registry's failure mode becomes loud.** It has been silent twice, so the class
+is asserted:
+
+> Every host a Publisher's own Items are published on must resolve to that Publisher,
+> unless it is a **Transport venue host, which is owned by nobody**.
+
+A Transport venue host is unowned **by construction, not by exemption** — `bsky.app`
+is where a Bluesky author feed is served, and the Publisher is the author
+([ADR-0017](adr/0017-a-sources-publisher-must-own-the-utterance-or-the-venue.md)),
+never the venue. So it can never be owned, never registered, and the UNIQUE rule and
+this guard stop disagreeing about it. The set is **derived from each Source's
+transport, never listed** — a list is a second place for the same fact to be wrong.
+`news.ycombinator.com` is both a Transport venue *and* `hn`'s registered host, and
+that is correct: **HN votes; `bsky.app` does not.** It runs as a **pipeline startup
+assertion, not a CI check** — CI has no corpus, so a static check can only read the
+register against itself, and the hole is only visible once Items exist.
 
 **Two counts must be reported**, because the prior-art targets include the origin
 ("Cited by: react.dev (origin) · React Status · …") while `Strength` excludes it.
@@ -581,6 +658,23 @@ refused RSS variants, kept so the extension is not re-proposed.
 | + `rss`, corrected guard | 5,400 | 4,943 | 27 | 5 |
 | + `rss`, corrected guard, body ≤400 chars | 5,400 | 5,006 | 26 | 5 |
 
+The row added by #44. It changes the **guard**, not a cascade layer, so the
+clustering is byte-identical to the row above it and only Strength moves.
+
+| configuration | links | signals | s≥2 | s≥3 |
+|---|---|---|---|---|
+| **shipped: target-keyed guard** | 5,400 | 5,007 | **26** | **4** |
+| per-Citation guard (the #44 defect) | 5,400 | 5,007 | 26 | 5 |
+| + authorship of the target | 5,400 | 5,007 | 26 | 4 |
+| + registry completed from corpus evidence | 5,400 | 5,007 | 26 | 4 |
+| authorship of **any member** (refused) | 5,400 | 5,007 | 19 | 3 |
+
+**`s≥3` 5 → 4 is a removed false Strength-3, not a lost one** — one Publisher was
+both `origin` and a voter, at exactly the `convergence` threshold. The last two rows
+are the reason the registry survived the ticket: neither adds anything at admission.
+The final row is the refused key, and its 19 is **7 legitimate votes destroyed** to
+catch 3, four of them HN's own submissions.
+
 **The 27 in the two `+ rss` rows is not a gain**, which is why a `s≥2` column alone
 misreads them: comparing the *multiset of admitted voter-sets* rather than the count,
 the only change is `4|emollick,interconnects,simonwillison,vercel` →
@@ -591,9 +685,10 @@ a ledger; check which Publishers moved.**
 
 Two things to read off the first table before proposing a layer:
 
-- **The whole cascade moves s≥2 from 25 to 27 and s≥3 from 4 to 5** — **26, not 27,
-  once #39 corrected the vehicle guard**, since one of the two was the false Signal
-  that correction removes. Its value is in the ~350 junk Links it removes from the
+- **The whole cascade moves s≥2 from 25 to 27 and s≥3 from 4 to 5** — **26 and 4, not
+  27 and 5**, once #39 corrected the vehicle guard and #44 corrected the guard's
+  scope, since one Signal in each pair was false. So the cascade's measured effect at
+  `s≥3` is now **nil**, and its value is in the ~350 junk Links it removes from the
   pool, not in admitted Signals.
 - **`no rel=canonical` costs nothing measurable.** That is the yield half of §5's
   refusal, and it is why growing L5 is the wrong place to spend a fetch budget.

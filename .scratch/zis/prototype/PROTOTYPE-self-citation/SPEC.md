@@ -10,8 +10,17 @@ and `findings.json`. The clustering is held constant at #39's shipped row H
 (`vehicleFromCitations: true`); only the guard moves.
 
 The canonical home for the answer is
-[`docs/clustering-model.md`](../../../../docs/clustering-model.md) §4. Where this
-file and the doc disagree, the doc wins.
+[`docs/clustering-model.md`](../../../../docs/clustering-model.md) §4 and
+[ADR-0020](../../../../docs/adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md).
+Where this file and the doc disagree, the doc wins.
+
+## The answer
+
+**The registry stays; the guard's SCOPE was the defect.** K4 ships: a Publisher that
+owns the Signal's **target** does not vote on that Signal at all. `origin` becomes
+single-valued and derived. The registry gains a **loud** failure mode — a pipeline
+startup assertion, not a CI check — and the two shapes no key reaches are a **named
+Phase-0 defect** rather than a second list.
 
 ## The seven candidate keys
 
