@@ -180,6 +180,17 @@ self-citation guard for one of them; claim nothing and the guard never fires. Hi
 yield agreed (154 Citations, 0 votes) but that is not the reason, and recording
 the reason is the point.
 
+**And the same rule pointing the other way is now a named defect, not a curation
+problem** ([ADR-0020](adr/0020-provenance-is-a-property-of-the-story-not-of-a-url.md),
+`clustering-model.md` §4). Where the shared-host rule *excludes* a Publisher whose
+only address is a path, it cannot *exclude the vote* of a registered Publisher who
+promotes their own work at a path on a shared platform — Kent C. Dodds' Bluesky post
+linking his own YouTube video raised Strength 2 from one independent voice. **Nothing
+the register can do fixes this**: `youtube.com` is unregisterable by rule 3, and an
+identity roster of channels and handles is a second unverifiable list. So the register
+is **not** responsible for it, and adding a host to close it is refused. `hosts[]`
+stays exactly what ADR-0015 made it.
+
 **On cost, measured**: Smashing Magazine (391.5 per vote, into the densest
 neighbourhood in the register) and Stack Overflow (0 votes).
 

@@ -1,0 +1,260 @@
+corpus: 1395 items, 48 Publishers, 55 registered hosts
+
+=== PART 1: hosts a Publisher publishes on but is not registered as owning ===
+  Publishers with at least one such host: 10 of 48
+  distinct (publisher, host) pairs: 10
+  publisher          unregistered host                 items  currently owned by
+  adactio           bsky.app                             59  (nobody)
+  kentcdodds        bsky.app                             56  (nobody)
+  simonwillison     bsky.app                             41  (nobody)
+  juliaevans        bsky.app                             30  (nobody)
+  cassidoo          bsky.app                             30  (nobody)
+  glyph             bsky.app                             26  (nobody)
+  emollick          bsky.app                             24  (nobody)
+  chriscoyier       bsky.app                             19  (nobody)
+  una               bsky.app                             16  (nobody)
+  rachelandrew      bsky.app                              9  (nobody)
+
+  and the same test on feed addresses rather than Item addresses:
+
+  of those hosts, the SHARED ones (more than one Publisher publishes there):
+  bsky.app                           10 Publishers: adactio, cassidoo, chriscoyier, emollick, glyph, juliaevans, kentcdodds, rachelandrew, simonwillison, una
+
+=== PART 2: what authorship covers ===
+  Links in corpus: 5400   Links with a known author: 1379
+  Links cited by someone (outbound): 3986, of which authored-in-corpus: 29 (0.7%)
+
+=== PART 2b: voters that authored a member Link of the Signal they voted on ===
+  Signals affected: 486   (of 5007)
+  of which at Strength >= 2 (i.e. reachable by a Brief): 10
+  s=4 origin=- own-voter(s)=emollick  voters=simonwillison,interconnects,emollick,vercel
+     member  https://youtube.com/watch?v=87DyyMV0kCY
+     member  https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r   [authored by emollick]
+     cite    simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite    simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite    simonwillison    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite    interconnects    outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite    emollick         self     https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r
+     cite    emollick         outbound https://youtube.com/watch?v=87DyyMV0kCY
+     cite    vercel           outbound https://youtube.com/watch?v=87DyyMV0kCY
+  s=3 origin=hn own-voter(s)=hn  voters=thenewstack,interconnects,hn
+     member  https://z.ai/blog/glm-5.3
+     member  https://news.ycombinator.com/item?id=49294997   [authored by hn]
+     cite    thenewstack      outbound https://z.ai/blog/glm-5.3
+     cite    thenewstack      outbound https://z.ai/blog/glm-5.3
+     cite    interconnects    outbound https://z.ai/blog/glm-5.3
+     cite    hn               self     https://news.ycombinator.com/item?id=49294997
+     cite    hn               outbound https://z.ai/blog/glm-5.3
+  s=3 origin=simonwillison own-voter(s)=simonwillison  voters=simonwillison,tldr,interconnects
+     member  https://news.ycombinator.com/item?id=49220609
+     member  https://simonwillison.net/2026/Aug/7/openai-timeline   [authored by simonwillison]
+     cite    simonwillison    outbound https://news.ycombinator.com/item?id=49220609
+     cite    simonwillison    outbound https://news.ycombinator.com/item?id=49220609
+     cite    simonwillison    self     https://simonwillison.net/2026/Aug/7/openai-timeline
+     cite    tldr             outbound https://simonwillison.net/2026/Aug/7/openai-timeline
+     cite    interconnects    outbound https://simonwillison.net/2026/Aug/7/openai-timeline
+  s=2 origin=hn own-voter(s)=hn  voters=thenewstack,hn
+     member  https://news.ycombinator.com/item?id=49299605   [authored by hn]
+     member  https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+     cite    thenewstack      outbound https://news.ycombinator.com/item?id=49299605
+     cite    hn               self     https://news.ycombinator.com/item?id=49299605
+     cite    hn               outbound https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+  s=2 origin=hn own-voter(s)=hn  voters=simonwillison,hn
+     member  https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+     member  https://news.ycombinator.com/item?id=49289112   [authored by hn]
+     cite    simonwillison    outbound https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+     cite    hn               self     https://news.ycombinator.com/item?id=49289112
+     cite    hn               outbound https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+  s=2 origin=hn own-voter(s)=hn  voters=tldr,hn
+     member  https://deepseek.com/harness/en
+     member  https://news.ycombinator.com/item?id=49285244   [authored by hn]
+     cite    tldr             outbound https://deepseek.com/harness/en
+     cite    hn               self     https://news.ycombinator.com/item?id=49285244
+     cite    hn               outbound https://deepseek.com/harness/en
+  s=2 origin=- own-voter(s)=kentcdodds  voters=jsweekly,kentcdodds
+     member  https://youtube.com/watch?v=Xs-U7SY2uNE
+     member  https://bsky.app/profile/kentcdodds.com/post/3mrpkylmpst2k   [authored by kentcdodds]
+     cite    jsweekly         outbound https://youtube.com/watch?v=Xs-U7SY2uNE
+     cite    kentcdodds       self     https://bsky.app/profile/kentcdodds.com/post/3mrpkylmpst2k
+     cite    kentcdodds       outbound https://youtube.com/watch?v=Xs-U7SY2uNE
+  s=2 origin=huggingface own-voter(s)=simonwillison  voters=simonwillison,latentspace
+     member  https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y   [authored by simonwillison]
+     member  https://huggingface.co/blog/agent-intrusion-technical-timeline   [authored by huggingface]
+     cite    simonwillison    self     https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+     cite    simonwillison    outbound https://huggingface.co/blog/agent-intrusion-technical-timeline
+     cite    latentspace      outbound https://huggingface.co/blog/agent-intrusion-technical-timeline
+     cite    huggingface      self     https://huggingface.co/blog/agent-intrusion-technical-timeline
+  s=2 origin=- own-voter(s)=emollick  voters=tldr,emollick
+     member  https://noahpinion.blog/p/what-will-more-intelligence-actually
+     member  https://bsky.app/profile/emollick.bsky.social/post/3mrlpvzvoc226   [authored by emollick]
+     cite    tldr             outbound https://noahpinion.blog/p/what-will-more-intelligence-actually
+     cite    emollick         self     https://bsky.app/profile/emollick.bsky.social/post/3mrlpvzvoc226
+     cite    emollick         outbound https://noahpinion.blog/p/what-will-more-intelligence-actually
+  s=2 origin=- own-voter(s)=una  voters=bramus,una
+     member  https://youtube.com/watch?v=uT7MVcCQ4rw
+     member  https://bsky.app/profile/una.im/post/3mmhi5l6jmk2b   [authored by una]
+     cite    bramus           outbound https://youtube.com/watch?v=uT7MVcCQ4rw
+     cite    una              self     https://bsky.app/profile/una.im/post/3mmhi5l6jmk2b
+     cite    una              outbound https://youtube.com/watch?v=uT7MVcCQ4rw
+
+=== PART 3: #39's two live cases under the shipped guard ===
+  bsky.app transport host (Willison) — 1 Signal(s) matching "3mr5ucqec2s24"
+     s=1 origin=- voters=simonwillison authors-in-corpus=simonwillison
+       member https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+       cite   simonwillison    self     https://bsky.app/profile/simonwillison.net/post/3mr5ucqec2s24
+  cloudflare.net unregistered 2nd host — 1 Signal(s) matching "cloudflare.net"
+     s=1 origin=- voters=cloudflare authors-in-corpus=(none)
+       member https://cloudflare.net/news/news-details/2026/Cloudflare-Collaborates-With-Leading-Browsers-to-Develop-a-Privacy-First-Protocol-For-the-Global-Internet/default.aspx
+       cite   cloudflare       outbound https://cloudflare.net/news/news-details/2026/Cloudflare-Collaborates-With-Leading-Browsers-to-Develop-a-Privacy-First-Protocol-For-the-Global-Internet/default.aspx
+
+=== PART 4: the four keys ===
+  key                            s>=2  s>=3  max  own-votes-left  control-FPs
+  K0 host registry (shipped)       26     5    4             486            3
+        FP  huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        FP  huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  K1 registry completed            26     5    4             429            3
+        FP  huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        FP  huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  K2 registry + member authorship   19     3    3               0            1
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+  K3 member authorship only        19     3    3               0            1
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+  K4 target, registry only         26     4    4             503            3
+        FP  huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        FP  huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  K5 target, registry + authorship   26     4    4             342            3
+        FP  huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        FP  huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+  K6 target, completed + authorship   26     4    4             342            3
+        FP  huggingface s=2 https://news.ycombinator.com/item?id=49299605
+        FP  huggingface s=2 https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+        FP  huggingface s=2 https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y
+
+=== PART 4b: admitted voter-sets vs the shipped key ===
+  K1 registry completed
+     + (none)
+     - (none)
+  K2 registry + member authorship
+     + 3|interconnects,simonwillison,vercel x1   2|interconnects,thenewstack x1   2|interconnects,tldr x1
+     - 4|emollick,interconnects,simonwillison,vercel x1   3|hn,interconnects,thenewstack x1   3|interconnects,simonwillison,tldr x1   2|hn,thenewstack x1   2|hn,simonwillison x1   2|hn,tldr x1   2|jsweekly,kentcdodds x1   2|latentspace,simonwillison x1   2|emollick,tldr x1   2|bramus,una x1
+  K3 member authorship only
+     + 3|interconnects,simonwillison,vercel x1   2|interconnects,thenewstack x1   2|interconnects,tldr x1
+     - 4|emollick,interconnects,simonwillison,vercel x1   3|hn,interconnects,thenewstack x1   3|interconnects,simonwillison,tldr x1   2|hn,thenewstack x1   2|hn,simonwillison x1   2|hn,tldr x1   2|jsweekly,kentcdodds x1   2|latentspace,simonwillison x1   2|emollick,tldr x1   2|bramus,una x1
+  K4 target, registry only
+     + 2|interconnects,tldr x1
+     - 3|interconnects,simonwillison,tldr x1
+  K5 target, registry + authorship
+     + 2|interconnects,tldr x1
+     - 3|interconnects,simonwillison,tldr x1
+  K6 target, completed + authorship
+     + 2|interconnects,tldr x1
+     - 3|interconnects,simonwillison,tldr x1
+
+=== PART 4c: every Signal whose Strength moves, per key ===
+  K1 registry completed: 57 Signals move, 0 of them at or above Strength 2
+  K2 registry + member authorship: 486 Signals move, 10 of them at or above Strength 2
+     4 -> 3   [emollick,interconnects,simonwillison,vercel] -> [interconnects,simonwillison,vercel]
+        target https://youtube.com/watch?v=87DyyMV0kCY   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=87DyyMV0kCY
+        member https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r  [authored by emollick]
+     3 -> 2   [hn,interconnects,thenewstack] -> [interconnects,thenewstack]
+        target https://z.ai/blog/glm-5.3   [host owned by (nobody), authored by (not ingested)]
+        member https://z.ai/blog/glm-5.3
+        member https://news.ycombinator.com/item?id=49294997  [authored by hn]
+     3 -> 2   [interconnects,simonwillison,tldr] -> [interconnects,tldr]
+        target https://simonwillison.net/2026/Aug/7/openai-timeline   [host owned by simonwillison, authored by simonwillison]
+        member https://news.ycombinator.com/item?id=49220609
+        member https://simonwillison.net/2026/Aug/7/openai-timeline  [authored by simonwillison]
+     2 -> 1   [hn,thenewstack] -> [thenewstack]
+        target https://huggingface.co/Qwen/Qwen3.8-27B-FP8   [host owned by huggingface, authored by (not ingested)]
+        member https://news.ycombinator.com/item?id=49299605  [authored by hn]
+        member https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+     2 -> 1   [hn,simonwillison] -> [simonwillison]
+        target https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash   [host owned by (nobody), authored by (not ingested)]
+        member https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+        member https://news.ycombinator.com/item?id=49289112  [authored by hn]
+     2 -> 1   [hn,tldr] -> [tldr]
+        target https://deepseek.com/harness/en   [host owned by (nobody), authored by (not ingested)]
+        member https://deepseek.com/harness/en
+        member https://news.ycombinator.com/item?id=49285244  [authored by hn]
+     2 -> 1   [jsweekly,kentcdodds] -> [jsweekly]
+        target https://youtube.com/watch?v=Xs-U7SY2uNE   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=Xs-U7SY2uNE
+        member https://bsky.app/profile/kentcdodds.com/post/3mrpkylmpst2k  [authored by kentcdodds]
+     2 -> 1   [latentspace,simonwillison] -> [latentspace]
+        target https://huggingface.co/blog/agent-intrusion-technical-timeline   [host owned by huggingface, authored by huggingface]
+        member https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y  [authored by simonwillison]
+        member https://huggingface.co/blog/agent-intrusion-technical-timeline  [authored by huggingface]
+     2 -> 1   [emollick,tldr] -> [tldr]
+        target https://noahpinion.blog/p/what-will-more-intelligence-actually   [host owned by (nobody), authored by (not ingested)]
+        member https://noahpinion.blog/p/what-will-more-intelligence-actually
+        member https://bsky.app/profile/emollick.bsky.social/post/3mrlpvzvoc226  [authored by emollick]
+     2 -> 1   [bramus,una] -> [bramus]
+        target https://youtube.com/watch?v=uT7MVcCQ4rw   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=uT7MVcCQ4rw
+        member https://bsky.app/profile/una.im/post/3mmhi5l6jmk2b  [authored by una]
+  K3 member authorship only: 486 Signals move, 10 of them at or above Strength 2
+     4 -> 3   [emollick,interconnects,simonwillison,vercel] -> [interconnects,simonwillison,vercel]
+        target https://youtube.com/watch?v=87DyyMV0kCY   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=87DyyMV0kCY
+        member https://bsky.app/profile/emollick.bsky.social/post/3mskcojrtrk2r  [authored by emollick]
+     3 -> 2   [hn,interconnects,thenewstack] -> [interconnects,thenewstack]
+        target https://z.ai/blog/glm-5.3   [host owned by (nobody), authored by (not ingested)]
+        member https://z.ai/blog/glm-5.3
+        member https://news.ycombinator.com/item?id=49294997  [authored by hn]
+     3 -> 2   [interconnects,simonwillison,tldr] -> [interconnects,tldr]
+        target https://simonwillison.net/2026/Aug/7/openai-timeline   [host owned by simonwillison, authored by simonwillison]
+        member https://news.ycombinator.com/item?id=49220609
+        member https://simonwillison.net/2026/Aug/7/openai-timeline  [authored by simonwillison]
+     2 -> 1   [hn,thenewstack] -> [thenewstack]
+        target https://huggingface.co/Qwen/Qwen3.8-27B-FP8   [host owned by huggingface, authored by (not ingested)]
+        member https://news.ycombinator.com/item?id=49299605  [authored by hn]
+        member https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+     2 -> 1   [hn,simonwillison] -> [simonwillison]
+        target https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash   [host owned by (nobody), authored by (not ingested)]
+        member https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash
+        member https://news.ycombinator.com/item?id=49289112  [authored by hn]
+     2 -> 1   [hn,tldr] -> [tldr]
+        target https://deepseek.com/harness/en   [host owned by (nobody), authored by (not ingested)]
+        member https://deepseek.com/harness/en
+        member https://news.ycombinator.com/item?id=49285244  [authored by hn]
+     2 -> 1   [jsweekly,kentcdodds] -> [jsweekly]
+        target https://youtube.com/watch?v=Xs-U7SY2uNE   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=Xs-U7SY2uNE
+        member https://bsky.app/profile/kentcdodds.com/post/3mrpkylmpst2k  [authored by kentcdodds]
+     2 -> 1   [latentspace,simonwillison] -> [latentspace]
+        target https://huggingface.co/blog/agent-intrusion-technical-timeline   [host owned by huggingface, authored by huggingface]
+        member https://bsky.app/profile/simonwillison.net/post/3mrqeabti3s2y  [authored by simonwillison]
+        member https://huggingface.co/blog/agent-intrusion-technical-timeline  [authored by huggingface]
+     2 -> 1   [emollick,tldr] -> [tldr]
+        target https://noahpinion.blog/p/what-will-more-intelligence-actually   [host owned by (nobody), authored by (not ingested)]
+        member https://noahpinion.blog/p/what-will-more-intelligence-actually
+        member https://bsky.app/profile/emollick.bsky.social/post/3mrlpvzvoc226  [authored by emollick]
+     2 -> 1   [bramus,una] -> [bramus]
+        target https://youtube.com/watch?v=uT7MVcCQ4rw   [host owned by (nobody), authored by (not ingested)]
+        member https://youtube.com/watch?v=uT7MVcCQ4rw
+        member https://bsky.app/profile/una.im/post/3mmhi5l6jmk2b  [authored by una]
+  K4 target, registry only: 51 Signals move, 1 of them at or above Strength 2
+     3 -> 2   [interconnects,simonwillison,tldr] -> [interconnects,tldr]
+        target https://simonwillison.net/2026/Aug/7/openai-timeline   [host owned by simonwillison, authored by simonwillison]
+        member https://news.ycombinator.com/item?id=49220609
+        member https://simonwillison.net/2026/Aug/7/openai-timeline  [authored by simonwillison]
+  K5 target, registry + authorship: 212 Signals move, 1 of them at or above Strength 2
+     3 -> 2   [interconnects,simonwillison,tldr] -> [interconnects,tldr]
+        target https://simonwillison.net/2026/Aug/7/openai-timeline   [host owned by simonwillison, authored by simonwillison]
+        member https://news.ycombinator.com/item?id=49220609
+        member https://simonwillison.net/2026/Aug/7/openai-timeline  [authored by simonwillison]
+  K6 target, completed + authorship: 212 Signals move, 1 of them at or above Strength 2
+     3 -> 2   [interconnects,simonwillison,tldr] -> [interconnects,tldr]
+        target https://simonwillison.net/2026/Aug/7/openai-timeline   [host owned by simonwillison, authored by simonwillison]
+        member https://news.ycombinator.com/item?id=49220609
+        member https://simonwillison.net/2026/Aug/7/openai-timeline  [authored by simonwillison]
+
+=== PART 5: the registry's second consumer — intra-publisher drops (§3) ===
+  drops under the shipped registry: 2312
+  additional drops a COMPLETED registry would make: 0
+  additional drops AUTHORSHIP alone would make (link-level, not signal-level): 0
