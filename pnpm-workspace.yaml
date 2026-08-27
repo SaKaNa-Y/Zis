@@ -1,0 +1,25 @@
+# pnpm's settings file, not a workspace definition — there is one `package.json`
+# and no `packages:` key here. pnpm 11 moved every setting out of `.npmrc` and
+# out of the `pnpm` field in `package.json`, and this is where they live now.
+
+# Which dependencies may run their install scripts. pnpm refuses an install that
+# has unreviewed build scripts rather than silently skipping them, so every
+# entry is a decision. esbuild's postinstall resolves its platform binary, and
+# vitest and tsx are both built on it.
+allowBuilds:
+  esbuild: true
+
+# Both from `@antfu/eslint-config`, which is adopted as-is: cross-platform
+# `scripts`, and a registry trust level that may be raised but never lowered.
+shellEmulator: true
+trustPolicy: no-downgrade
+
+# The one exclusion, and it is reviewed rather than blanket. `undici-types` is
+# pinned by `@types/node@22`, which is pinned by the Node 22 runtime; 6.21.0
+# ships without provenance where earlier 6.x releases had it, so the policy reads
+# it as a downgrade. It is a DefinitelyTyped types-only package with no install
+# script and no runtime presence. Excluding the one version keeps the policy on
+# for everything else — the alternative, `trustPolicyIgnoreAfter`, would wave
+# through every old package at once.
+trustPolicyExclude:
+  - undici-types@6.21.0
