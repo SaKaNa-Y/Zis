@@ -1,0 +1,57 @@
+name: CI
+
+# There is deliberately no `schedule:` trigger anywhere in this repository. The
+# hourly pipeline cron is gated behind the repository going public — Actions
+# bills per job rounded up to the whole minute, and 730 runs a month does not fit
+# a private repo's 2,000 (docs/repo-and-ci.md §1). `tests/repo-invariants.test.ts`
+# asserts the absence.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # One sequential job, not three parallel ones. Three jobs bill three minutes
+  # even when every check takes twenty seconds; one bills one, and at this size
+  # it is slower by seconds. The order is cheapest-first so it fails fast.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Node and pnpm are pinned here, in `.nvmrc` and in `package.json`
+      # `engines`. All three must agree; `tests/repo-invariants.test.ts` is what
+      # makes "must" mean something.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # An explicit `eslint` step. `next lint` is removed in Next.js 16, so a
+      # workflow that leans on it enforces the egress rule nowhere while looking
+      # like it enforces it everywhere.
+      - name: Lint, including the safeFetch egress rule
+        run: pnpm lint
+
+      - name: No px in type, spacing or the measure
+        run: pnpm check:no-px
+
+      - name: Every name in .env.example is read in source
+        run: pnpm check:env
+
+      - name: Test
+        run: pnpm test
