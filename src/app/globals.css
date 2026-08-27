@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* The seven semantic tokens, the type scale and the measure land with the
+   reading surface in slice 1 (docs/ui-and-ia.md §9). Every size added here must
+   be `rem` or `ch`: `pnpm check:no-px` is what holds ADR-0009's basis for
+   shipping no text-size control. */
