@@ -80,6 +80,24 @@ describe('a second transport', () => {
   })
 })
 
+describe('the scope is every file, not a list of roots', () => {
+  it('fails in tests/ — a request at test time is still a request', async () => {
+    const ruleIds = await ruleIdsFor(
+      'export async function get(url: string) { return fetch(url) }\n',
+      'tests/stray.test.ts',
+    )
+    expect(ruleIds).toContain('no-restricted-globals')
+  })
+
+  it('fails in a root config file', async () => {
+    const ruleIds = await ruleIdsFor(
+      'export default async function config() { return fetch(\'https://example.com\') }\n',
+      'stray.config.ts',
+    )
+    expect(ruleIds).toContain('no-restricted-globals')
+  })
+})
+
 describe('the one exemption', () => {
   it('lets safeFetch itself reach the network', async () => {
     const ruleIds = await ruleIdsFor(

@@ -19,28 +19,41 @@ import zis from './eslint-rules'
  */
 const SAFE_FETCH_MODULE = 'src/lib/safe-fetch.ts'
 
-/** Lint covers `scripts/` as well as `src/` — docs/repo-and-ci.md §2 and §6. */
-const EGRESS_SCOPE = ['src/**/*.{ts,tsx}', 'scripts/**/*.{ts,tsx}']
+/**
+ * Every JavaScript and TypeScript file, not a list of roots.
+ *
+ * `security-model.md` §1 bans an exemption list, "because an exemption list is
+ * the shape a bypass path takes" — and a scope list is an exemption list with a
+ * friendlier name. Scoping to `src/` and `scripts/` would have left `tests/` and
+ * the root config files free to fetch, which is the same half-enforced state the
+ * rule exists to prevent. Lint and typecheck cover `scripts/` as required by
+ * docs/repo-and-ci.md §2 and §6; this covers everything else too.
+ */
+const EGRESS_SCOPE = ['**/*.{js,mjs,cjs,jsx,ts,tsx}']
 
+const REASON = 'Every request in Zis goes through safeFetch — see security-model.md §1.'
+
+/** Transports. Importing one is asking for a second way out. */
 const BANNED_MODULES = [
-  { name: 'undici', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'node:http', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'node:https', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'http', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'https', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'node:net', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'node:tls', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'node-fetch', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'axios', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'got', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-]
+  'undici',
+  'node:http',
+  'node:https',
+  'http',
+  'https',
+  'node:net',
+  'node:tls',
+  'node-fetch',
+  'axios',
+  'got',
+].map(name => ({ name, message: REASON }))
 
+/** Globals that reach the network, whether or not they are called `fetch`. */
 const BANNED_GLOBALS = [
-  { name: 'fetch', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'XMLHttpRequest', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'EventSource', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-  { name: 'WebSocket', message: 'Every request in Zis goes through safeFetch — see security-model.md §1.' },
-]
+  'fetch',
+  'XMLHttpRequest',
+  'EventSource',
+  'WebSocket',
+].map(name => ({ name, message: REASON }))
 
 export default antfu(
   {

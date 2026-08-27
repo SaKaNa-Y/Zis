@@ -13,18 +13,18 @@
  * static property lookups.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
+import { readSourceFiles, SOURCE_ROOTS } from './tree'
 
 /** Source is `src/` and `scripts/` both — the pipeline reads most of these. */
-export const SEARCH_ROOTS = ['src', 'scripts']
+export const SEARCH_ROOTS = SOURCE_ROOTS
 
 export const ENV_EXAMPLE = '.env.example'
 
 const SEARCHED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.next', '.git', 'drizzle'])
 
 const ASSIGNMENT = /^\s*(?:export\s+)?([A-Z_][A-Z0-9_]*)\s*=/
 
@@ -62,28 +62,8 @@ export function findUnreadNames(names: string[], sources: Map<string, string>): 
   return names.filter(name => !stripped.some(source => isReadIn(name, source)))
 }
 
-function* walk(directory: string): Generator<string> {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry.name))
-        yield* walk(join(directory, entry.name))
-      continue
-    }
-    if (SEARCHED_EXTENSIONS.some(extension => entry.name.endsWith(extension)))
-      yield join(directory, entry.name)
-  }
-}
-
 export function readSources(roots: string[] = SEARCH_ROOTS, cwd: string = process.cwd()): Map<string, string> {
-  const sources = new Map<string, string>()
-  for (const root of roots) {
-    const absolute = join(cwd, root)
-    if (!statSync(absolute, { throwIfNoEntry: false })?.isDirectory())
-      throw new Error(`Search root ${root}/ does not exist`)
-    for (const file of walk(absolute))
-      sources.set(relative(cwd, file).split(sep).join('/'), readFileSync(file, 'utf8'))
-  }
-  return sources
+  return readSourceFiles(SEARCHED_EXTENSIONS, roots, cwd)
 }
 
 function main(): void {

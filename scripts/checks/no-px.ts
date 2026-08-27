@@ -23,19 +23,14 @@
  * assembles its fixtures at runtime.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
+import { readSourceFiles, SOURCE_ROOTS } from './tree'
 
-/**
- * Both checks cover `scripts/` as well as `src/`. Covering only `src/` would
- * enforce the rule on the half of the tree that renders nothing.
- */
-export const SCAN_ROOTS = ['src', 'scripts']
+/** Re-exported so the roots this check covers are assertable on their own. */
+export const SCAN_ROOTS = SOURCE_ROOTS
 
 const SCANNED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css']
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.next', '.git', 'drizzle'])
 
 export interface PxViolation {
   file: string
@@ -136,30 +131,9 @@ export function findPxViolations(filePath: string, source: string): PxViolation[
   return violations
 }
 
-function* walk(directory: string): Generator<string> {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry.name))
-        yield* walk(join(directory, entry.name))
-      continue
-    }
-    if (SCANNED_EXTENSIONS.some(extension => entry.name.endsWith(extension)))
-      yield join(directory, entry.name)
-  }
-}
-
 export function scan(roots: string[] = SCAN_ROOTS, cwd: string = process.cwd()): PxViolation[] {
-  const violations: PxViolation[] = []
-  for (const root of roots) {
-    const absolute = join(cwd, root)
-    if (!statSync(absolute, { throwIfNoEntry: false })?.isDirectory())
-      throw new Error(`Scan root ${root}/ does not exist`)
-    for (const file of walk(absolute)) {
-      const relativePath = relative(cwd, file).split(sep).join('/')
-      violations.push(...findPxViolations(relativePath, readFileSync(file, 'utf8')))
-    }
-  }
-  return violations
+  return [...readSourceFiles(SCANNED_EXTENSIONS, roots, cwd)]
+    .flatMap(([file, source]) => findPxViolations(file, source))
 }
 
 function main(): void {
