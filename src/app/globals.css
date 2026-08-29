@@ -12,7 +12,7 @@
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --paper: oklch(96% 0.018 83);
   --paper-sunk: oklch(92% 0.022 83);
   --ink: oklch(22% 0.025 62);
@@ -22,16 +22,15 @@
   --accent: oklch(48% 0.13 32);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: oklch(18% 0.016 65);
-    --paper-sunk: oklch(22% 0.017 65);
-    --ink: oklch(91% 0.018 82);
-    --ink-dim: oklch(74% 0.021 82);
-    --ink-faint: oklch(59% 0.02 82);
-    --rule: oklch(35% 0.024 65);
-    --accent: oklch(72% 0.13 42);
-  }
+.dark {
+  color-scheme: dark;
+  --paper: oklch(18% 0.016 65);
+  --paper-sunk: oklch(22% 0.017 65);
+  --ink: oklch(91% 0.018 82);
+  --ink-dim: oklch(74% 0.021 82);
+  --ink-faint: oklch(59% 0.02 82);
+  --rule: oklch(35% 0.024 65);
+  --accent: oklch(72% 0.13 42);
 }
 
 @media (prefers-contrast: more) {

@@ -6,7 +6,7 @@
 
 **Architecture:** A signed `jose` HS256 JWT in a `__Host-zis_session` cookie is the optimistic route credential. `src/proxy.ts` exact-allows only `/login`, rejects unauthenticated non-GET requests with `401`, and redirects unauthenticated page requests; every user-facing data read independently calls a React-cached `verifySession()` DAL that revalidates the token and compares its `sv` claim with the user's persisted `session_version`. The one seeded account stores only an Argon2id hash and serializes login attempts with a Postgres row lock so the lock check, hash verification, and resulting state change share one transaction.
 
-**Tech Stack:** Next.js 16 App Router and Proxy, React 19 `cache`, TypeScript, Tailwind CSS v4, Drizzle ORM with Neon HTTP, `jose`, `@node-rs/argon2`, `server-only`, Vitest.
+**Tech Stack:** Next.js 16 App Router and Proxy, React 19 `cache`, TypeScript, Tailwind CSS v4, Drizzle ORM with Neon HTTP, a per-request Neon WebSocket pool for the login transaction, `jose`, `@node-rs/argon2`, `server-only`, Vitest.
 
 ---
 
@@ -102,7 +102,7 @@ expect(isPublicPath('/api/future')).toBe(false)
 
 Construct real `NextRequest` values and call the exported `proxy()`:
 
-- unauthenticated `GET /`, `GET /future`, and `GET /api/future` redirect to `/login`;
+- unauthenticated HTML `GET /` and `GET /future` redirect to `/login`, while API-shaped `GET /api/future` returns `401`;
 - unauthenticated `POST /`, including a `Next-Action` header, returns `401` instead of a redirect that preserves the POST;
 - `GET` and `POST` to exact `/login` pass through;
 - a valid token passes the optimistic gate;
@@ -170,7 +170,7 @@ Expected: FAIL because the DAL does not exist.
 
 **Step 3: Implement the verifier and protect the existing page**
 
-The real database lookup explicitly selects only `id` and `sessionVersion`. Mark the DAL `server-only`, cache it with React `cache`, and call `await verifySession()` in `src/app/page.tsx`. Do not put the check in the root layout because `/login` must remain reachable and layouts are not the data boundary.
+The real database lookup selects only `sessionVersion` for the token's user ID. Mark the DAL `server-only`, cache it with React `cache`, and call `await verifySession()` in `src/app/page.tsx`. Do not put the check in the root layout because `/login` must remain reachable and layouts are not the data boundary.
 
 **Step 4: Re-run the focused test and typecheck**
 
@@ -197,7 +197,7 @@ Exercise `authenticatePassphrase()` through an injected credential store and Arg
 
 **Step 2: Run the focused test and observe red**
 
-Run: `pnpm test -- src/lib/auth/credentials.test.ts`
+Run: `pnpm test -- src/lib/auth/credentials.test.ts src/lib/auth/postgres.test.ts`
 
 Expected: FAIL because the credential service does not exist.
 
@@ -289,9 +289,9 @@ Expected: FAIL on the missing columns and `0006` migration.
 
 Add `passphraseHash`, `sessionVersion`, `failedAttempts`, and `lockedUntil` with checks. Generate `0006_auth` locally with a placeholder database URL; do not connect to or migrate any database.
 
-**Step 5: Add the human-provided hash and safe seed logic**
+**Step 5: Add the locally generated hash and safe seed logic**
 
-The migration must fail loudly if more than one reader exists, update the sole existing reader or insert the fixed seeded reader when none exists, and leave exactly one account. Only the human-provided Argon2id digest enters the file; plaintext never does.
+The migration must fail loudly if more than one reader exists, update the sole existing reader or insert the seeded reader when none exists, and leave exactly one account. Only the locally generated Argon2id digest enters the file; plaintext never does.
 
 **Step 6: Document the only recovery operation**
 

@@ -15,18 +15,27 @@ vi.mock('server-only', () => ({}))
 const TEST_SECRET = '0123456789abcdef0123456789abcdef'
 const OTHER_SECRET = 'abcdef0123456789abcdef0123456789'
 const USER_ID = '00000000-0000-4000-8000-000000000075'
+const TOKEN_ID = '00000000-0000-4000-8000-000000000076'
 const NOW = new Date('2026-08-29T08:00:00.000Z')
 const NOW_SECONDS = Math.floor(NOW.getTime() / 1000)
 
-async function tokenWith(payload: Record<string, unknown>, algorithm = 'HS256'): Promise<string> {
-  return new SignJWT(payload)
+async function tokenWith(
+  payload: Record<string, unknown>,
+  algorithm = 'HS256',
+  tokenId: string | null = TOKEN_ID,
+): Promise<string> {
+  const token = new SignJWT(payload)
     .setProtectedHeader({ alg: algorithm })
     .setIssuer('zis')
     .setAudience('zis')
     .setSubject(USER_ID)
     .setIssuedAt(NOW_SECONDS)
     .setExpirationTime(NOW_SECONDS + SESSION_DURATION_SECONDS)
-    .sign(new TextEncoder().encode(TEST_SECRET))
+
+  if (tokenId !== null)
+    token.setJti(tokenId)
+
+  return token.sign(new TextEncoder().encode(TEST_SECRET))
 }
 
 describe('the Zis session contract', () => {
@@ -81,12 +90,14 @@ describe('the Zis session contract', () => {
     const stringVersion = await tokenWith({ sv: '4' })
     const negativeVersion = await tokenWith({ sv: -1 })
     const missingVersion = await tokenWith({})
-    const missingTokenId = await tokenWith({ sv: 4 })
+    const missingTokenId = await tokenWith({ sv: 4 }, 'HS256', null)
+    const invalidTokenId = await tokenWith({ sv: 4 }, 'HS256', 'not-a-uuid')
     const invalidSubject = await new SignJWT({ sv: 4 })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuer('zis')
       .setAudience('zis')
       .setSubject('reader')
+      .setJti(TOKEN_ID)
       .setIssuedAt(NOW_SECONDS)
       .setExpirationTime(NOW_SECONDS + SESSION_DURATION_SECONDS)
       .sign(new TextEncoder().encode(TEST_SECRET))
@@ -97,6 +108,7 @@ describe('the Zis session contract', () => {
       negativeVersion,
       missingVersion,
       missingTokenId,
+      invalidTokenId,
       invalidSubject,
     ]) {
       await expect(verifySessionToken(token, { secret: TEST_SECRET, now: NOW })).resolves.toBeNull()

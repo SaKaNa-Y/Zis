@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { verify } from '@node-rs/argon2'
 import { getTableConfig } from 'drizzle-orm/pg-core'
 import { describe, expect, it } from 'vitest'
 import * as schema from './schema'
@@ -258,7 +259,7 @@ describe('the ingestion schema', () => {
     )).toBe(true)
   })
 
-  it('has a committed migration and does not migrate from a build or workflow', () => {
+  it('has a committed migration and does not migrate from a build or workflow', async () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
     const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
     const signalStrengthMigration = join(root, 'drizzle', '0002_signal_strength.sql')
@@ -332,6 +333,11 @@ describe('the ingestion schema', () => {
     expect(authSql).toContain('RAISE EXCEPTION')
     expect(authSql).toMatch(/\$argon2id\$v=19\$m=65536,t=3,p=1\$/)
     expect(authSql).not.toContain('REPLACE_WITH')
+    const seededHash = /seed_hash text := '([^']+)'/.exec(authSql)?.[1]
+    expect(seededHash).toBeDefined()
+    if (seededHash === undefined)
+      throw new Error('Auth migration has no seeded credential')
+    await expect(verify(seededHash, 'known-wrong-test-passphrase')).resolves.toBe(false)
     const itemBoundAdded = signalInterestSql.indexOf('ADD CONSTRAINT "item_summary_length_check"')
     const itemSummariesBounded = signalInterestSql.indexOf('SET "summary" = left("summary", 1200)')
     const itemBoundValidated = signalInterestSql.indexOf('VALIDATE CONSTRAINT "item_summary_length_check"')
