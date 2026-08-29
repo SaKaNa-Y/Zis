@@ -1,12 +1,19 @@
+import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsStore } from '@/lib/robots'
 import type { PinnedRequest, SafeFetch, SafeFetchResponse, TransportResponse } from '@/lib/safe-fetch'
 import { createHash } from 'node:crypto'
 import { SaxesParser } from 'saxes'
+import {
+  EMBEDDING_DIMENSIONS,
+  EMBEDDING_MODEL,
+  EMBEDDING_VERSION,
+} from '@/lib/embeddings/provider'
 import { createRobotsGate } from '@/lib/robots'
 import { createSafeFetch, mediaType, SafeFetchError } from '@/lib/safe-fetch'
 import { canonicalizeLink, publisherHostKey } from './canonicalize'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
+const MAX_EMBEDDING_TEXT_CHARS = 1200
 
 type FeedParseErrorCode = 'too_large' | 'unsafe_xml' | 'invalid_xml'
 
@@ -33,6 +40,7 @@ interface ParsedFeedItem {
 
 interface ParsedOutboundUrl {
   rawUrl: string
+  anchorText?: string
   baseUrl?: string
 }
 
@@ -40,7 +48,11 @@ interface MutableFeedItem {
   fields: Map<string, string>
   atomLink?: string
   guidCanBeLink?: boolean
-  outboundUrls: Set<string>
+  outboundUrls: Map<string, string | undefined>
+  openAnchor?: {
+    rawUrl: string
+    text: string
+  }
 }
 
 const ITEM_FIELDS = new Set([
@@ -88,8 +100,38 @@ function plainText(text: string): string {
   return collapse(decodeCharacterReferences(text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ')))
 }
 
-function extractHrefs(html: string): string[] {
-  const urls = new Set<string>()
+function cleanedAnchorText(text: string | undefined): string | undefined {
+  if (text === undefined)
+    return undefined
+  const cleaned = plainText(text)
+  return cleaned === '' ? undefined : cleaned
+}
+
+function retainLongestAnchor(
+  urls: Map<string, string | undefined>,
+  rawUrl: string,
+  anchorText: string | undefined,
+): void {
+  const url = decodeCharacterReferences(rawUrl).trim()
+  if (url === '')
+    return
+  const cleaned = cleanedAnchorText(anchorText)
+  const existing = urls.get(url)
+  if (!urls.has(url) || (cleaned?.length ?? 0) > (existing?.length ?? 0))
+    urls.set(url, cleaned)
+}
+
+function extractOutboundUrls(html: string): ParsedOutboundUrl[] {
+  const urls = new Map<string, string | undefined>()
+  const pairedAnchors = /<a(?=\s|>)[^>]*>([\s\S]*?)<\/a\s*>/gi
+  for (const anchor of html.matchAll(pairedAnchors)) {
+    const tag = anchor[0].slice(0, anchor[0].indexOf('>') + 1)
+    const hrefMatch = /\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i.exec(tag)
+    const rawUrl = hrefMatch?.[1] ?? hrefMatch?.[2] ?? hrefMatch?.[3]
+    if (rawUrl !== undefined)
+      retainLongestAnchor(urls, rawUrl, anchor[1])
+  }
+
   const anchors = /<a(?=\s|>)[^>]*>/gi
   const href = /\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i
   for (const anchor of html.matchAll(anchors)) {
@@ -99,11 +141,9 @@ function extractHrefs(html: string): string[] {
     const raw = match[1] ?? match[2] ?? match[3]
     if (raw === undefined)
       continue
-    const decoded = decodeCharacterReferences(raw).trim()
-    if (decoded !== '')
-      urls.add(decoded)
+    retainLongestAnchor(urls, raw, undefined)
   }
-  return [...urls]
+  return [...urls].map(([rawUrl, anchorText]) => ({ rawUrl, anchorText }))
 }
 
 function readField(item: MutableFeedItem, ...names: string[]): string | undefined {
@@ -123,16 +163,16 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   const guid = readField(item, 'guid', 'id')
   const link = item.atomLink ?? readField(item, 'link') ?? (item.guidCanBeLink ? guid : undefined)
   const rawSummary = readField(item, 'summary', 'description', 'content', 'encoded') ?? ''
-  const outboundUrls = new Set(item.outboundUrls)
+  const outboundUrls = new Map(item.outboundUrls)
   for (const field of CONTENT_FIELDS) {
-    for (const href of extractHrefs(item.fields.get(field) ?? ''))
-      outboundUrls.add(href)
+    for (const outboundUrl of extractOutboundUrls(item.fields.get(field) ?? ''))
+      retainLongestAnchor(outboundUrls, outboundUrl.rawUrl, outboundUrl.anchorText)
   }
-  const summary = plainText(rawSummary)
+  const summary = plainText(rawSummary).slice(0, MAX_EMBEDDING_TEXT_CHARS)
   return {
     guid,
     link,
-    outboundUrls: [...outboundUrls].map(rawUrl => ({ rawUrl })),
+    outboundUrls: [...outboundUrls].map(([rawUrl, anchorText]) => ({ rawUrl, anchorText })),
     title,
     summary: summary === '' ? undefined : summary,
     rawFeedDate: readField(item, 'published', 'pubdate', 'updated'),
@@ -177,7 +217,7 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
       stack.push(name)
       const expectedItem = feedKind === 'atom' ? 'entry' : 'item'
       if (name === expectedItem) {
-        current = { fields: new Map(), outboundUrls: new Set() }
+        current = { fields: new Map(), outboundUrls: new Map() }
         return
       }
       if (current === undefined)
@@ -192,8 +232,9 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
       if (name === 'a') {
         const href = tag.attributes.href
         const field = [...stack].reverse().find(candidate => ITEM_FIELDS.has(candidate))
-        if (field !== undefined && CONTENT_FIELDS.has(field) && typeof href === 'string' && href.trim() !== '')
-          current.outboundUrls.add(href.trim())
+        if (field !== undefined && CONTENT_FIELDS.has(field) && typeof href === 'string' && href.trim() !== '') {
+          current.openAnchor = { rawUrl: href, text: '' }
+        }
         return
       }
       if (name !== 'link')
@@ -212,11 +253,21 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
       if (field === undefined)
         return
       current.fields.set(field, `${current.fields.get(field) ?? ''}${text}`)
+      if (current.openAnchor !== undefined)
+        current.openAnchor.text += text
     }
     parser.on('text', append)
     parser.on('cdata', append)
     parser.on('closetag', (tag) => {
       const name = localName(tag.name)
+      if (name === 'a' && current?.openAnchor !== undefined) {
+        retainLongestAnchor(
+          current.outboundUrls,
+          current.openAnchor.rawUrl,
+          current.openAnchor.text,
+        )
+        current.openAnchor = undefined
+      }
       const expectedItem = feedKind === 'atom' ? 'entry' : 'item'
       if (name === expectedItem && current !== undefined) {
         const item = finishItem(current)
@@ -336,8 +387,17 @@ export interface PersistedSignal {
   mergedIntoId: string | null
   strength: number
   originPublisherId: string | null
+  textBasis: SignalTextBasis | null
+  embeddingText: string | null
+  embedding: number[] | null
+  embeddingModel: string | null
+  embeddingDimensions: number | null
+  embeddingVersion: string | null
+  embeddedAt: Date | null
   createdAt: Date
 }
+
+export type SignalTextBasis = 'own' | 'citing' | 'slug'
 
 export type CitationKind = 'self' | 'outbound'
 
@@ -348,8 +408,37 @@ export interface PersistedCitation {
   linkId: string
   kind: CitationKind
   rawUrl: string
+  anchorText: string | null
   firstSeenAt: Date
   createdAt: Date
+}
+
+export interface PersistedUser {
+  id: string
+  createdAt: Date
+}
+
+export interface PersistedInterest {
+  id: string
+  userId: string
+  statement: string
+  embedding: number[] | null
+  embeddingInputHash: string | null
+  embeddingModel: string | null
+  embeddingDimensions: number | null
+  embeddingVersion: string | null
+  embeddedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PersistedReaderSignalMatch {
+  userId: string
+  signalId: string
+  matchedInterestId: string | null
+  relevance: number | null
+  gap: number | null
+  matchedAt: Date
 }
 
 export interface HttpCacheRecord {
@@ -380,6 +469,9 @@ export interface PersistedGraph {
   links: PersistedLink[]
   signals: PersistedSignal[]
   citations: PersistedCitation[]
+  users: PersistedUser[]
+  interests: PersistedInterest[]
+  readerSignalMatches: PersistedReaderSignalMatch[]
   fetchLogs: SourceFetchLog[]
   httpCache: HttpCacheRecord[]
   robotsCache: RobotsCacheRecord[]
@@ -410,6 +502,7 @@ interface RunIngestionCommon {
   publisherHosts?: PublisherHost[]
   now?: () => Date
   initialGraph?: PersistedGraph
+  embeddingProvider?: EmbeddingProvider
   onSourceCommitted?: (
     source: IngestionSource,
     graph: PersistedGraph,
@@ -446,6 +539,9 @@ function emptyGraph(sources: IngestionSource[], publisherHosts: PublisherHost[])
     links: [],
     signals: [],
     citations: [],
+    users: [],
+    interests: [],
+    readerSignalMatches: [],
     fetchLogs: [],
     httpCache: [],
     robotsCache: [],
@@ -766,7 +862,7 @@ const ISSUE_CHALLENGE_MARKERS = [
   /\b(?:confirm|verify)(?: that)? you are (?:a )?human\b/i,
 ]
 
-function trustedIssueHrefs(response: SafeFetchResponse): string[] | undefined {
+function trustedIssueLinks(response: SafeFetchResponse): ParsedOutboundUrl[] | undefined {
   if (response.status !== 200 || response.byteLength === 0)
     return undefined
   const responseMediaType = response.contentType ?? mediaType(response.headers['content-type'])
@@ -781,7 +877,7 @@ function trustedIssueHrefs(response: SafeFetchResponse): string[] | undefined {
   const html = response.text()
   if (ISSUE_CHALLENGE_MARKERS.some(marker => marker.test(html)))
     return undefined
-  return extractHrefs(html)
+  return extractOutboundUrls(html)
 }
 
 interface IssueHydrationResult {
@@ -852,16 +948,16 @@ async function hydrateIssuePages(
       touchedCacheKeys.add(cacheKey)
       continue
     }
-    const hrefs = trustedIssueHrefs(response)
-    if (hrefs === undefined)
+    const links = trustedIssueLinks(response)
+    if (links === undefined)
       continue
     upsertHttpCache(cacheUpdates, httpCacheRecord(cache, cacheKey, response, fetchedAt))
     touchedCacheKeys.add(cacheKey)
     if (wasHydrated)
       continue
     item.issueHydratedAt = fetchedAt
-    for (const rawUrl of hrefs)
-      item.outboundUrls.push({ rawUrl, baseUrl: response.url })
+    for (const link of links)
+      item.outboundUrls.push({ ...link, baseUrl: response.url })
   }
 
   for (const update of cacheUpdates)
@@ -917,6 +1013,7 @@ function applyHydrationToPersistedItems(
         'outbound',
         item.issueHydratedAt,
         outboundUrl.baseUrl ?? item.link,
+        outboundUrl.anchorText,
       )
     }
   }
@@ -1041,6 +1138,13 @@ function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSign
       mergedIntoId: null,
       strength: 0,
       originPublisherId: null,
+      textBasis: null,
+      embeddingText: null,
+      embedding: null,
+      embeddingModel: null,
+      embeddingDimensions: null,
+      embeddingVersion: null,
+      embeddedAt: null,
       createdAt: link.createdAt,
     }
     graph.signals.push(signal)
@@ -1156,6 +1260,308 @@ function updateStrength(graph: PersistedGraph): void {
   }
 }
 
+const TEXT_BASIS_ORDINAL: Record<SignalTextBasis, number> = {
+  slug: 0,
+  citing: 1,
+  own: 2,
+}
+const SLUG_HOST_SUFFIXES = new Set(['co', 'com', 'dev', 'io', 'net', 'org'])
+const VEHICLE_TRANSPORTS = new Set<IngestionTransport>(['hn_firebase', 'hn_algolia', 'bluesky_feed'])
+
+interface TextBasisCandidate {
+  basis: SignalTextBasis
+  text: string
+}
+
+function itemIsVehicle(graph: PersistedGraph, item: PersistedItem): boolean {
+  const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+  return source !== undefined
+    && VEHICLE_TRANSPORTS.has(source.transport)
+    && graph.citations.some(citation => citation.itemId === item.id && citation.kind === 'outbound')
+}
+
+function memberCitations(graph: PersistedGraph, root: PersistedSignal): PersistedCitation[] {
+  const memberLinkIds = new Set(graph.signals
+    .filter(signal => resolveSignal(graph, signal).id === root.id)
+    .map(signal => signal.targetLinkId))
+  return graph.citations.filter(citation => memberLinkIds.has(citation.linkId))
+}
+
+function slugText(url: string): string {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  }
+  catch {
+    return collapse(url).slice(0, MAX_EMBEDDING_TEXT_CHARS)
+  }
+
+  let path = parsed.pathname
+  try {
+    path = decodeURIComponent(path)
+  }
+  catch {
+    // Keep the URL parser's safe percent-encoded path when decoding is invalid.
+  }
+  const pathWords = path
+    .replace(/\.(?:html?|php|aspx?|md)$/i, '')
+    .split(/[/\-_.]+/)
+    .filter(Boolean)
+    .filter(word => !/^\d{1,4}$/.test(word))
+    .filter(word => !/^[\da-f]{8,}$/i.test(word))
+  const hostWords = parsed.hostname
+    .replace(/^www\./, '')
+    .split('.')
+    .filter(word => word !== '' && !SLUG_HOST_SUFFIXES.has(word))
+  return collapse([...hostWords, ...pathWords].join(' ')).slice(0, MAX_EMBEDDING_TEXT_CHARS)
+}
+
+function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextBasisCandidate {
+  const citations = memberCitations(graph, root)
+  const ownItems = [...new Map(citations
+    .filter(citation => citation.kind === 'self')
+    .map(citation => graph.items.find(item => item.id === citation.itemId))
+    .filter((item): item is PersistedItem => item !== undefined && !itemIsVehicle(graph, item))
+    .map(item => [item.id, item])).values()]
+    .sort((left, right) =>
+      (right.summary?.length ?? 0) - (left.summary?.length ?? 0)
+      || left.id.localeCompare(right.id))
+
+  const own = ownItems[0]
+  if (own !== undefined) {
+    return {
+      basis: 'own',
+      text: collapse(`${own.title}. ${own.summary ?? ''}`).slice(0, MAX_EMBEDDING_TEXT_CHARS),
+    }
+  }
+
+  const citing = citations.filter(citation => citation.kind === 'outbound')
+  const anchorCitation = citing
+    .filter(citation => citation.anchorText !== null)
+    .sort((left, right) =>
+      (right.anchorText?.length ?? 0) - (left.anchorText?.length ?? 0)
+      || left.id.localeCompare(right.id))
+    .at(0)
+  const anchor = anchorCitation?.anchorText
+  if (anchor !== null && anchor !== undefined) {
+    return {
+      basis: 'citing',
+      text: anchor.slice(0, MAX_EMBEDDING_TEXT_CHARS),
+    }
+  }
+
+  const citingItem = citing
+    .map(citation => graph.items.find(item => item.id === citation.itemId))
+    .filter((item): item is PersistedItem => item !== undefined)
+    .filter((item) => {
+      const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+      return source !== undefined && !source.isAggregator
+    })
+    .sort((left, right) => right.title.length - left.title.length || left.id.localeCompare(right.id))
+    .at(0)
+  const citingTitle = citingItem?.title
+  if (citingTitle !== undefined) {
+    return {
+      basis: 'citing',
+      text: collapse(citingTitle).slice(0, MAX_EMBEDDING_TEXT_CHARS),
+    }
+  }
+
+  const target = graph.links.find(link => link.id === root.targetLinkId)
+  if (target === undefined)
+    throw new Error(`Signal ${root.id} targets missing Link ${root.targetLinkId}`)
+  return { basis: 'slug', text: slugText(target.url) }
+}
+
+type NumericVector = readonly number[] | Float32Array
+
+function assertStoredVector(
+  vector: NumericVector | null,
+  label: string,
+): asserts vector is NumericVector {
+  if (vector === null || vector.length !== EMBEDDING_DIMENSIONS) {
+    throw new Error(
+      `${label} must contain ${EMBEDDING_DIMENSIONS} embedding dimensions; received ${vector?.length ?? 'null'}`,
+    )
+  }
+  if (!vector.every(component => Number.isFinite(component)))
+    throw new Error(`${label} embedding must contain only finite numbers`)
+}
+
+function validatedProviderVectors(
+  vectors: readonly Float32Array[],
+  expectedRows: number,
+  label: string,
+): number[][] {
+  if (vectors.length !== expectedRows)
+    throw new Error(`${label} embedding returned ${vectors.length} rows; expected ${expectedRows}`)
+  return vectors.map((vector, index) => {
+    assertStoredVector(vector, `${label} row ${index}`)
+    return Array.from(vector)
+  })
+}
+
+function assertEmbeddingIdentity(
+  record: {
+    embeddingModel: string | null
+    embeddingDimensions: number | null
+    embeddingVersion: string | null
+  },
+  label: string,
+): void {
+  if (record.embeddingModel !== EMBEDDING_MODEL
+    || record.embeddingDimensions !== EMBEDDING_DIMENSIONS
+    || record.embeddingVersion !== EMBEDDING_VERSION) {
+    throw new Error(`${label} uses a different embedding identity; an explicit full re-embed is required`)
+  }
+}
+
+function cosine(left: NumericVector, right: NumericVector): number {
+  assertStoredVector(left, 'Signal')
+  assertStoredVector(right, 'Interest')
+  let dot = 0
+  let leftSquared = 0
+  let rightSquared = 0
+  for (let index = 0; index < EMBEDDING_DIMENSIONS; index++) {
+    const leftComponent = left[index]!
+    const rightComponent = right[index]!
+    dot += leftComponent * rightComponent
+    leftSquared += leftComponent ** 2
+    rightSquared += rightComponent ** 2
+  }
+  if (leftSquared === 0 || rightSquared === 0)
+    throw new Error('Cosine similarity requires non-zero embedding vectors')
+  return Math.max(-1, Math.min(1, dot / Math.sqrt(leftSquared * rightSquared)))
+}
+
+async function embedSignalsAndMatchInterests(
+  graph: PersistedGraph,
+  provider: EmbeddingProvider,
+  at: Date,
+): Promise<void> {
+  if (provider.model !== EMBEDDING_MODEL
+    || provider.dimensions !== EMBEDDING_DIMENSIONS
+    || provider.version !== EMBEDDING_VERSION) {
+    throw new Error('Embedding provider does not implement the pinned model identity')
+  }
+
+  const liveSignals = graph.signals
+    .filter(signal => signal.mergedIntoId === null)
+    .sort((left, right) => left.id.localeCompare(right.id))
+  const signalPlans = liveSignals.flatMap((signal) => {
+    const candidate = textBasisForSignal(graph, signal)
+    if (candidate.text === '')
+      throw new Error(`Signal ${signal.id} has an empty ${candidate.basis} embedding input`)
+
+    if (signal.embedding === null) {
+      const partialMetadata = signal.textBasis !== null
+        || signal.embeddingText !== null
+        || signal.embeddingModel !== null
+        || signal.embeddingDimensions !== null
+        || signal.embeddingVersion !== null
+        || signal.embeddedAt !== null
+      if (partialMetadata)
+        throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+      return [{ signal, candidate }]
+    }
+
+    assertStoredVector(signal.embedding, `Signal ${signal.id}`)
+    assertEmbeddingIdentity(signal, `Signal ${signal.id}`)
+    if (signal.textBasis === null || signal.embeddingText === null || signal.embeddedAt === null)
+      throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+    return TEXT_BASIS_ORDINAL[candidate.basis] > TEXT_BASIS_ORDINAL[signal.textBasis]
+      ? [{ signal, candidate }]
+      : []
+  })
+
+  const orderedInterests = [...graph.interests].sort((left, right) => left.id.localeCompare(right.id))
+  const interestPlans = orderedInterests.flatMap((interest) => {
+    if (interest.statement.trim() === '')
+      throw new Error(`Interest ${interest.id} has an empty statement`)
+    const inputHash = createHash('sha256').update(interest.statement).digest('hex')
+    if (interest.embedding === null) {
+      const partialMetadata = interest.embeddingInputHash !== null
+        || interest.embeddingModel !== null
+        || interest.embeddingDimensions !== null
+        || interest.embeddingVersion !== null
+        || interest.embeddedAt !== null
+      if (partialMetadata)
+        throw new Error(`Interest ${interest.id} has incomplete embedding state`)
+      return [{ interest, inputHash }]
+    }
+
+    assertStoredVector(interest.embedding, `Interest ${interest.id}`)
+    assertEmbeddingIdentity(interest, `Interest ${interest.id}`)
+    if (interest.embeddingInputHash === inputHash && interest.embeddedAt !== null)
+      return []
+    return [{ interest, inputHash }]
+  })
+
+  const signalVectors = signalPlans.length === 0
+    ? []
+    : validatedProviderVectors(
+        await provider.embed(signalPlans.map(plan => plan.candidate.text)),
+        signalPlans.length,
+        'Signal',
+      )
+  const interestVectors = interestPlans.length === 0
+    ? []
+    : validatedProviderVectors(
+        await provider.embed(interestPlans.map(plan => plan.interest.statement)),
+        interestPlans.length,
+        'Interest',
+      )
+
+  const plannedSignalVector = new Map(signalPlans.map((plan, index) => [plan.signal.id, signalVectors[index]!]))
+  const plannedInterestVector = new Map(interestPlans.map((plan, index) => [plan.interest.id, interestVectors[index]!]))
+  const matches: PersistedReaderSignalMatch[] = []
+
+  for (const user of [...graph.users].sort((left, right) => left.id.localeCompare(right.id))) {
+    const userInterests = orderedInterests.filter(interest => interest.userId === user.id)
+    for (const signal of liveSignals) {
+      const signalVector = plannedSignalVector.get(signal.id) ?? signal.embedding
+      assertStoredVector(signalVector, `Signal ${signal.id}`)
+      const similarities = userInterests.map((interest) => {
+        const interestVector = plannedInterestVector.get(interest.id) ?? interest.embedding
+        assertStoredVector(interestVector, `Interest ${interest.id}`)
+        return { interest, value: cosine(signalVector, interestVector) }
+      }).sort((left, right) => right.value - left.value || left.interest.id.localeCompare(right.interest.id))
+      const winner = similarities[0]
+      matches.push({
+        userId: user.id,
+        signalId: signal.id,
+        matchedInterestId: winner?.interest.id ?? null,
+        relevance: winner?.value ?? null,
+        gap: similarities.length < 2 ? null : winner!.value - similarities[1]!.value,
+        matchedAt: at,
+      })
+    }
+  }
+
+  for (const [index, plan] of signalPlans.entries()) {
+    Object.assign(plan.signal, {
+      textBasis: plan.candidate.basis,
+      embeddingText: plan.candidate.text,
+      embedding: signalVectors[index]!,
+      embeddingModel: provider.model,
+      embeddingDimensions: provider.dimensions,
+      embeddingVersion: provider.version,
+      embeddedAt: at,
+    })
+  }
+  for (const [index, plan] of interestPlans.entries()) {
+    Object.assign(plan.interest, {
+      embedding: interestVectors[index]!,
+      embeddingInputHash: plan.inputHash,
+      embeddingModel: provider.model,
+      embeddingDimensions: provider.dimensions,
+      embeddingVersion: provider.version,
+      embeddedAt: at,
+    })
+  }
+  graph.readerSignalMatches = matches
+}
+
 function recordCitation(
   graph: PersistedGraph,
   item: PersistedItem,
@@ -1164,6 +1570,7 @@ function recordCitation(
   kind: CitationKind,
   firstSeenAt: Date,
   baseUrl?: string,
+  anchorText?: string,
 ): void {
   if (rawUrl === undefined || rawUrl.trim() === '')
     return
@@ -1200,6 +1607,9 @@ function recordCitation(
   )
   if (existing !== undefined) {
     existing.linkId = link.id
+    const cleaned = cleanedAnchorText(anchorText)
+    if ((cleaned?.length ?? 0) > (existing.anchorText?.length ?? 0))
+      existing.anchorText = cleaned ?? null
     if (firstSeenAt < existing.firstSeenAt)
       existing.firstSeenAt = firstSeenAt
     return
@@ -1212,6 +1622,7 @@ function recordCitation(
     linkId: link.id,
     kind,
     rawUrl: preservedRawUrl,
+    anchorText: cleanedAnchorText(anchorText) ?? null,
     firstSeenAt,
     createdAt: firstSeenAt,
   })
@@ -1373,6 +1784,7 @@ async function ingestSource(
           'outbound',
           fetchedAt,
           outboundUrl.baseUrl ?? item.link,
+          outboundUrl.anchorText,
         )
       }
       if (newest === null || publishedAt > newest)
@@ -1410,6 +1822,7 @@ export async function runIngestion({
   fetch: liveFetch,
   now = () => new Date(),
   initialGraph,
+  embeddingProvider,
   onSourceCommitted,
 }: RunIngestionInput): Promise<PersistedGraph> {
   const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
@@ -1449,6 +1862,8 @@ export async function runIngestion({
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
   mergeReleaseTagAliases(graph)
   updateStrength(graph)
+  if (embeddingProvider !== undefined)
+    await embedSignalsAndMatchInterests(graph, embeddingProvider, now())
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())
   const dormantBefore = new Date(now())
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)

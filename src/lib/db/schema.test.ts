@@ -88,6 +88,7 @@ describe('the ingestion schema', () => {
       'link_id',
       'kind',
       'raw_url',
+      'anchor_text',
       'first_seen_at',
       'created_at',
     ])
@@ -105,6 +106,13 @@ describe('the ingestion schema', () => {
       'merged_into_id',
       'strength',
       'origin_publisher_id',
+      'text_basis',
+      'embedding_text',
+      'embedding',
+      'embedding_model',
+      'embedding_dimensions',
+      'embedding_version',
+      'embedded_at',
       'created_at',
     ])
     expect(signals.uniqueConstraints.some(constraint =>
@@ -112,28 +120,95 @@ describe('the ingestion schema', () => {
     )).toBe(true)
   })
 
+  it('stores one 384-dimensional embedding for each explicit Interest statement', () => {
+    expect(getTableConfig(schema.users).name).toBe('user')
+    expect(columnNames(schema.users)).toEqual([
+      'id',
+      'created_at',
+    ])
+
+    const interests = getTableConfig(schema.interests)
+    expect(interests.name).toBe('interest')
+    expect(columnNames(schema.interests)).toEqual([
+      'id',
+      'user_id',
+      'statement',
+      'embedding',
+      'embedding_input_hash',
+      'embedding_model',
+      'embedding_dimensions',
+      'embedding_version',
+      'embedded_at',
+      'created_at',
+      'updated_at',
+    ])
+    expect(interests.columns.find(column => column.name === 'embedding')?.getSQLType())
+      .toBe('halfvec(384)')
+    expect(interests.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'id,user_id',
+    )).toBe(true)
+  })
+
+  it('persists per-reader Signal matches and constrains the winning Interest to that reader', () => {
+    const matches = getTableConfig(schema.readerSignalMatches)
+    expect(matches.name).toBe('reader_signal_match')
+    expect(columnNames(schema.readerSignalMatches)).toEqual([
+      'user_id',
+      'signal_id',
+      'matched_interest_id',
+      'relevance',
+      'gap',
+      'matched_at',
+    ])
+    expect(matches.primaryKeys.some(key =>
+      key.columns.map(column => column.name).join(',') === 'user_id,signal_id',
+    )).toBe(true)
+    expect(matches.columns.find(column => column.name === 'relevance')?.getSQLType())
+      .toBe('double precision')
+    expect(matches.columns.find(column => column.name === 'gap')?.getSQLType())
+      .toBe('double precision')
+    expect(matches.foreignKeys.some((key) => {
+      const reference = key.reference()
+      return reference.columns.map(column => column.name).join(',') === 'matched_interest_id,user_id'
+        && reference.foreignColumns.map(column => column.name).join(',') === 'id,user_id'
+    })).toBe(true)
+  })
+
+  it('uses an explicit Text Basis and half-precision vectors for Signal embeddings', () => {
+    expect(schema.signalTextBasis.enumValues).toEqual(['own', 'citing', 'slug'])
+    const signals = getTableConfig(schema.signals)
+    expect(signals.columns.find(column => column.name === 'embedding')?.getSQLType())
+      .toBe('halfvec(384)')
+    expect(signals.checks.map(check => check.name)).toContain('signal_embedding_text_length_check')
+  })
+
   it('has a committed migration and does not migrate from a build or workflow', () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
     const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
     const signalStrengthMigration = join(root, 'drizzle', '0002_signal_strength.sql')
     const issueHydrationMigration = join(root, 'drizzle', '0003_issue_hydration_state.sql')
+    const signalInterestMigration = join(root, 'drizzle', '0004_signal_interest_embedding.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
     const signalStrengthSnapshot = join(root, 'drizzle', 'meta', '0002_snapshot.json')
     const issueHydrationSnapshot = join(root, 'drizzle', 'meta', '0003_snapshot.json')
+    const signalInterestSnapshot = join(root, 'drizzle', 'meta', '0004_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
     expect(existsSync(issueHydrationMigration)).toBe(true)
+    expect(existsSync(signalInterestMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
     expect(existsSync(issueHydrationSnapshot)).toBe(true)
+    expect(existsSync(signalInterestSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
     const issueHydrationSql = readFileSync(issueHydrationMigration, 'utf8')
+    const signalInterestSql = readFileSync(signalInterestMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -145,6 +220,16 @@ describe('the ingestion schema', () => {
     expect(signalStrengthSql).toContain('INSERT INTO "signal"')
     expect(signalStrengthSql).toContain('SELECT "id", "id"')
     expect(issueHydrationSql).toContain('ADD COLUMN "issue_hydrated_at"')
+    expect(signalInterestSql).toContain('CREATE EXTENSION IF NOT EXISTS vector')
+    expect(signalInterestSql.indexOf('CREATE EXTENSION IF NOT EXISTS vector'))
+      .toBeLessThan(signalInterestSql.indexOf('halfvec(384)'))
+    expect(signalInterestSql).toContain('CREATE TABLE "user"')
+    expect(signalInterestSql).toContain('CREATE TABLE "interest"')
+    expect(signalInterestSql).toContain('CREATE TABLE "reader_signal_match"')
+    expect(signalInterestSql).toContain('reader_signal_match_interest_owner_fk')
+    expect(signalInterestSql).toContain('reader_signal_match_relevance_range_check')
+    expect(signalInterestSql).toContain('reader_signal_match_gap_range_check')
+    expect(signalInterestSql).toContain('signal_embedding_text_length_check')
     const journal = JSON.parse(readFileSync(migrationJournal, 'utf8')) as {
       entries: Array<{ tag: string }>
     }
@@ -153,6 +238,7 @@ describe('the ingestion schema', () => {
       '0001_link_citation_graph',
       '0002_signal_strength',
       '0003_issue_hydration_state',
+      '0004_signal_interest_embedding',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

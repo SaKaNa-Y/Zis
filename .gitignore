@@ -27,6 +27,9 @@ next-env.d.ts
 /coverage
 *.lcov
 
+# Reproducible local Transformers.js model cache (restored by CI)
+/.cache/transformers/
+
 # Logs
 *.log
 npm-debug.log*

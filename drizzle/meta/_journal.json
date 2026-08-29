@@ -29,6 +29,13 @@
       "when": 1788003677588,
       "tag": "0003_issue_hydration_state",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788005796545,
+      "tag": "0004_signal_interest_embedding",
+      "breakpoints": true
     }
   ]
 }

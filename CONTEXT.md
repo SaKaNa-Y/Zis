@@ -95,7 +95,8 @@ _Avoid_: Score, Mentions, Popularity
 
 **Text Basis**:
 Which rung of available text a Signal was embedded from — its own ingested title
-and summary, the concatenated titles of the Items citing it, or its URL slug.
+and summary, the longest exact-link anchor text (with the citing Item's title as
+fallback), or its URL slug.
 Most Signals have no ingested Item of their own, so the rung is recorded rather
 than assumed, and a Signal is re-embedded when its rung improves.
 _Avoid_: Source text, Content, Excerpt
