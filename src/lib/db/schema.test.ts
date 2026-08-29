@@ -95,30 +95,56 @@ describe('the ingestion schema', () => {
     )).toBe(true)
   })
 
+  it('creates one durable Signal for every Link and retains merge tombstones', () => {
+    const signals = getTableConfig(schema.signals)
+    expect(signals.name).toBe('signal')
+    expect(columnNames(schema.signals)).toEqual([
+      'id',
+      'target_link_id',
+      'merged_into_id',
+      'strength',
+      'origin_publisher_id',
+      'created_at',
+    ])
+    expect(signals.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'target_link_id',
+    )).toBe(true)
+  })
+
   it('has a committed migration and does not migrate from a build or workflow', () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
     const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
+    const signalStrengthMigration = join(root, 'drizzle', '0002_signal_strength.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
+    const signalStrengthSnapshot = join(root, 'drizzle', 'meta', '0002_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
+    expect(existsSync(signalStrengthMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
+    expect(existsSync(signalStrengthSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
+    const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
     expect(linkCitationSql).toContain('CREATE TABLE "link"')
     expect(linkCitationSql).toContain('CREATE TABLE "citation"')
     expect(linkCitationSql).toContain('DELETE FROM "http_cache"')
+    expect(signalStrengthSql).toContain('CREATE TABLE "signal"')
+    expect(signalStrengthSql).toContain('signal_merged_into_id_signal_id_fk')
+    expect(signalStrengthSql).toContain('INSERT INTO "signal"')
+    expect(signalStrengthSql).toContain('SELECT "id", "id"')
     const journal = JSON.parse(readFileSync(migrationJournal, 'utf8')) as {
       entries: Array<{ tag: string }>
     }
     expect(journal.entries.map(entry => entry.tag)).toEqual([
       '0000_rss_ingestion',
       '0001_link_citation_graph',
+      '0002_signal_strength',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

@@ -11,6 +11,7 @@ import {
   links as linkTable,
   publisherHosts,
   robotsCache,
+  signals as signalTable,
   sourceFetchLogs,
   sources,
 } from '@/lib/db/schema'
@@ -19,14 +20,14 @@ import { safeFetch } from '@/lib/safe-fetch'
 import { publisherHostKey } from './canonicalize'
 import { ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
 
+const SIGNAL_WRITE_BATCH_SIZE = 1000
+
 interface CompiledQuery {
   toSQL: () => { sql: string, params: unknown[] }
 }
 
 function asIngestionSource(row: typeof sources.$inferSelect): IngestionSource {
-  if (row.transport !== 'rss' && row.transport !== 'atom')
-    throw new Error(`Source ${row.id} uses unsupported transport ${row.transport}`)
-  return { ...row, transport: row.transport }
+  return row
 }
 
 function asRobotsCache(row: typeof robotsCache.$inferSelect): RobotsCacheRecord {
@@ -48,6 +49,15 @@ function canonicalRequestUrl(url: string): string {
   catch {
     return url
   }
+}
+
+const itemVenueHostByTransport: Record<IngestionSource['transport'], string | null> = {
+  rss: null,
+  atom: null,
+  hn_firebase: null,
+  hn_algolia: null,
+  github_graphql: 'github.com',
+  bluesky_feed: 'bsky.app',
 }
 
 async function assertHostOwnership(database: Database): Promise<void> {
@@ -78,13 +88,20 @@ async function assertHostOwnership(database: Database): Promise<void> {
       )
     }
     const owner = ownerByHost.get(host)
+    const venueHost = itemVenueHostByTransport[row.transport]
+    if (venueHost !== null) {
+      if (host !== venueHost) {
+        throw new Error(
+          `host ownership assertion failed: ${row.transport} Item host ${host} is not its Transport venue ${venueHost}`,
+        )
+      }
+      if (owner === undefined)
+        continue
+      throw new Error(
+        `host ownership assertion failed: Transport venue ${host} must be owned by nobody, registered to ${owner}`,
+      )
+    }
     if (owner === row.publisherId)
-      continue
-
-    // RSS/Atom publish a Publisher's own Items. Other transports represent a
-    // venue by construction; an unregistered venue is owned by nobody.
-    const isUnownedTransportVenue = row.transport !== 'rss' && row.transport !== 'atom' && owner === undefined
-    if (isUnownedTransportVenue)
       continue
 
     throw new Error(
@@ -100,6 +117,7 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
       items: [],
       publisherHosts: [],
       links: [],
+      signals: [],
       citations: [],
       fetchLogs: [],
       httpCache: [],
@@ -108,21 +126,23 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
     }
   }
 
-  const sourceIds = dueSources.map(source => source.id)
   const endpointUrls = dueSources.map(source => canonicalRequestUrl(source.endpointUrl))
-  const [itemRows, cacheRows, robotsRows, hostRows, linkRows, citationRows] = await Promise.all([
-    database.select().from(items).where(inArray(items.sourceId, sourceIds)),
+  const [sourceRows, itemRows, cacheRows, robotsRows, hostRows, linkRows, signalRows, citationRows] = await Promise.all([
+    database.select().from(sources),
+    database.select().from(items),
     database.select().from(httpCache).where(inArray(httpCache.url, endpointUrls)),
     database.select().from(robotsCache),
     database.select().from(publisherHosts),
     database.select().from(linkTable),
-    database.select().from(citationTable).where(inArray(citationTable.sourceId, sourceIds)),
+    database.select().from(signalTable),
+    database.select().from(citationTable),
   ])
   return {
-    sources: dueSources,
+    sources: sourceRows.map(asIngestionSource),
     items: itemRows,
     publisherHosts: hostRows,
     links: linkRows,
+    signals: signalRows,
     citations: citationRows,
     fetchLogs: [],
     httpCache: cacheRows,
@@ -294,6 +314,12 @@ function sourceStatements(database: Database, source: IngestionSource, graph: Pe
           firstSeenAt: sql`least(${linkTable.firstSeenAt}, excluded.first_seen_at)`,
         },
       }))
+      const signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
+      if (signal === undefined)
+        throw new Error(`Link ${link.id} completed without an eager Signal`)
+      statements.push(database.insert(signalTable).values(signal).onConflictDoNothing({
+        target: signalTable.targetLinkId,
+      }))
     }
     for (const citation of sourceCitations) {
       statements.push(database.insert(citationTable).values(citation).onConflictDoUpdate({
@@ -324,6 +350,36 @@ function sourceStatements(database: Database, source: IngestionSource, graph: Pe
 
 async function commitSource(database: Database, source: IngestionSource, graph: PersistedGraph): Promise<void> {
   await commitStatements(database, sourceStatements(database, source, graph))
+}
+
+async function commitSignalGraph(database: Database, graph: PersistedGraph): Promise<void> {
+  if (graph.signals.length === 0)
+    return
+  const ordered = [...graph.signals].sort((left, right) => left.id.localeCompare(right.id))
+  const statements: CompiledQuery[] = []
+  const batches = Array.from(
+    { length: Math.ceil(ordered.length / SIGNAL_WRITE_BATCH_SIZE) },
+    (_, index) => ordered.slice(index * SIGNAL_WRITE_BATCH_SIZE, (index + 1) * SIGNAL_WRITE_BATCH_SIZE),
+  )
+  for (const batch of batches) {
+    statements.push(database.insert(signalTable).values(batch.map(signal => ({
+      ...signal,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: null,
+    }))).onConflictDoNothing({ target: signalTable.id }))
+  }
+  for (const batch of batches) {
+    statements.push(database.insert(signalTable).values(batch).onConflictDoUpdate({
+      target: signalTable.id,
+      set: {
+        mergedIntoId: sql`excluded.merged_into_id`,
+        strength: sql`excluded.strength`,
+        originPublisherId: sql`excluded.origin_publisher_id`,
+      },
+    }))
+  }
+  await commitStatements(database, statements)
 }
 
 /** Run every due RSS/Atom Source through the same seam against Neon directly. */
@@ -357,6 +413,7 @@ export async function runNeonIngestion(
     initialGraph: graph,
     onSourceCommitted: async (source, persisted) => commitSource(database, source, persisted),
   })
+  await commitSignalGraph(database, persisted)
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))
   for (const source of persisted.sources) {
     if (source.disabledAt === null && source.newestItemAt !== null && source.newestItemAt < dormantBefore)

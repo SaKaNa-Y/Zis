@@ -1,7 +1,7 @@
 import type { Database } from '@/lib/db'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { describe, expect, it } from 'vitest'
-import { citations, items, links } from '@/lib/db/schema'
+import { citations, items, links, signals } from '@/lib/db/schema'
 import { runNeonIngestion } from './postgres'
 
 function databaseReturning(...results: unknown[][]): Database {
@@ -39,6 +39,10 @@ function capturingDatabase(...results: unknown[][]): {
     const statementNumber = statements.push({ kind, table, values })
     const query = {
       onConflictDoUpdate: (conflict: unknown) => {
+        statements[statementNumber - 1]!.conflict = conflict
+        return query
+      },
+      onConflictDoNothing: (conflict: unknown) => {
         statements[statementNumber - 1]!.conflict = conflict
         return query
       },
@@ -127,6 +131,74 @@ describe('the production ingestion startup assertion', () => {
     )
       .rejects
       .toThrow('host ownership assertion failed')
+  })
+
+  it('fails when a Transport venue host is registered to a Publisher', async () => {
+    const database = databaseReturning(
+      [{
+        itemUrl: 'https://bsky.app/profile/example.com/post/3example',
+        publisherId: 'publisher-1',
+        sourceId: 'source-1',
+        transport: 'bluesky_feed',
+      }],
+      [{ host: 'bsky.app', publisherId: 'publisher-1' }],
+    )
+
+    await expect(
+      runNeonIngestion(new Date('2026-08-29T08:00:00.000Z'), database),
+    )
+      .rejects
+      .toThrow('Transport venue bsky.app must be owned by nobody')
+  })
+
+  it.each([
+    ['bluesky_feed', 'https://bsky.app/profile/example.com/post/3example'],
+    ['github_graphql', 'https://github.com/example/project/releases/tag/v1.0.0'],
+  ] as const)('derives the unowned venue from the %s Transport', async (transport, itemUrl) => {
+    const database = databaseReturning(
+      [{ itemUrl, publisherId: 'publisher-1', sourceId: 'source-1', transport }],
+      [],
+      [],
+      [],
+      [],
+    )
+
+    await expect(runNeonIngestion(new Date('2026-08-29T08:00:00.000Z'), database))
+      .resolves
+      .toMatchObject({ sources: [] })
+  })
+
+  it.each([
+    ['bluesky_feed', 'https://unregistered.example/profile/example.com/post/3example'],
+    ['github_graphql', 'https://unregistered.example/example/project/releases/tag/v1.0.0'],
+  ] as const)('rejects an unowned non-venue host for the %s Transport', async (transport, itemUrl) => {
+    const database = databaseReturning(
+      [{ itemUrl, publisherId: 'publisher-1', sourceId: 'source-1', transport }],
+      [],
+    )
+
+    await expect(runNeonIngestion(new Date('2026-08-29T08:00:00.000Z'), database))
+      .rejects
+      .toThrow(`host ownership assertion failed: ${transport} Item host unregistered.example is not its Transport venue`)
+  })
+
+  it('requires Hacker News Items to resolve to the voting Hacker News Publisher', async () => {
+    const database = databaseReturning(
+      [{
+        itemUrl: 'https://news.ycombinator.com/item?id=123',
+        publisherId: 'hacker-news',
+        sourceId: 'hn-top',
+        transport: 'hn_firebase',
+      }],
+      [{ host: 'news.ycombinator.com', publisherId: 'hacker-news' }],
+      [],
+      [],
+      [],
+    )
+
+    await expect(runNeonIngestion(new Date('2026-08-29T08:00:00.000Z'), database))
+      .resolves
+      .toMatchObject({ sources: [] })
   })
 
   it('reports an enabled dormant Source even when origin backoff makes it not due', async () => {
@@ -218,10 +290,12 @@ describe('the production ingestion startup assertion', () => {
       [],
       [source],
       [],
+      [source],
       [item],
       [cache],
       [robots],
       [host],
+      [],
       [],
       [],
     )
@@ -236,7 +310,78 @@ describe('the production ingestion startup assertion', () => {
     expect(transactions).toHaveLength(1)
   })
 
-  it('commits Items, Links, and Citations together while reusing an existing Link', async () => {
+  it('recomputes Strength from Citations belonging to Sources that are not due', async () => {
+    const at = new Date('2026-08-29T08:00:00.000Z')
+    const dueSource = {
+      id: '00000000-0000-4000-8000-000000000141',
+      publisherId: '00000000-0000-4000-8000-000000000041',
+      transport: 'rss' as const,
+      endpointUrl: 'https://due-publisher.example/feed.xml',
+      isAggregator: false,
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailures: 0,
+      retryAfterAt: null,
+      lastPolledAt: null,
+      newestItemAt: null,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }
+    const historicalSource = {
+      ...dueSource,
+      id: '00000000-0000-4000-8000-000000000142',
+      publisherId: '00000000-0000-4000-8000-000000000042',
+      endpointUrl: 'https://historical-publisher.example/feed.xml',
+    }
+    const host = { host: 'due-publisher.example', publisherId: dueSource.publisherId }
+    const targetLink = {
+      id: '00000000-0000-8000-8000-000000000341',
+      url: 'https://independent.example/releases/one',
+      firstSeenAt: new Date('2026-08-28T08:00:00.000Z'),
+      createdAt: new Date('2026-08-28T08:00:00.000Z'),
+    }
+    const targetSignal = {
+      id: targetLink.id,
+      targetLinkId: targetLink.id,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: null,
+      createdAt: targetLink.createdAt,
+    }
+    const historicalCitation = {
+      id: '00000000-0000-8000-8000-000000000441',
+      itemId: '00000000-0000-8000-8000-000000000241',
+      sourceId: historicalSource.id,
+      linkId: targetLink.id,
+      kind: 'outbound' as const,
+      rawUrl: targetLink.url,
+      firstSeenAt: targetLink.firstSeenAt,
+      createdAt: targetLink.createdAt,
+    }
+    const { database } = capturingDatabase(
+      [],
+      [host],
+      [],
+      [dueSource],
+      [],
+      [dueSource, historicalSource],
+      [],
+      [],
+      [],
+      [host],
+      [targetLink],
+      [targetSignal],
+      [historicalCitation],
+    )
+    const fetcher = fixtureFetcher(url => url.endsWith('/robots.txt')
+      ? { status: 404 }
+      : { status: 200, body: '<rss><channel /></rss>', contentType: 'application/rss+xml' })
+
+    const graph = await runNeonIngestion(at, database, fetcher)
+
+    expect(graph.signals.find(signal => signal.id === targetSignal.id)?.strength).toBe(1)
+  })
+
+  it('commits eager Signals with Links and then persists the resolved Signal graph', async () => {
     const at = new Date('2026-08-29T08:00:00.000Z')
     const source = {
       id: '00000000-0000-4000-8000-000000000101',
@@ -265,11 +410,13 @@ describe('the production ingestion startup assertion', () => {
       [],
       [source],
       [],
+      [source],
       [],
       [],
       [],
       [host],
       [existingLink],
+      [],
       [],
     )
     const feed = `<rss version="2.0"><channel><item>
@@ -294,10 +441,12 @@ describe('the production ingestion startup assertion', () => {
 
     const itemIndex = statements.findIndex(statement => statement.table === items)
     const linkIndex = statements.findIndex(statement => statement.table === links)
+    const signalIndex = statements.findIndex(statement => statement.table === signals)
     const citationIndex = statements.findIndex(statement => statement.table === citations)
     expect(itemIndex).toBeGreaterThanOrEqual(0)
     expect(linkIndex).toBeGreaterThan(itemIndex)
-    expect(citationIndex).toBeGreaterThan(linkIndex)
+    expect(signalIndex).toBeGreaterThan(linkIndex)
+    expect(citationIndex).toBeGreaterThan(signalIndex)
     expect(statements
       .filter(statement => statement.table === citations)
       .map(statement => statement.values)
@@ -305,7 +454,25 @@ describe('the production ingestion startup assertion', () => {
     ).toMatchObject({ linkId: existingLink.id })
     expect(statements.find(statement => statement.table === citations)?.conflict)
       .toMatchObject({ set: { firstSeenAt: expect.anything() } })
-    expect(transactions).toHaveLength(1)
-    expect(transactions[0]).toHaveLength(statements.length)
+    expect(statements.some(statement => statement.table === signals
+      && (statement.values as { targetLinkId?: string }).targetLinkId === existingLink.id)).toBe(true)
+    const signalBatches = statements.filter(statement => statement.kind === 'insert'
+      && statement.table === signals
+      && Array.isArray(statement.values))
+    expect(signalBatches).toHaveLength(2)
+    expect(signalBatches[0]?.values).toEqual(expect.arrayContaining([
+      expect.objectContaining({ mergedIntoId: null, strength: 0, originPublisherId: null }),
+    ]))
+    expect(signalBatches[1]?.values).toEqual(expect.arrayContaining([
+      expect.objectContaining({ targetLinkId: existingLink.id, strength: 1 }),
+    ]))
+    expect(signalBatches[1]?.conflict).toMatchObject({
+      set: {
+        mergedIntoId: expect.anything(),
+        strength: expect.anything(),
+        originPublisherId: expect.anything(),
+      },
+    })
+    expect(transactions).toHaveLength(2)
   })
 })
