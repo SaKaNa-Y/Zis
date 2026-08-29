@@ -184,6 +184,49 @@ describe('4 — per-hop revalidation', () => {
     expect(response.url).toBe('https://elsewhere.example.com/final')
   })
 
+  it('leases every hop so callers can apply per-host policy and concurrency', async () => {
+    const transport = transportRecording((_request, hop) =>
+      hop === 0 ? redirectTo('https://elsewhere.example.com/final') : ok())
+    const safeFetch = createSafeFetch({ resolve: publicResolver(), transport })
+    const events: string[] = []
+
+    await safeFetch('https://example.com/start', {
+      beforeRequest: async (url) => {
+        events.push(`acquire ${url}`)
+        return () => events.push(`release ${url}`)
+      },
+    })
+
+    expect(events).toEqual([
+      'acquire https://example.com/start',
+      'release https://example.com/start',
+      'acquire https://elsewhere.example.com/final',
+      'release https://elsewhere.example.com/final',
+    ])
+  })
+
+  it('includes time spent waiting for a caller lease in the total timeout', async () => {
+    const transport = transportRecording(() => ok())
+    const safeFetch = createSafeFetch({ resolve: publicResolver(), transport })
+    let releaseLateLease: ((release: () => void) => void) | undefined
+    let released = false
+    const lease = new Promise<() => void>((resolve) => {
+      releaseLateLease = resolve
+    })
+
+    expect(await codeOf(safeFetch('https://example.com/', {
+      timeoutMs: 5,
+      beforeRequest: async () => lease,
+    }))).toBe('timeout')
+    expect(transport.requests).toEqual([])
+
+    releaseLateLease?.(() => {
+      released = true
+    })
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(released).toBe(true)
+  })
+
   it('rejects a redirect that leaves the scheme allowlist', async () => {
     const transport = transportRecording(() => redirectTo('file:///etc/passwd'))
     const safeFetch = createSafeFetch({ resolve: publicResolver(), transport })

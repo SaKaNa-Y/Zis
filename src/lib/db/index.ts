@@ -14,7 +14,9 @@ function build() {
   return drizzle(neon(databaseUrl()), { schema })
 }
 
-export function db(): ReturnType<typeof build> {
+export type Database = ReturnType<typeof build>
+
+export function db(): Database {
   client ??= build()
   return client
 }

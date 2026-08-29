@@ -16,7 +16,7 @@ const workflowsDirectory = join(root, '.github', 'workflows')
 
 interface Workflow {
   on?: Record<string, unknown>
-  jobs?: Record<string, { steps?: { name?: string, uses?: string, run?: string, with?: Record<string, unknown> }[] }>
+  jobs?: Record<string, { steps?: { name?: string, uses?: string, run?: string, with?: Record<string, unknown>, env?: Record<string, string> }[] }>
 }
 
 function readWorkflows(): { file: string, workflow: Workflow }[] {
@@ -71,6 +71,17 @@ describe('no workflow is scheduled', () => {
       expect(triggers, file).not.toContain('schedule')
     }
   })
+
+  it('keeps ingestion manual and migrations out of the runner', () => {
+    const ingest = parse(readFileSync(join(workflowsDirectory, 'ingest.yml'), 'utf8')) as Workflow
+    expect(Object.keys(ingest.on ?? {})).toEqual(['workflow_dispatch'])
+
+    const steps = Object.values(ingest.jobs ?? {}).flatMap(job => job.steps ?? [])
+    expect(steps.map(step => step.run)).toContain('pnpm exec tsx scripts/pipeline/run.ts')
+    expect(steps.some(step => /db:migrate|drizzle-kit\s+migrate/.test(step.run ?? ''))).toBe(false)
+    expect(steps.find(step => step.run === 'pnpm exec tsx scripts/pipeline/run.ts')?.env)
+      .toHaveProperty('DATABASE_URL')
+  })
 })
 
 describe('ci is one sequential job, cheapest first', () => {
@@ -107,5 +118,11 @@ describe('the pipeline imports the shared modules rather than copying them', () 
       { cwd: root, encoding: 'utf8' },
     )
     expect(output).toContain('shared modules resolve')
+  })
+
+  it('surfaces dormant Sources for manual review in the Actions log', () => {
+    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
+    expect(runner).toContain('graph.dormantSourceIds')
+    expect(runner).toContain('::warning title=Dormant Source::')
   })
 })

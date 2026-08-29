@@ -1,10 +1,124 @@
-/**
- * The corpus schema. Empty in slice 0 — `Source`, `Item`, `Link`, `Signal`,
- * `Citation`, `Interest`, `Brief` and `BriefEntry` arrive with the slice that
- * first writes them, so that no table exists before something reads it.
- *
- * Migrations are generated with `pnpm db:generate` and applied by hand against
- * production, snapshot first, never from a build step (docs/repo-and-ci.md §3).
- */
+import {
+  bigserial,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core'
 
-export {}
+const timestampTz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
+
+export const sourceTransport = pgEnum('source_transport', [
+  'rss',
+  'atom',
+  'hn_firebase',
+  'hn_algolia',
+  'github_graphql',
+  'bluesky_feed',
+])
+
+export const sourceFetchOutcome = pgEnum('source_fetch_outcome', [
+  'ok',
+  'not_modified',
+  'http_error',
+  'timeout',
+  'robots_denied',
+  'parse_error',
+  'too_large',
+])
+
+/** One owning voice, independently of how many hosts or Sources it uses. */
+export const publishers = pgTable('publisher', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+})
+
+/**
+ * The schema-level `host -> publisher_id` uniqueness guard.
+ *
+ * Host ownership is a relation rather than an array column because a Publisher
+ * may own several hosts while a host must have exactly one owner. Making `host`
+ * the key enforces the latter without duplicating Publisher identities.
+ */
+export const publisherHosts = pgTable('publisher_host', {
+  host: text('host').primaryKey(),
+  publisherId: uuid('publisher_id').notNull().references(() => publishers.id, { onDelete: 'cascade' }),
+})
+
+export const sources = pgTable('source', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  publisherId: uuid('publisher_id').notNull().references(() => publishers.id),
+  transport: sourceTransport('transport').notNull(),
+  endpointUrl: text('endpoint_url').notNull().unique(),
+  isAggregator: boolean('is_aggregator').notNull().default(false),
+  disabledAt: timestampTz('disabled_at'),
+  disabledReason: text('disabled_reason'),
+  consecutiveFailures: integer('consecutive_failures').notNull().default(0),
+  retryAfterAt: timestampTz('retry_after_at'),
+  lastPolledAt: timestampTz('last_polled_at'),
+  newestItemAt: timestampTz('newest_item_at'),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+})
+
+export const items = pgTable('item', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  externalId: text('external_id').notNull(),
+  url: text('url'),
+  title: text('title').notNull(),
+  summary: text('summary'),
+  rawFeedDate: text('raw_feed_date'),
+  publishedAt: timestampTz('published_at').notNull(),
+  fetchedAt: timestampTz('fetched_at').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
+}, table => [
+  unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
+  index('item_published_at_idx').on(table.publishedAt),
+])
+
+export const sourceFetchLogs = pgTable('source_fetch_log', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  startedAt: timestampTz('started_at').notNull(),
+  durationMs: integer('duration_ms').notNull(),
+  outcome: sourceFetchOutcome('outcome').notNull(),
+  httpStatus: integer('http_status'),
+  itemsSeen: integer('items_seen').notNull().default(0),
+  itemsNew: integer('items_new').notNull().default(0),
+  bytes: integer('bytes').notNull().default(0),
+  errorMessage: text('error_message'),
+}, table => [
+  index('source_fetch_log_source_started_idx').on(table.sourceId, table.startedAt.desc()),
+])
+
+/** Validators only. A body column here would violate ADR-0005. */
+export const httpCache = pgTable('http_cache', {
+  url: text('url').primaryKey(),
+  etag: text('etag'),
+  lastModified: text('last_modified'),
+  lastStatus: integer('last_status'),
+  fetchedAt: timestampTz('fetched_at').notNull(),
+})
+
+export const robotsCache = pgTable('robots_cache', {
+  host: text('host').primaryKey(),
+  verdict: text('verdict').notNull(),
+  directives: jsonb('directives').notNull(),
+  status: integer('status').notNull(),
+  contentType: text('content_type'),
+  wafAction: text('waf_action'),
+  authoritative: boolean('authoritative').notNull(),
+  fetchedAt: timestampTz('fetched_at').notNull(),
+  expiresAt: timestampTz('expires_at').notNull(),
+}, table => [
+  index('robots_cache_expires_at_idx').on(table.expiresAt),
+])
