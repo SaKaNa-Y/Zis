@@ -40,17 +40,6 @@ function asRobotsCache(row: typeof robotsCache.$inferSelect): RobotsCacheRecord 
   }
 }
 
-function canonicalRequestUrl(url: string): string {
-  try {
-    const canonical = new URL(url)
-    canonical.hash = ''
-    return canonical.href
-  }
-  catch {
-    return url
-  }
-}
-
 const itemVenueHostByTransport: Record<IngestionSource['transport'], string | null> = {
   rss: null,
   atom: null,
@@ -126,11 +115,10 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
     }
   }
 
-  const endpointUrls = dueSources.map(source => canonicalRequestUrl(source.endpointUrl))
   const [sourceRows, itemRows, cacheRows, robotsRows, hostRows, linkRows, signalRows, citationRows] = await Promise.all([
     database.select().from(sources),
     database.select().from(items),
-    database.select().from(httpCache).where(inArray(httpCache.url, endpointUrls)),
+    database.select().from(httpCache),
     database.select().from(robotsCache),
     database.select().from(publisherHosts),
     database.select().from(linkTable),
@@ -254,7 +242,12 @@ async function refreshRobotDisabledSources(database: Database, at: Date, fetcher
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
 }
 
-function sourceStatements(database: Database, source: IngestionSource, graph: PersistedGraph): CompiledQuery[] {
+function sourceStatements(
+  database: Database,
+  source: IngestionSource,
+  graph: PersistedGraph,
+  touchedHttpCacheKeys: ReadonlySet<string>,
+): CompiledQuery[] {
   const latestLog = [...graph.fetchLogs].reverse().find(log => log.sourceId === source.id)
   if (latestLog === undefined)
     throw new Error(`Source ${source.id} completed without a source_fetch_log row`)
@@ -270,8 +263,8 @@ function sourceStatements(database: Database, source: IngestionSource, graph: Pe
     }).where(eq(sources.id, source.id)),
   ]
 
-  const cache = graph.httpCache.find(record => record.url === canonicalRequestUrl(source.endpointUrl))
-  if (cache !== undefined) {
+  const touchedCacheRows = graph.httpCache.filter(record => touchedHttpCacheKeys.has(record.url))
+  for (const cache of touchedCacheRows) {
     statements.push(database.insert(httpCache).values(cache).onConflictDoUpdate({
       target: httpCache.url,
       set: {
@@ -348,8 +341,13 @@ function sourceStatements(database: Database, source: IngestionSource, graph: Pe
   return statements
 }
 
-async function commitSource(database: Database, source: IngestionSource, graph: PersistedGraph): Promise<void> {
-  await commitStatements(database, sourceStatements(database, source, graph))
+async function commitSource(
+  database: Database,
+  source: IngestionSource,
+  graph: PersistedGraph,
+  touchedHttpCacheKeys: ReadonlySet<string>,
+): Promise<void> {
+  await commitStatements(database, sourceStatements(database, source, graph, touchedHttpCacheKeys))
 }
 
 async function commitSignalGraph(database: Database, graph: PersistedGraph): Promise<void> {
@@ -411,7 +409,8 @@ export async function runNeonIngestion(
     fetch: fetcher,
     now: () => new Date(),
     initialGraph: graph,
-    onSourceCommitted: async (source, persisted) => commitSource(database, source, persisted),
+    onSourceCommitted: async (source, persisted, touchedHttpCacheKeys) =>
+      commitSource(database, source, persisted, touchedHttpCacheKeys),
   })
   await commitSignalGraph(database, persisted)
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))

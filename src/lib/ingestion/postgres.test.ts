@@ -1,7 +1,7 @@
 import type { Database } from '@/lib/db'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { describe, expect, it } from 'vitest'
-import { citations, items, links, signals } from '@/lib/db/schema'
+import { citations, httpCache, items, links, signals, sources } from '@/lib/db/schema'
 import { runNeonIngestion } from './postgres'
 
 function databaseReturning(...results: unknown[][]): Database {
@@ -84,6 +84,7 @@ interface FetchFixture {
   status: number
   body?: string
   contentType?: string
+  headers?: Record<string, string>
 }
 
 function fixtureFetcher(resolve: (url: string) => FetchFixture): SafeFetch {
@@ -94,9 +95,10 @@ function fixtureFetcher(resolve: (url: string) => FetchFixture): SafeFetch {
       const fixture = resolve(url)
       const body = fixture.body ?? ''
       const bytes = new TextEncoder().encode(body)
-      const headers: Record<string, string> = fixture.contentType === undefined
-        ? {}
-        : { 'content-type': fixture.contentType }
+      const headers: Record<string, string> = {
+        ...fixture.headers,
+        ...(fixture.contentType === undefined ? {} : { 'content-type': fixture.contentType }),
+      }
       return {
         url,
         status: fixture.status,
@@ -308,6 +310,84 @@ describe('the production ingestion startup assertion', () => {
     expect(statements.some(statement => statement.table === links)).toBe(false)
     expect(statements.some(statement => statement.table === citations)).toBe(false)
     expect(transactions).toHaveLength(1)
+  })
+
+  it('commits an issue-page validator with its hydrated Citations without creating a Source', async () => {
+    const at = new Date('2026-08-29T08:00:00.000Z')
+    const aggregator = {
+      id: '00000000-0000-4000-8000-000000000121',
+      publisherId: '00000000-0000-4000-8000-000000000021',
+      transport: 'rss' as const,
+      endpointUrl: 'https://newsletter.example/feed.xml',
+      isAggregator: true,
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailures: 0,
+      retryAfterAt: null,
+      lastPolledAt: null,
+      newestItemAt: null,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }
+    const host = { host: 'newsletter.example', publisherId: aggregator.publisherId }
+    const issueUrl = 'https://newsletter.example/issues/validator'
+    const targetUrl = 'https://target.example/releases/validator'
+    const { database, statements, transactions } = capturingDatabase(
+      [],
+      [host],
+      [],
+      [aggregator],
+      [],
+      [aggregator],
+      [],
+      [],
+      [],
+      [host],
+      [],
+      [],
+      [],
+    )
+    const fetcher = fixtureFetcher((url) => {
+      if (url.endsWith('/robots.txt'))
+        return { status: 404 }
+      if (url === aggregator.endpointUrl) {
+        return {
+          status: 200,
+          contentType: 'application/rss+xml',
+          body: `<rss><channel><item>
+            <guid>validator-issue</guid>
+            <title>Validator issue</title>
+            <link>${issueUrl}</link>
+          </item></channel></rss>`,
+        }
+      }
+      if (url === issueUrl) {
+        return {
+          status: 200,
+          contentType: 'text/html',
+          headers: { etag: '"issue-v1"' },
+          body: `<a href="${targetUrl}">Target release</a>`,
+        }
+      }
+      throw new Error(`unexpected fetch ${url}`)
+    })
+
+    const graph = await runNeonIngestion(at, database, fetcher)
+
+    expect(graph.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'outbound', rawUrl: targetUrl }),
+    ]))
+    const issueCacheStatementIndex = statements.findIndex(statement =>
+      statement.table === httpCache
+      && (statement.values as { url?: string }).url === issueUrl,
+    )
+    const citationStatementIndex = statements.findIndex(statement => statement.table === citations)
+    expect(issueCacheStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(citationStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(transactions).toContainEqual(expect.arrayContaining([
+      expect.objectContaining({ sql: `statement-${issueCacheStatementIndex + 1}` }),
+      expect.objectContaining({ sql: `statement-${citationStatementIndex + 1}` }),
+    ]))
+    expect(statements.some(statement => statement.kind === 'insert' && statement.table === sources)).toBe(false)
   })
 
   it('recomputes Strength from Citations belonging to Sources that are not due', async () => {

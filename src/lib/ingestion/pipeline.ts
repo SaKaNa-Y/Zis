@@ -23,10 +23,15 @@ class FeedParseError extends Error {
 interface ParsedFeedItem {
   guid?: string
   link?: string
-  outboundUrls: string[]
+  outboundUrls: ParsedOutboundUrl[]
   title: string
   summary?: string
   rawFeedDate?: string
+}
+
+interface ParsedOutboundUrl {
+  rawUrl: string
+  baseUrl?: string
 }
 
 interface MutableFeedItem {
@@ -125,7 +130,7 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   return {
     guid,
     link,
-    outboundUrls: [...outboundUrls],
+    outboundUrls: [...outboundUrls].map(rawUrl => ({ rawUrl })),
     title,
     summary: summary === '' ? undefined : summary,
     rawFeedDate: readField(item, 'published', 'pubdate', 'updated'),
@@ -402,7 +407,11 @@ interface RunIngestionCommon {
   publisherHosts?: PublisherHost[]
   now?: () => Date
   initialGraph?: PersistedGraph
-  onSourceCommitted?: (source: IngestionSource, graph: PersistedGraph) => Promise<void>
+  onSourceCommitted?: (
+    source: IngestionSource,
+    graph: PersistedGraph,
+    touchedHttpCacheKeys: ReadonlySet<string>,
+  ) => Promise<void>
 }
 
 export type RunIngestionInput = RunIngestionCommon & (
@@ -671,6 +680,30 @@ function httpCacheKey(url: string): string {
   }
 }
 
+function httpCacheRecord(
+  existing: HttpCacheRecord | undefined,
+  url: string,
+  response: SafeFetchResponse,
+  fetchedAt: Date,
+  preserveMissingValidators = false,
+): HttpCacheRecord {
+  return {
+    url,
+    etag: response.headers.etag ?? (preserveMissingValidators ? existing?.etag : null) ?? null,
+    lastModified: response.headers['last-modified'] ?? (preserveMissingValidators ? existing?.lastModified : null) ?? null,
+    lastStatus: response.status,
+    fetchedAt,
+  }
+}
+
+function upsertHttpCache(records: HttpCacheRecord[], record: HttpCacheRecord): void {
+  const existing = records.find(candidate => candidate.url === record.url)
+  if (existing === undefined)
+    records.push(record)
+  else
+    Object.assign(existing, record)
+}
+
 function putHttpCache(
   graph: PersistedGraph,
   url: string,
@@ -679,17 +712,69 @@ function putHttpCache(
   preserveMissingValidators = false,
 ): void {
   const existing = graph.httpCache.find(record => record.url === url)
-  const record: HttpCacheRecord = {
-    url,
-    etag: response.headers.etag ?? (preserveMissingValidators ? existing?.etag : null) ?? null,
-    lastModified: response.headers['last-modified'] ?? (preserveMissingValidators ? existing?.lastModified : null) ?? null,
-    lastStatus: response.status,
-    fetchedAt,
+  upsertHttpCache(
+    graph.httpCache,
+    httpCacheRecord(existing, url, response, fetchedAt, preserveMissingValidators),
+  )
+}
+
+function isSuccessfulCache(record: HttpCacheRecord): boolean {
+  return record.lastStatus === 304
+    || (record.lastStatus !== null && record.lastStatus >= 200 && record.lastStatus < 300)
+}
+
+/** Stage 4: recover the link list omitted by excerpt-only Aggregator feeds. */
+async function hydrateIssuePages(
+  graph: PersistedGraph,
+  source: IngestionSource,
+  feedItems: ParsedFeedItem[],
+  fetch: SafeFetch,
+  now: () => Date,
+): Promise<Set<string>> {
+  const touchedCacheKeys = new Set<string>()
+  if (!source.isAggregator)
+    return touchedCacheKeys
+
+  const cacheUpdates: HttpCacheRecord[] = []
+
+  for (const item of feedItems) {
+    if (item.link === undefined)
+      continue
+    const cacheKey = httpCacheKey(item.link)
+    const cache = cacheUpdates.find(record => record.url === cacheKey)
+      ?? graph.httpCache.find(record => record.url === cacheKey)
+    if (cache !== undefined
+      && isSuccessfulCache(cache)
+      && cache.etag === null
+      && cache.lastModified === null) {
+      continue
+    }
+
+    const response = await fetch(item.link, {
+      headers: { accept: 'text/html', ...cacheHeaders(cache) },
+    })
+    const fetchedAt = now()
+    if (response.status === 304) {
+      if (cache === undefined || !isSuccessfulCache(cache))
+        throw new Error('received 304 for an issue page without previously persisted Citations')
+      upsertHttpCache(
+        cacheUpdates,
+        httpCacheRecord(cache, cacheKey, response, fetchedAt, true),
+      )
+      touchedCacheKeys.add(cacheKey)
+      continue
+    }
+    if (response.status < 200 || response.status >= 300)
+      throw new Error(`issue page returned HTTP ${response.status}`)
+    for (const rawUrl of extractHrefs(response.text()))
+      item.outboundUrls.push({ rawUrl, baseUrl: response.url })
+    upsertHttpCache(cacheUpdates, httpCacheRecord(cache, cacheKey, response, fetchedAt))
+    touchedCacheKeys.add(cacheKey)
   }
-  if (existing === undefined)
-    graph.httpCache.push(record)
-  else
-    Object.assign(existing, record)
+
+  for (const update of cacheUpdates)
+    upsertHttpCache(graph.httpCache, update)
+  return touchedCacheKeys
 }
 
 function addLog(
@@ -1017,7 +1102,8 @@ async function ingestSource(
   source: IngestionSource,
   fetch: ReturnType<typeof createCannedSafeFetch>,
   now: () => Date,
-): Promise<void> {
+): Promise<ReadonlySet<string>> {
+  const touchedHttpCacheKeys = new Set<string>()
   if (source.transport !== 'rss' && source.transport !== 'atom')
     throw new Error(`Source ${source.id} uses unsupported transport ${source.transport}`)
   const startedAt = now()
@@ -1048,16 +1134,17 @@ async function ingestSource(
           response,
           originDeferral,
         )
-        return
+        return touchedHttpCacheKeys
       }
       putHttpCache(graph, cacheKey, response, fetchedAt, true)
+      touchedHttpCacheKeys.add(cacheKey)
       source.consecutiveFailures = 0
       source.retryAfterAt = originDeferral
       addLog(graph, source.id, startedAt, now(), 'not_modified', {
         httpStatus: response.status,
         bytes: response.byteLength,
       })
-      return
+      return touchedHttpCacheKeys
     }
     if (response.status < 200 || response.status >= 300) {
       recordFailure(
@@ -1070,11 +1157,15 @@ async function ingestSource(
         response,
         originDeferral,
       )
-      return
+      return touchedHttpCacheKeys
     }
 
     const parsed = parseFeed(response.bytes)
+    const hydratedCacheKeys = await hydrateIssuePages(graph, source, parsed, fetch, now)
+    for (const hydratedCacheKey of hydratedCacheKeys)
+      touchedHttpCacheKeys.add(hydratedCacheKey)
     putHttpCache(graph, cacheKey, response, fetchedAt)
+    touchedHttpCacheKeys.add(cacheKey)
     source.consecutiveFailures = 0
     source.retryAfterAt = originDeferral
     let itemsNew = 0
@@ -1115,8 +1206,17 @@ async function ingestSource(
         persistedItem = existing
       }
       recordCitation(graph, persistedItem, source, item.link, 'self', fetchedAt)
-      for (const outboundUrl of item.outboundUrls)
-        recordCitation(graph, persistedItem, source, outboundUrl, 'outbound', fetchedAt, item.link)
+      for (const outboundUrl of item.outboundUrls) {
+        recordCitation(
+          graph,
+          persistedItem,
+          source,
+          outboundUrl.rawUrl,
+          'outbound',
+          fetchedAt,
+          outboundUrl.baseUrl ?? item.link,
+        )
+      }
       if (newest === null || publishedAt > newest)
         newest = publishedAt
     }
@@ -1130,11 +1230,13 @@ async function ingestSource(
     })
   }
   catch (error) {
+    touchedHttpCacheKeys.clear()
     const outcome = failureOutcome(error)
     const failedAt = now()
     const originDeferral = response === undefined ? undefined : responseDeferral(response.headers, failedAt)
     recordFailure(graph, source, startedAt, failedAt, outcome, error, response, originDeferral)
   }
+  return touchedHttpCacheKeys
 }
 
 /**
@@ -1180,8 +1282,8 @@ export async function runIngestion({
       if (queue === undefined)
         return
       for (const source of queue) {
-        await ingestSource(graph, source, fetch, now)
-        await onSourceCommitted?.(source, graph)
+        const touchedHttpCacheKeys = await ingestSource(graph, source, fetch, now)
+        await onSourceCommitted?.(source, graph, touchedHttpCacheKeys)
       }
     }
   }
