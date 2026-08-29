@@ -42,9 +42,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Drizzle
-/drizzle/meta
-
 # Agent-session scratch. `/wayfinder` and friends create throwaway git
 # worktrees here; the branches they carry are the durable part, not the checkout.
 .claude/worktrees/

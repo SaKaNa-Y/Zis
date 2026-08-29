@@ -64,13 +64,62 @@ describe('the ingestion schema', () => {
     )).toBe(true)
   })
 
+  it('stores canonical Links and Citation provenance idempotently', () => {
+    const links = getTableConfig(schema.links)
+    expect(links.name).toBe('link')
+    expect(columnNames(schema.links)).toEqual([
+      'id',
+      'url',
+      'first_seen_at',
+      'created_at',
+    ])
+    expect(links.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'url',
+    )).toBe(true)
+
+    expect(schema.citationKind.enumValues).toEqual(['self', 'outbound'])
+    const citations = getTableConfig(schema.citations)
+    expect(citations.name).toBe('citation')
+    expect(columnNames(schema.citations)).toEqual([
+      'id',
+      'item_id',
+      'source_id',
+      'link_id',
+      'kind',
+      'raw_url',
+      'first_seen_at',
+      'created_at',
+    ])
+    expect(citations.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'item_id,kind,raw_url',
+    )).toBe(true)
+  })
+
   it('has a committed migration and does not migrate from a build or workflow', () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
+    const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
+    const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
+    const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
+    const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
     expect(existsSync(migration)).toBe(true)
+    expect(existsSync(linkCitationMigration)).toBe(true)
+    expect(existsSync(initialSnapshot)).toBe(true)
+    expect(existsSync(linkCitationSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
+    const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
+    expect(linkCitationSql).toContain('CREATE TABLE "link"')
+    expect(linkCitationSql).toContain('CREATE TABLE "citation"')
+    expect(linkCitationSql).toContain('DELETE FROM "http_cache"')
+    const journal = JSON.parse(readFileSync(migrationJournal, 'utf8')) as {
+      entries: Array<{ tag: string }>
+    }
+    expect(journal.entries.map(entry => entry.tag)).toEqual([
+      '0000_rss_ingestion',
+      '0001_link_citation_graph',
+    ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')
     expect(packageJson).not.toMatch(/"build"\s*:\s*"[^"]*(?:drizzle-kit|db:migrate)/)
