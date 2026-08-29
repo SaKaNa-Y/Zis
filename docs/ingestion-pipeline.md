@@ -248,6 +248,10 @@ issues**, and JavaScript Weekly appears as a voter in 5 of the top clusters.
   loop, and the validator cache dissolves what it guarded: an issue page is
   immutable once published, so it is hydrated **once ever**, not once per run.
   Steady state across 7 aggregators is one or two new issues a day.
+- **Completion is explicit.** `item.issue_hydrated_at` is written in the same
+  transaction as the recovered Citations. A successful `http_cache` status is
+  not completion evidence because that validator store is shared by unrelated
+  fetch populations.
 - **Position: after normalize, before canonicalize** (stage 4), so hydrated URLs
   flow through the identical L1–L5 cascade rather than a parallel path.
 - **`is_aggregator` is an explicit flag** on the Source, never inferred from the
@@ -347,7 +351,8 @@ publisher HTML is stored, so a 304 has nothing to serve *from* — but what a 30
 lets us skip is not re-serving content, it is **re-extracting** it: the Citations
 pulled from that issue page are already persisted rows, and `Item.text` under the
 30-day tier is the only text store. A 304 on a hydrated issue page means "your
-Citations are still current, do nothing."
+Citations are still current, do nothing." Hydration completion itself lives on
+the Item, not in this shared validator record.
 
 ### `robots_cache`
 

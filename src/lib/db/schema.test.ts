@@ -59,6 +59,7 @@ describe('the ingestion schema', () => {
     expect(items.name).toBe('item')
     expect(columnNames(schema.items)).toContain('raw_feed_date')
     expect(columnNames(schema.items)).toContain('published_at')
+    expect(columnNames(schema.items)).toContain('issue_hydrated_at')
     expect(items.uniqueConstraints.some(constraint =>
       constraint.columns.map(column => column.name).join(',') === 'source_id,external_id',
     )).toBe(true)
@@ -115,19 +116,24 @@ describe('the ingestion schema', () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
     const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
     const signalStrengthMigration = join(root, 'drizzle', '0002_signal_strength.sql')
+    const issueHydrationMigration = join(root, 'drizzle', '0003_issue_hydration_state.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
     const signalStrengthSnapshot = join(root, 'drizzle', 'meta', '0002_snapshot.json')
+    const issueHydrationSnapshot = join(root, 'drizzle', 'meta', '0003_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
+    expect(existsSync(issueHydrationMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
+    expect(existsSync(issueHydrationSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
+    const issueHydrationSql = readFileSync(issueHydrationMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -138,6 +144,7 @@ describe('the ingestion schema', () => {
     expect(signalStrengthSql).toContain('signal_merged_into_id_signal_id_fk')
     expect(signalStrengthSql).toContain('INSERT INTO "signal"')
     expect(signalStrengthSql).toContain('SELECT "id", "id"')
+    expect(issueHydrationSql).toContain('ADD COLUMN "issue_hydrated_at"')
     const journal = JSON.parse(readFileSync(migrationJournal, 'utf8')) as {
       entries: Array<{ tag: string }>
     }
@@ -145,6 +152,7 @@ describe('the ingestion schema', () => {
       '0000_rss_ingestion',
       '0001_link_citation_graph',
       '0002_signal_strength',
+      '0003_issue_hydration_state',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

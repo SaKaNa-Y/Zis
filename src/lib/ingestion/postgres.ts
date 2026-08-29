@@ -127,7 +127,10 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
   ])
   return {
     sources: sourceRows.map(asIngestionSource),
-    items: itemRows,
+    items: itemRows.map(item => ({
+      ...item,
+      issueHydratedAt: item.issueHydratedAt ?? null,
+    })),
     publisherHosts: hostRows,
     links: linkRows,
     signals: signalRows,
@@ -291,6 +294,7 @@ function sourceStatements(
           rawFeedDate: item.rawFeedDate,
           publishedAt: item.publishedAt,
           fetchedAt: item.fetchedAt,
+          issueHydratedAt: item.issueHydratedAt,
           updatedAt: item.updatedAt,
         },
       }))

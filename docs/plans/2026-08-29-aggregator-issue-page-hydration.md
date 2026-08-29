@@ -4,7 +4,7 @@
 
 **Goal:** Hydrate excerpt-only Aggregator issue pages at stage 4 so their links become ordinary outbound Citations and can raise Signal Strength.
 
-**Architecture:** Keep `runIngestion()` as the only behavioral seam. After feed parsing and normalization, fetch issue pages only for Sources whose explicit `isAggregator` flag is true, retain raw hrefs with the final response URL as their base, and pass them through the existing `recordCitation()` canonicalization and citation-worthiness path. Track each Source's touched `http_cache` keys explicitly so issue-page validators and their Citations commit atomically in the Neon adapter.
+**Architecture:** Keep `runIngestion()` as the only behavioral seam. After feed parsing and normalization, fetch issue pages only for Sources whose explicit `isAggregator` flag is true, retain raw hrefs with the final response URL as their base, and pass them through the existing `recordCitation()` canonicalization and citation-worthiness path. Record successful completion on the owning Item, and track each Source's touched `http_cache` keys explicitly so completion, issue-page validators, and Citations commit atomically in the Neon adapter.
 
 **Tech Stack:** TypeScript, Vitest, Drizzle ORM, PostgreSQL, existing `safeFetch`/robots policy.
 

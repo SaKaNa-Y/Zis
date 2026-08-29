@@ -381,11 +381,17 @@ describe('the production ingestion startup assertion', () => {
       && (statement.values as { url?: string }).url === issueUrl,
     )
     const citationStatementIndex = statements.findIndex(statement => statement.table === citations)
+    const itemStatementIndex = statements.findIndex(statement =>
+      statement.table === items
+      && (statement.values as { issueHydratedAt?: Date }).issueHydratedAt instanceof Date,
+    )
     expect(issueCacheStatementIndex).toBeGreaterThanOrEqual(0)
     expect(citationStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(itemStatementIndex).toBeGreaterThanOrEqual(0)
     expect(transactions).toContainEqual(expect.arrayContaining([
       expect.objectContaining({ sql: `statement-${issueCacheStatementIndex + 1}` }),
       expect.objectContaining({ sql: `statement-${citationStatementIndex + 1}` }),
+      expect.objectContaining({ sql: `statement-${itemStatementIndex + 1}` }),
     ]))
     expect(statements.some(statement => statement.kind === 'insert' && statement.table === sources)).toBe(false)
   })

@@ -84,6 +84,7 @@ export const items = pgTable('item', {
   rawFeedDate: text('raw_feed_date'),
   publishedAt: timestampTz('published_at').notNull(),
   fetchedAt: timestampTz('fetched_at').notNull(),
+  issueHydratedAt: timestampTz('issue_hydrated_at'),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
   updatedAt: timestampTz('updated_at').notNull().defaultNow(),
 }, table => [

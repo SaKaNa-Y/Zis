@@ -141,6 +141,7 @@ describe('aggregator issue-page hydration', () => {
       lastStatus: 304,
       fetchedAt: later,
     })
+    expect(second.items[0]?.issueHydratedAt).toEqual(NOW)
   })
 
   it('hydrates an immutable issue only once when the origin supplies no validators', async () => {
@@ -183,6 +184,108 @@ describe('aggregator issue-page hydration', () => {
       lastStatus: 200,
       fetchedAt: NOW,
     })
+    expect(second.items[0]?.issueHydratedAt).toEqual(NOW)
+  })
+
+  it('never mutates an already hydrated issue when a conditional request returns 200', async () => {
+    const issueUrl = 'https://newsletter.example/issues/validator-rotation'
+    const originalUrl = 'https://target.example/releases/original'
+    const replacementUrl = 'https://target.example/releases/replacement'
+    const feed = `<rss><channel><item>
+      <guid>validator-rotation</guid>
+      <title>Validator rotation</title>
+      <link>${issueUrl}</link>
+    </item></channel></rss>`
+    const first = await runIngestion({
+      sources: [source],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        { url: source.endpointUrl, status: 200, body: feed },
+        {
+          url: issueUrl,
+          status: 200,
+          headers: { 'content-type': 'text/html', 'etag': '"issue-v1"' },
+          body: `<a href="${originalUrl}">Original release</a>`,
+        },
+      ],
+    })
+
+    const later = new Date('2026-08-29T09:00:00.000Z')
+    const second = await runIngestion({
+      sources: [source],
+      initialGraph: first,
+      now: () => new Date(later),
+      responses: [
+        { url: source.endpointUrl, status: 200, body: feed },
+        {
+          url: issueUrl,
+          status: 200,
+          whenHeaders: { 'if-none-match': '"issue-v1"' },
+          headers: { 'content-type': 'text/html', 'etag': '"issue-v2"' },
+          body: `<a href="${replacementUrl}">Replacement release</a>`,
+        },
+      ],
+    })
+
+    expect(second.links.some(link => link.url === originalUrl)).toBe(true)
+    expect(second.links.some(link => link.url === replacementUrl)).toBe(false)
+    expect(second.httpCache.find(record => record.url === issueUrl)).toMatchObject({
+      etag: '"issue-v2"',
+      lastStatus: 200,
+      fetchedAt: later,
+    })
+    expect(second.items[0]?.issueHydratedAt).toEqual(NOW)
+  })
+
+  it('does not mistake another fetch population\'s cache row for completed hydration', async () => {
+    const issueUrl = 'https://newsletter.example/issues/shared-cache'
+    const targetUrl = 'https://target.example/releases/shared-cache'
+    const initialGraph = await runIngestion({
+      sources: [{ ...source, isAggregator: false }],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        { url: source.endpointUrl, status: 200, body: '<rss><channel /></rss>' },
+      ],
+    })
+    initialGraph.sources[0]!.isAggregator = true
+    initialGraph.httpCache.push({
+      url: issueUrl,
+      etag: null,
+      lastModified: null,
+      lastStatus: 200,
+      fetchedAt: new Date(NOW),
+    })
+
+    const later = new Date('2026-08-29T09:00:00.000Z')
+    const graph = await runIngestion({
+      sources: [source],
+      initialGraph,
+      now: () => new Date(later),
+      responses: [
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>shared-cache-issue</guid>
+            <title>Shared cache issue</title>
+            <link>${issueUrl}</link>
+          </item></channel></rss>`,
+        },
+        {
+          url: issueUrl,
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+          body: `<a href="${targetUrl}">Shared cache release</a>`,
+        },
+      ],
+    })
+
+    expect(graph.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'outbound', rawUrl: targetUrl }),
+    ]))
+    expect(graph.items[0]?.issueHydratedAt).toEqual(later)
   })
 
   it('hydrates only Sources explicitly marked as Aggregators', async () => {
@@ -216,6 +319,7 @@ describe('aggregator issue-page hydration', () => {
       expect.objectContaining({ kind: 'self', rawUrl: issueUrl }),
     ])
     expect(graph.httpCache.some(record => record.url === issueUrl)).toBe(false)
+    expect(graph.items[0]?.issueHydratedAt).toBeNull()
   })
 
   it('hydrates every issue without the prototype\'s 24-issue cap', async () => {
@@ -286,7 +390,106 @@ describe('aggregator issue-page hydration', () => {
     expect(graph.robotsCache.find(record => record.host === 'issues.example')).toMatchObject({
       verdict: 'disallow',
     })
-    expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'robots_denied' })
+    expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'ok' })
+    expect(graph.citations).toEqual([
+      expect.objectContaining({ kind: 'self', rawUrl: issueUrl }),
+    ])
+  })
+
+  it('honors issue-page Retry-After without discarding the Item or self Citation', async () => {
+    const issueUrl = 'https://newsletter.example/issues/deferred'
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>deferred-issue</guid>
+            <title>Deferred issue</title>
+            <link>${issueUrl}</link>
+          </item></channel></rss>`,
+        },
+        {
+          url: issueUrl,
+          status: 429,
+          headers: { 'retry-after': 'Mon, 31 Aug 2026 08:00:00 GMT' },
+        },
+      ],
+    })
+
+    expect(graph.sources[0]?.retryAfterAt).toEqual(new Date('2026-08-31T08:00:00.000Z'))
+    expect(graph.items).toEqual([expect.objectContaining({ externalId: 'deferred-issue' })])
+    expect(graph.citations).toEqual([
+      expect.objectContaining({ kind: 'self', rawUrl: issueUrl }),
+    ])
+    expect(graph.httpCache.some(record => record.url === issueUrl)).toBe(false)
+    expect(graph.items[0]?.issueHydratedAt).toBeNull()
+  })
+
+  it.each<{
+    body: string
+    headers: Record<string, string>
+    name: string
+    status: number
+  }>([
+    {
+      name: 'a non-200 success status',
+      status: 202,
+      headers: { 'content-type': 'text/html' },
+      body: '<a href="https://target.example/releases/from-202">Release</a>',
+    },
+    {
+      name: 'a non-HTML response',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      body: '<a href="https://target.example/releases/from-json">Release</a>',
+    },
+    {
+      name: 'an empty HTML response',
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '',
+    },
+    {
+      name: 'an HTML WAF challenge',
+      status: 200,
+      headers: { 'content-type': 'text/html', 'x-amzn-waf-action': 'captcha' },
+      body: '<a href="https://target.example/releases/from-captcha">Continue</a>',
+    },
+    {
+      name: 'a challenge interstitial without a WAF header',
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><title>Just a moment...</title><a href="https://target.example/releases/from-challenge">Continue</a></html>',
+    },
+  ])('does not cache or extract $name', async ({ body, headers, status }) => {
+    const issueUrl = `https://newsletter.example/issues/untrusted-${status}-${headers['content-type']}`
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>${issueUrl}</guid>
+            <title>Untrusted issue response</title>
+            <link>${issueUrl}</link>
+          </item></channel></rss>`,
+        },
+        { url: issueUrl, status, headers, body },
+      ],
+    })
+
+    expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'ok' })
+    expect(graph.citations).toEqual([
+      expect.objectContaining({ kind: 'self', rawUrl: issueUrl }),
+    ])
+    expect(graph.httpCache.some(record => record.url === issueUrl)).toBe(false)
   })
 
   it('resolves hydrated relative hrefs from the final issue-page URL', async () => {
