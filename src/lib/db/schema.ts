@@ -1,12 +1,18 @@
 import type { AnyPgColumn } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import {
   bigserial,
   boolean,
+  check,
+  doublePrecision,
+  foreignKey,
+  halfvec,
   index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -38,6 +44,18 @@ export const citationKind = pgEnum('citation_kind', [
   'self',
   'outbound',
 ])
+
+export const signalTextBasis = pgEnum('signal_text_basis', [
+  'own',
+  'citing',
+  'slug',
+])
+
+/** The local reader identity that owns an Interest Profile. */
+export const users = pgTable('user', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+})
 
 /** One owning voice, independently of how many hosts or Sources it uses. */
 export const publishers = pgTable('publisher', {
@@ -90,6 +108,10 @@ export const items = pgTable('item', {
 }, table => [
   unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
   index('item_published_at_idx').on(table.publishedAt),
+  check(
+    'item_summary_length_check',
+    sql`${table.summary} IS NULL OR length(${table.summary}) <= 1200`,
+  ),
 ])
 
 /** A canonical web address, whether or not Zis ingested an Item from it. */
@@ -109,10 +131,39 @@ export const signals = pgTable('signal', {
   mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => signals.id),
   strength: integer('strength').notNull().default(0),
   originPublisherId: uuid('origin_publisher_id').references(() => publishers.id),
+  textBasis: signalTextBasis('text_basis'),
+  /** The exact bounded text passed to the embedding model. */
+  embeddingText: text('embedding_text'),
+  embedding: halfvec('embedding', { dimensions: 384 }),
+  embeddingModel: text('embedding_model'),
+  embeddingDimensions: integer('embedding_dimensions'),
+  embeddingVersion: text('embedding_version'),
+  embeddedAt: timestampTz('embedded_at'),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
   unique('signal_target_link_id_unique').on(table.targetLinkId),
   index('signal_merged_into_id_idx').on(table.mergedIntoId),
+  check(
+    'signal_embedding_complete_check',
+    sql`(${table.embedding} IS NULL
+      AND ${table.textBasis} IS NULL
+      AND ${table.embeddingText} IS NULL
+      AND ${table.embeddingModel} IS NULL
+      AND ${table.embeddingDimensions} IS NULL
+      AND ${table.embeddingVersion} IS NULL
+      AND ${table.embeddedAt} IS NULL)
+      OR (${table.embedding} IS NOT NULL
+        AND ${table.textBasis} IS NOT NULL
+        AND ${table.embeddingText} IS NOT NULL
+        AND ${table.embeddingModel} IS NOT NULL
+        AND ${table.embeddingDimensions} = 384
+        AND ${table.embeddingVersion} IS NOT NULL
+        AND ${table.embeddedAt} IS NOT NULL)`,
+  ),
+  check(
+    'signal_embedding_text_length_check',
+    sql`${table.embeddingText} IS NULL OR length(${table.embeddingText}) BETWEEN 1 AND 1200`,
+  ),
 ])
 
 /** Item-to-Link provenance. The raw address survives canonicalization. */
@@ -123,12 +174,81 @@ export const citations = pgTable('citation', {
   linkId: uuid('link_id').notNull().references(() => links.id),
   kind: citationKind('kind').notNull(),
   rawUrl: text('raw_url').notNull(),
+  anchorText: text('anchor_text'),
   firstSeenAt: timestampTz('first_seen_at').notNull(),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
   unique('citation_item_kind_raw_url_unique').on(table.itemId, table.kind, table.rawUrl),
   index('citation_link_id_idx').on(table.linkId),
   index('citation_source_id_idx').on(table.sourceId),
+])
+
+/** One positive Interest statement and its independently-computed embedding. */
+export const interests = pgTable('interest', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  statement: text('statement').notNull(),
+  embedding: halfvec('embedding', { dimensions: 384 }),
+  embeddingInputHash: text('embedding_input_hash'),
+  embeddingModel: text('embedding_model'),
+  embeddingDimensions: integer('embedding_dimensions'),
+  embeddingVersion: text('embedding_version'),
+  embeddedAt: timestampTz('embedded_at'),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
+}, table => [
+  unique('interest_id_user_id_unique').on(table.id, table.userId),
+  index('interest_user_id_idx').on(table.userId),
+  check('interest_statement_nonempty_check', sql`length(btrim(${table.statement})) > 0`),
+  check(
+    'interest_embedding_complete_check',
+    sql`(${table.embedding} IS NULL
+      AND ${table.embeddingInputHash} IS NULL
+      AND ${table.embeddingModel} IS NULL
+      AND ${table.embeddingDimensions} IS NULL
+      AND ${table.embeddingVersion} IS NULL
+      AND ${table.embeddedAt} IS NULL)
+      OR (${table.embedding} IS NOT NULL
+        AND ${table.embeddingInputHash} IS NOT NULL
+        AND ${table.embeddingModel} IS NOT NULL
+        AND ${table.embeddingDimensions} = 384
+        AND ${table.embeddingVersion} IS NOT NULL
+        AND ${table.embeddedAt} IS NOT NULL)`,
+  ),
+])
+
+/** The latest MAX-cosine Interest match for one reader and one Signal. */
+export const readerSignalMatches = pgTable('reader_signal_match', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
+  matchedInterestId: uuid('matched_interest_id'),
+  relevance: doublePrecision('relevance'),
+  gap: doublePrecision('gap'),
+  matchedAt: timestampTz('matched_at').notNull(),
+}, table => [
+  primaryKey({
+    name: 'reader_signal_match_user_id_signal_id_pk',
+    columns: [table.userId, table.signalId],
+  }),
+  foreignKey({
+    name: 'reader_signal_match_interest_owner_fk',
+    columns: [table.matchedInterestId, table.userId],
+    foreignColumns: [interests.id, interests.userId],
+  }).onDelete('cascade'),
+  index('reader_signal_match_signal_id_idx').on(table.signalId),
+  check(
+    'reader_signal_match_winner_check',
+    sql`(${table.matchedInterestId} IS NULL AND ${table.relevance} IS NULL AND ${table.gap} IS NULL)
+      OR (${table.matchedInterestId} IS NOT NULL AND ${table.relevance} IS NOT NULL)`,
+  ),
+  check(
+    'reader_signal_match_relevance_range_check',
+    sql`${table.relevance} IS NULL OR ${table.relevance} BETWEEN -1 AND 1`,
+  ),
+  check(
+    'reader_signal_match_gap_range_check',
+    sql`${table.gap} IS NULL OR ${table.gap} BETWEEN 0 AND 2`,
+  ),
 ])
 
 export const sourceFetchLogs = pgTable('source_fetch_log', {

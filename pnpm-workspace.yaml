@@ -8,6 +8,15 @@
 # vitest and tsx are both built on it.
 allowBuilds:
   esbuild: true
+  # The CPU ONNX runtime is bundled. Its installer only probes for CUDA and may
+  # download an unneeded GPU archive, while Zis pins CPU inference explicitly.
+  onnxruntime-node: false
+  # This postinstall only prints dependency-version advice and changes no
+  # runtime artifact.
+  protobufjs: false
+  # Transformers.js uses sharp only for image pipelines; Signal embeddings are
+  # text-only, so its native install check has no role in this application.
+  sharp: false
 
 # Both from `@antfu/eslint-config`, which is adopted as-is: cross-platform
 # `scripts`, and a registry trust level that may be raised but never lowered.

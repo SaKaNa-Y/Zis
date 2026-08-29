@@ -1,5 +1,6 @@
 import type { IngestionSource, PersistedGraph, SourceFetchLog } from './pipeline'
 import type { Database } from '@/lib/db'
+import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { and, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
@@ -7,13 +8,16 @@ import { db as defaultDatabase } from '@/lib/db'
 import {
   citations as citationTable,
   httpCache,
+  interests as interestTable,
   items,
   links as linkTable,
   publisherHosts,
+  readerSignalMatches as readerSignalMatchTable,
   robotsCache,
   signals as signalTable,
   sourceFetchLogs,
   sources,
+  users as userTable,
 } from '@/lib/db/schema'
 import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
@@ -99,8 +103,12 @@ async function assertHostOwnership(database: Database): Promise<void> {
   }
 }
 
-async function initialGraph(database: Database, dueSources: IngestionSource[]): Promise<PersistedGraph> {
-  if (dueSources.length === 0) {
+async function initialGraph(
+  database: Database,
+  dueSources: IngestionSource[],
+  includeReaderMatching: boolean,
+): Promise<PersistedGraph> {
+  if (dueSources.length === 0 && !includeReaderMatching) {
     return {
       sources: [],
       items: [],
@@ -108,6 +116,9 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
       links: [],
       signals: [],
       citations: [],
+      users: [],
+      interests: [],
+      readerSignalMatches: [],
       fetchLogs: [],
       httpCache: [],
       robotsCache: [],
@@ -125,6 +136,13 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
     database.select().from(signalTable),
     database.select().from(citationTable),
   ])
+  const [userRows, interestRows, matchRows] = includeReaderMatching
+    ? await Promise.all([
+        database.select().from(userTable),
+        database.select().from(interestTable),
+        database.select().from(readerSignalMatchTable),
+      ])
+    : [[], [], []]
   return {
     sources: sourceRows.map(asIngestionSource),
     items: itemRows.map(item => ({
@@ -135,6 +153,9 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
     links: linkRows,
     signals: signalRows,
     citations: citationRows,
+    users: userRows,
+    interests: interestRows,
+    readerSignalMatches: matchRows,
     fetchLogs: [],
     httpCache: cacheRows,
     robotsCache: robotsRows.map(asRobotsCache),
@@ -322,7 +343,16 @@ function sourceStatements(
       const signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
       if (signal === undefined)
         throw new Error(`Link ${link.id} completed without an eager Signal`)
-      statements.push(database.insert(signalTable).values(signal).onConflictDoNothing({
+      statements.push(database.insert(signalTable).values({
+        ...signal,
+        textBasis: null,
+        embeddingText: null,
+        embedding: null,
+        embeddingModel: null,
+        embeddingDimensions: null,
+        embeddingVersion: null,
+        embeddedAt: null,
+      }).onConflictDoNothing({
         target: signalTable.targetLinkId,
       }))
     }
@@ -332,6 +362,7 @@ function sourceStatements(
         set: {
           linkId: citation.linkId,
           sourceId: citation.sourceId,
+          anchorText: citation.anchorText,
           firstSeenAt: sql`least(${citationTable.firstSeenAt}, excluded.first_seen_at)`,
         },
       }))
@@ -370,8 +401,11 @@ async function commitSource(
 }
 
 async function commitSignalGraph(database: Database, graph: PersistedGraph): Promise<void> {
-  if (graph.signals.length === 0)
+  if (graph.signals.length === 0
+    && graph.interests.length === 0
+    && graph.readerSignalMatches.length === 0) {
     return
+  }
   const ordered = [...graph.signals].sort((left, right) => left.id.localeCompare(right.id))
   const statements: CompiledQuery[] = []
   const batches = Array.from(
@@ -393,6 +427,41 @@ async function commitSignalGraph(database: Database, graph: PersistedGraph): Pro
         mergedIntoId: sql`excluded.merged_into_id`,
         strength: sql`excluded.strength`,
         originPublisherId: sql`excluded.origin_publisher_id`,
+        textBasis: sql`excluded.text_basis`,
+        embeddingText: sql`excluded.embedding_text`,
+        embedding: sql`excluded.embedding`,
+        embeddingModel: sql`excluded.embedding_model`,
+        embeddingDimensions: sql`excluded.embedding_dimensions`,
+        embeddingVersion: sql`excluded.embedding_version`,
+        embeddedAt: sql`excluded.embedded_at`,
+      },
+    }))
+  }
+  if (graph.interests.length > 0) {
+    const orderedInterests = [...graph.interests].sort((left, right) => left.id.localeCompare(right.id))
+    statements.push(database.insert(interestTable).values(orderedInterests).onConflictDoUpdate({
+      target: interestTable.id,
+      set: {
+        embedding: sql`excluded.embedding`,
+        embeddingInputHash: sql`excluded.embedding_input_hash`,
+        embeddingModel: sql`excluded.embedding_model`,
+        embeddingDimensions: sql`excluded.embedding_dimensions`,
+        embeddingVersion: sql`excluded.embedding_version`,
+        embeddedAt: sql`excluded.embedded_at`,
+      },
+    }))
+  }
+  if (graph.readerSignalMatches.length > 0) {
+    const orderedMatches = [...graph.readerSignalMatches].sort((left, right) =>
+      left.userId.localeCompare(right.userId) || left.signalId.localeCompare(right.signalId),
+    )
+    statements.push(database.insert(readerSignalMatchTable).values(orderedMatches).onConflictDoUpdate({
+      target: [readerSignalMatchTable.userId, readerSignalMatchTable.signalId],
+      set: {
+        matchedInterestId: sql`excluded.matched_interest_id`,
+        relevance: sql`excluded.relevance`,
+        gap: sql`excluded.gap`,
+        matchedAt: sql`excluded.matched_at`,
       },
     }))
   }
@@ -404,6 +473,7 @@ export async function runNeonIngestion(
   at: Date = new Date(),
   database: Database = defaultDatabase(),
   fetcher: SafeFetch = safeFetch,
+  embeddingProvider?: EmbeddingProvider,
 ): Promise<PersistedGraph> {
   await assertHostOwnership(database)
   await refreshRobotDisabledSources(database, at, fetcher)
@@ -422,12 +492,13 @@ export async function runNeonIngestion(
     )),
   ])
   const dueSources = rows.map(asIngestionSource)
-  const graph = await initialGraph(database, dueSources)
+  const graph = await initialGraph(database, dueSources, embeddingProvider !== undefined)
   const persisted = await runIngestion({
     sources: dueSources,
     fetch: fetcher,
     now: () => new Date(),
     initialGraph: graph,
+    embeddingProvider,
     onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
       commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
   })

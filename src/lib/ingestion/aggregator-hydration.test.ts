@@ -589,4 +589,44 @@ describe('aggregator issue-page hydration', () => {
     expect(graph.links.some(link => link.url === 'https://issues.example/releases/widget')).toBe(true)
     expect(graph.httpCache.some(record => record.url === issueUrl)).toBe(true)
   })
+
+  it('retains the longest cleaned anchor text from feeds and hydrated issue pages', async () => {
+    const issueUrl = 'https://newsletter.example/issues/anchors'
+    const feedTargetUrl = 'https://target.example/releases/feed-anchor'
+    const hydratedTargetUrl = 'https://target.example/releases/hydrated-anchor'
+
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>anchor-issue</guid>
+            <title>Anchor issue</title>
+            <link>${issueUrl}</link>
+            <description><![CDATA[
+              <a href="${feedTargetUrl}">Short</a>
+              <a href="${feedTargetUrl}">  A much <strong>longer</strong> feed description  </a>
+            ]]></description>
+          </item></channel></rss>`,
+        },
+        {
+          url: issueUrl,
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+          body: `<a href="${hydratedTargetUrl}">  Hydrated <em>release</em> &amp; notes  </a>`,
+        },
+      ],
+    })
+
+    expect(graph.citations.find(citation => citation.rawUrl === feedTargetUrl)).toMatchObject({
+      anchorText: 'A much longer feed description',
+    })
+    expect(graph.citations.find(citation => citation.rawUrl === hydratedTargetUrl)).toMatchObject({
+      anchorText: 'Hydrated release & notes',
+    })
+  })
 })

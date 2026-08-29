@@ -1,7 +1,18 @@
 import type { Database } from '@/lib/db'
+import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { describe, expect, it } from 'vitest'
-import { citations, httpCache, items, links, signals, sources } from '@/lib/db/schema'
+import {
+  citations,
+  httpCache,
+  interests,
+  items,
+  links,
+  readerSignalMatches,
+  signals,
+  sources,
+} from '@/lib/db/schema'
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, EMBEDDING_VERSION } from '@/lib/embeddings/provider'
 import { runNeonIngestion } from './postgres'
 
 function databaseReturning(...results: unknown[][]): Database {
@@ -116,7 +127,167 @@ function fixtureFetcher(resolve: (url: string) => FetchFixture): SafeFetch {
   }
 }
 
+function unitVector(axis: number): Float32Array {
+  const vector = new Float32Array(EMBEDDING_DIMENSIONS)
+  vector[axis] = 1
+  return vector
+}
+
 describe('the production ingestion startup assertion', () => {
+  it('matches a loaded graph with no due Sources and persists all embedding outputs idempotently', async () => {
+    const at = new Date('2026-08-29T08:00:00.000Z')
+    const link = {
+      id: '00000000-0000-8000-8000-000000000301',
+      url: 'https://example.com/releases/stable',
+      firstSeenAt: new Date('2026-08-28T08:00:00.000Z'),
+      createdAt: new Date('2026-08-28T08:00:00.000Z'),
+    }
+    const signal = {
+      id: link.id,
+      targetLinkId: link.id,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: null,
+      textBasis: null,
+      embeddingText: null,
+      embedding: null,
+      embeddingModel: null,
+      embeddingDimensions: null,
+      embeddingVersion: null,
+      embeddedAt: null,
+      createdAt: link.createdAt,
+    }
+    const user = {
+      id: '00000000-0000-4000-8000-000000000501',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }
+    const interest = {
+      id: '00000000-0000-4000-8000-000000000601',
+      userId: user.id,
+      statement: 'Stable software releases',
+      embedding: null,
+      embeddingInputHash: null,
+      embeddingModel: null,
+      embeddingDimensions: null,
+      embeddingVersion: null,
+      embeddedAt: null,
+      createdAt: user.createdAt,
+      updatedAt: user.createdAt,
+    }
+    const { database, statements, transactions } = capturingDatabase(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [link],
+      [signal],
+      [],
+      [user],
+      [interest],
+      [],
+    )
+    const embeddedTexts: string[][] = []
+    const provider: EmbeddingProvider = {
+      model: EMBEDDING_MODEL,
+      dimensions: EMBEDDING_DIMENSIONS,
+      version: EMBEDDING_VERSION,
+      embed: async (texts) => {
+        embeddedTexts.push([...texts])
+        return texts.map(() => unitVector(0))
+      },
+    }
+
+    const graph = await runNeonIngestion(
+      at,
+      database,
+      fixtureFetcher(() => {
+        throw new Error('no origin fetch expected')
+      }),
+      provider,
+    )
+
+    expect(embeddedTexts).toEqual([
+      ['example releases stable'],
+      [interest.statement],
+    ])
+    expect(graph.signals[0]).toMatchObject({
+      textBasis: 'slug',
+      embeddingText: 'example releases stable',
+      embeddingModel: EMBEDDING_MODEL,
+      embeddingDimensions: EMBEDDING_DIMENSIONS,
+      embeddingVersion: EMBEDDING_VERSION,
+      embeddedAt: expect.any(Date),
+    })
+    expect(graph.interests[0]).toMatchObject({
+      embeddingInputHash: expect.stringMatching(/^[a-f\d]{64}$/),
+      embeddingModel: EMBEDDING_MODEL,
+      embeddedAt: expect.any(Date),
+    })
+    expect(graph.readerSignalMatches).toEqual([
+      expect.objectContaining({
+        userId: user.id,
+        signalId: signal.id,
+        matchedInterestId: interest.id,
+        relevance: 1,
+        gap: null,
+      }),
+    ])
+
+    const signalWrites = statements.filter(statement => statement.table === signals)
+    expect(signalWrites).toHaveLength(2)
+    expect(signalWrites[1]?.values).toEqual([
+      expect.objectContaining({
+        id: signal.id,
+        embedding: expect.any(Array),
+        embeddingModel: EMBEDDING_MODEL,
+      }),
+    ])
+    expect(signalWrites[1]?.conflict).toMatchObject({
+      target: signals.id,
+      set: {
+        embedding: expect.anything(),
+        embeddingModel: expect.anything(),
+        embeddedAt: expect.anything(),
+      },
+    })
+
+    const interestWrite = statements.find(statement => statement.table === interests)
+    expect(interestWrite?.values).toEqual([
+      expect.objectContaining({
+        id: interest.id,
+        embedding: expect.any(Array),
+        embeddingInputHash: expect.stringMatching(/^[a-f\d]{64}$/),
+      }),
+    ])
+    expect(interestWrite?.conflict).toMatchObject({
+      target: interests.id,
+      set: {
+        embedding: expect.anything(),
+        embeddingInputHash: expect.anything(),
+        embeddedAt: expect.anything(),
+      },
+    })
+
+    const matchWrite = statements.find(statement => statement.table === readerSignalMatches)
+    expect(matchWrite?.values).toEqual(graph.readerSignalMatches)
+    expect(matchWrite?.conflict).toMatchObject({
+      target: [readerSignalMatches.userId, readerSignalMatches.signalId],
+      set: {
+        matchedInterestId: expect.anything(),
+        relevance: expect.anything(),
+        gap: expect.anything(),
+        matchedAt: expect.anything(),
+      },
+    })
+    expect(transactions).toHaveLength(1)
+  })
+
   it('fails the run before selecting due Sources when an RSS Item host has no owner', async () => {
     const database = databaseReturning(
       [{
@@ -657,6 +828,7 @@ describe('the production ingestion startup assertion', () => {
     ].sort())
     expect(graph.links.find(link => link.url === existingLink.url)?.id).toBe(existingLink.id)
     expect(graph.citations.map(citation => citation.kind)).toEqual(['self', 'outbound'])
+    expect(graph.citations.find(citation => citation.kind === 'outbound')?.anchorText).toBe('the story')
 
     const itemIndex = statements.findIndex(statement => statement.table === items)
     const linkIndex = statements.findIndex(statement => statement.table === links)
@@ -671,8 +843,23 @@ describe('the production ingestion startup assertion', () => {
       .map(statement => statement.values)
       .find(value => (value as { rawUrl?: string }).rawUrl?.includes('external.example')),
     ).toMatchObject({ linkId: existingLink.id })
-    expect(statements.find(statement => statement.table === citations)?.conflict)
-      .toMatchObject({ set: { firstSeenAt: expect.anything() } })
+    expect(statements.find(statement => statement.table === citations
+      && (statement.values as { kind?: string }).kind === 'outbound')?.conflict)
+      .toMatchObject({ set: { anchorText: 'the story', firstSeenAt: expect.anything() } })
+    const perSourceSignalWrites = statements.filter(statement => statement.table === signals
+      && !Array.isArray(statement.values))
+    expect(perSourceSignalWrites).not.toHaveLength(0)
+    for (const statement of perSourceSignalWrites) {
+      expect(statement.values).toMatchObject({
+        textBasis: null,
+        embeddingText: null,
+        embedding: null,
+        embeddingModel: null,
+        embeddingDimensions: null,
+        embeddingVersion: null,
+        embeddedAt: null,
+      })
+    }
     expect(statements.some(statement => statement.table === signals
       && (statement.values as { targetLinkId?: string }).targetLinkId === existingLink.id)).toBe(true)
     const signalBatches = statements.filter(statement => statement.kind === 'insert'

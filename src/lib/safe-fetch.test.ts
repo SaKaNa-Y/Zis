@@ -2,7 +2,13 @@ import type { PinnedRequest, ResolvedAddress, Resolver, Transport, TransportResp
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { createSafeFetch, MAX_REDIRECTS, MAX_RESPONSE_BYTES, SafeFetchError } from './safe-fetch'
+import {
+  createSafeFetch,
+  DEFAULT_TIMEOUT_MS,
+  MAX_REDIRECTS,
+  MAX_RESPONSE_BYTES,
+  SafeFetchError,
+} from './safe-fetch'
 
 /**
  * The nine tests `security-model.md` §7 requires, in its own order, plus the
@@ -364,6 +370,18 @@ describe('7 — the byte cap aborts mid-stream', () => {
     })
     const response = await safeFetch('https://example.com/exactly')
     expect(response.byteLength).toBe(MAX_RESPONSE_BYTES)
+  })
+
+  it('rejects a timeout above the system-wide limit before opening a connection', async () => {
+    const transport = transportRecording(() => ok())
+    const safeFetch = createSafeFetch({ resolve: publicResolver(), transport })
+
+    await expect(
+      safeFetch('https://example.com/invalid-timeout', { timeoutMs: DEFAULT_TIMEOUT_MS + 1 }),
+    )
+      .rejects
+      .toThrow(`timeoutMs must be between 1 and ${DEFAULT_TIMEOUT_MS}`)
+    expect(transport.requests).toEqual([])
   })
 })
 
