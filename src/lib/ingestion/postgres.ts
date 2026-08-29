@@ -6,13 +6,17 @@ import type { SafeFetch } from '@/lib/safe-fetch'
 import { and, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db as defaultDatabase } from '@/lib/db'
 import {
+  briefEntries as briefEntryTable,
+  briefs as briefTable,
   citations as citationTable,
   httpCache,
   interests as interestTable,
   items,
   links as linkTable,
   publisherHosts,
+  publishers as publisherTable,
   readerSignalMatches as readerSignalMatchTable,
+  readStates as readStateTable,
   robotsCache,
   signals as signalTable,
   sourceFetchLogs,
@@ -106,12 +110,13 @@ async function assertHostOwnership(database: Database): Promise<void> {
 async function initialGraph(
   database: Database,
   dueSources: IngestionSource[],
-  includeReaderMatching: boolean,
+  includeReaderStages: boolean,
 ): Promise<PersistedGraph> {
-  if (dueSources.length === 0 && !includeReaderMatching) {
+  if (dueSources.length === 0 && !includeReaderStages) {
     return {
       sources: [],
       items: [],
+      publishers: [],
       publisherHosts: [],
       links: [],
       signals: [],
@@ -119,6 +124,9 @@ async function initialGraph(
       users: [],
       interests: [],
       readerSignalMatches: [],
+      briefs: [],
+      briefEntries: [],
+      readStates: [],
       fetchLogs: [],
       httpCache: [],
       robotsCache: [],
@@ -136,19 +144,24 @@ async function initialGraph(
     database.select().from(signalTable),
     database.select().from(citationTable),
   ])
-  const [userRows, interestRows, matchRows] = includeReaderMatching
+  const [userRows, interestRows, matchRows, publisherRows, briefRows, briefEntryRows, readStateRows] = includeReaderStages
     ? await Promise.all([
         database.select().from(userTable),
         database.select().from(interestTable),
         database.select().from(readerSignalMatchTable),
+        database.select().from(publisherTable),
+        database.select().from(briefTable),
+        database.select().from(briefEntryTable),
+        database.select().from(readStateTable),
       ])
-    : [[], [], []]
+    : [[], [], [], [], [], [], []]
   return {
     sources: sourceRows.map(asIngestionSource),
     items: itemRows.map(item => ({
       ...item,
       issueHydratedAt: item.issueHydratedAt ?? null,
     })),
+    publishers: publisherRows,
     publisherHosts: hostRows,
     links: linkRows,
     signals: signalRows,
@@ -156,6 +169,9 @@ async function initialGraph(
     users: userRows,
     interests: interestRows,
     readerSignalMatches: matchRows,
+    briefs: briefRows,
+    briefEntries: briefEntryRows,
+    readStates: readStateRows,
     fetchLogs: [],
     httpCache: cacheRows,
     robotsCache: robotsRows.map(asRobotsCache),
@@ -400,10 +416,12 @@ async function commitSource(
   ))
 }
 
-async function commitSignalGraph(database: Database, graph: PersistedGraph): Promise<void> {
+async function commitFinalGraph(database: Database, graph: PersistedGraph): Promise<void> {
   if (graph.signals.length === 0
     && graph.interests.length === 0
-    && graph.readerSignalMatches.length === 0) {
+    && graph.readerSignalMatches.length === 0
+    && graph.briefs.length === 0
+    && graph.briefEntries.length === 0) {
     return
   }
   const ordered = [...graph.signals].sort((left, right) => left.id.localeCompare(right.id))
@@ -465,10 +483,26 @@ async function commitSignalGraph(database: Database, graph: PersistedGraph): Pro
       },
     }))
   }
+  if (graph.briefs.length > 0) {
+    const orderedBriefs = [...graph.briefs].sort((left, right) =>
+      left.userId.localeCompare(right.userId) || left.localDate.localeCompare(right.localDate),
+    )
+    statements.push(database.insert(briefTable).values(orderedBriefs).onConflictDoNothing({
+      target: [briefTable.userId, briefTable.localDate],
+    }))
+  }
+  if (graph.briefEntries.length > 0) {
+    const orderedEntries = [...graph.briefEntries].sort((left, right) =>
+      left.briefId.localeCompare(right.briefId) || left.position - right.position,
+    )
+    statements.push(database.insert(briefEntryTable).values(orderedEntries).onConflictDoNothing({
+      target: [briefEntryTable.userId, briefEntryTable.signalId],
+    }))
+  }
   await commitStatements(database, statements)
 }
 
-/** Run every due RSS/Atom Source through the same seam against Neon directly. */
+/** Run due RSS/Atom Sources and the reader stages through the same Neon-backed seam. */
 export async function runNeonIngestion(
   at: Date = new Date(),
   database: Database = defaultDatabase(),
@@ -497,12 +531,13 @@ export async function runNeonIngestion(
     sources: dueSources,
     fetch: fetcher,
     now: () => new Date(),
+    wakeAt: at,
     initialGraph: graph,
     embeddingProvider,
     onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
       commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
   })
-  await commitSignalGraph(database, persisted)
+  await commitFinalGraph(database, persisted)
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))
   for (const source of persisted.sources) {
     if (source.disabledAt === null && source.newestItemAt !== null && source.newestItemAt < dormantBefore)

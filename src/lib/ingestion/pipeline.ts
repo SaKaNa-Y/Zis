@@ -305,7 +305,7 @@ function itemExternalId(item: ParsedFeedItem, canonicalUrl: string | undefined):
   return `sha256:${createHash('sha256').update(`${item.title}${item.link ?? ''}`).digest('hex')}`
 }
 
-function stableUuid(namespace: 'citation' | 'item' | 'link', identity: string): string {
+function stableUuid(namespace: 'brief' | 'citation' | 'item' | 'link', identity: string): string {
   const bytes = createHash('sha256').update(`zis:${namespace}:${identity}`).digest().subarray(0, 16)
   bytes[6] = ((bytes[6] ?? 0) & 0x0F) | 0x80
   bytes[8] = ((bytes[8] ?? 0) & 0x3F) | 0x80
@@ -380,6 +380,13 @@ export interface PublisherHost {
   publisherId: string
 }
 
+export interface PersistedPublisher {
+  id: string
+  slug: string
+  name: string
+  createdAt: Date
+}
+
 export interface PersistedLink {
   id: string
   url: string
@@ -421,6 +428,8 @@ export interface PersistedCitation {
 
 export interface PersistedUser {
   id: string
+  timezone: string
+  cutHour: number
   createdAt: Date
 }
 
@@ -447,6 +456,32 @@ export interface PersistedReaderSignalMatch {
   matchedAt: Date
 }
 
+export type BriefAdmission = 'interest' | 'convergence'
+
+export interface PersistedBrief {
+  id: string
+  userId: string
+  localDate: string
+  cutAt: Date
+  createdAt: Date
+}
+
+export interface PersistedBriefEntry {
+  briefId: string
+  userId: string
+  signalId: string
+  position: number
+  admittedBy: BriefAdmission
+  whyText: string
+  createdAt: Date
+}
+
+export interface PersistedReadState {
+  userId: string
+  signalId: string
+  readAt: Date
+}
+
 export interface HttpCacheRecord {
   url: string
   etag: string | null
@@ -471,6 +506,7 @@ export interface SourceFetchLog {
 export interface PersistedGraph {
   sources: IngestionSource[]
   items: PersistedItem[]
+  publishers: PersistedPublisher[]
   publisherHosts: PublisherHost[]
   links: PersistedLink[]
   signals: PersistedSignal[]
@@ -478,6 +514,9 @@ export interface PersistedGraph {
   users: PersistedUser[]
   interests: PersistedInterest[]
   readerSignalMatches: PersistedReaderSignalMatch[]
+  briefs: PersistedBrief[]
+  briefEntries: PersistedBriefEntry[]
+  readStates: PersistedReadState[]
   fetchLogs: SourceFetchLog[]
   httpCache: HttpCacheRecord[]
   robotsCache: RobotsCacheRecord[]
@@ -507,6 +546,7 @@ interface RunIngestionCommon {
   sources: IngestionSource[]
   publisherHosts?: PublisherHost[]
   now?: () => Date
+  wakeAt?: Date
   initialGraph?: PersistedGraph
   embeddingProvider?: EmbeddingProvider
   onSourceCommitted?: (
@@ -541,6 +581,7 @@ function emptyGraph(sources: IngestionSource[], publisherHosts: PublisherHost[])
   return {
     sources: sources.map(cloneSource),
     items: [],
+    publishers: [],
     publisherHosts: publisherHosts.map(record => ({ ...record })),
     links: [],
     signals: [],
@@ -548,6 +589,9 @@ function emptyGraph(sources: IngestionSource[], publisherHosts: PublisherHost[])
     users: [],
     interests: [],
     readerSignalMatches: [],
+    briefs: [],
+    briefEntries: [],
+    readStates: [],
     fetchLogs: [],
     httpCache: [],
     robotsCache: [],
@@ -1233,9 +1277,6 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
 }
 
 function updateStrength(graph: PersistedGraph): void {
-  const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
-  const publishersBySignalId = new Map<string, Set<string>>()
-
   for (const signal of graph.signals) {
     signal.strength = 0
     signal.originPublisherId = null
@@ -1245,24 +1286,27 @@ function updateStrength(graph: PersistedGraph): void {
     if (target === undefined)
       throw new Error(`Signal ${signal.id} targets missing Link ${signal.targetLinkId}`)
     signal.originPublisherId = ownerOfHost(graph, new URL(target.url).hostname) ?? null
-    publishersBySignalId.set(signal.id, new Set())
   }
 
+  const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
+  const citationsByRootId = new Map<string, PersistedCitation[]>()
   for (const citation of graph.citations) {
     const signal = signalByLinkId.get(citation.linkId)
     if (signal === undefined)
       throw new Error(`Citation ${citation.id} points to a Link without a Signal`)
     const root = resolveSignal(graph, signal)
-    const source = graph.sources.find(candidate => candidate.id === citation.sourceId)
-    if (source === undefined)
-      throw new Error(`Citation ${citation.id} belongs to missing Source ${citation.sourceId}`)
-    if (source.publisherId !== root.originPublisherId)
-      publishersBySignalId.get(root.id)?.add(source.publisherId)
+    const citations = citationsByRootId.get(root.id) ?? []
+    citations.push(citation)
+    citationsByRootId.set(root.id, citations)
   }
-
   for (const signal of graph.signals) {
-    if (signal.mergedIntoId === null)
-      signal.strength = publishersBySignalId.get(signal.id)?.size ?? 0
+    if (signal.mergedIntoId === null) {
+      signal.strength = contributingPublishers(
+        graph,
+        signal,
+        citationsByRootId.get(signal.id) ?? [],
+      ).length
+    }
   }
 }
 
@@ -1291,6 +1335,34 @@ function memberCitations(graph: PersistedGraph, root: PersistedSignal): Persiste
     .filter(signal => resolveSignal(graph, signal).id === root.id)
     .map(signal => signal.targetLinkId))
   return graph.citations.filter(citation => memberLinkIds.has(citation.linkId))
+}
+
+interface ContributingPublisher {
+  id: string
+  firstSeenAt: Date
+}
+
+function contributingPublishers(
+  graph: PersistedGraph,
+  root: PersistedSignal,
+  citations: readonly PersistedCitation[] = memberCitations(graph, root),
+): ContributingPublisher[] {
+  const firstSeenByPublisherId = new Map<string, Date>()
+  for (const citation of citations) {
+    const source = graph.sources.find(candidate => candidate.id === citation.sourceId)
+    if (source === undefined)
+      throw new Error(`Citation ${citation.id} belongs to missing Source ${citation.sourceId}`)
+    if (source.publisherId === root.originPublisherId)
+      continue
+    const previous = firstSeenByPublisherId.get(source.publisherId)
+    if (previous === undefined || citation.firstSeenAt < previous)
+      firstSeenByPublisherId.set(source.publisherId, citation.firstSeenAt)
+  }
+  return [...firstSeenByPublisherId]
+    .map(([id, firstSeenAt]) => ({ id, firstSeenAt }))
+    .sort((left, right) =>
+      left.firstSeenAt.getTime() - right.firstSeenAt.getTime()
+      || left.id.localeCompare(right.id))
 }
 
 function slugText(url: string): string {
@@ -1568,6 +1640,196 @@ async function embedSignalsAndMatchInterests(
   graph.readerSignalMatches = matches
 }
 
+const MAX_SIGNAL_AGE_MS = 7 * 24 * 60 * 60 * 1000
+const CONVERGENCE_HALF_LIFE_MS = 36 * 60 * 60 * 1000
+
+interface LocalClock {
+  date: string
+  hour: number
+}
+
+interface AdmissionCandidate {
+  signal: PersistedSignal
+  match: PersistedReaderSignalMatch
+  admittedBy: BriefAdmission
+  relevance: number
+  convergenceOrderValue: number
+}
+
+function localClock(at: Date, user: PersistedUser): LocalClock {
+  if (user.timezone.trim() === '')
+    throw new Error(`User ${user.id} has an empty timezone`)
+  if (!Number.isInteger(user.cutHour) || user.cutHour < 0 || user.cutHour > 23)
+    throw new Error(`User ${user.id} has an invalid cut hour ${user.cutHour}`)
+
+  let parts: Intl.DateTimeFormatPart[]
+  try {
+    parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: user.timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(at)
+  }
+  catch (cause) {
+    throw new Error(`User ${user.id} has an invalid timezone ${user.timezone}`, { cause })
+  }
+  const value = (type: Intl.DateTimeFormatPartTypes): string => {
+    const part = parts.find(candidate => candidate.type === type)?.value
+    if (part === undefined)
+      throw new Error(`Local clock for User ${user.id} omitted ${type}`)
+    return part
+  }
+  const hour = Number(value('hour'))
+  if (!Number.isInteger(hour))
+    throw new Error(`Local clock for User ${user.id} produced an invalid hour`)
+  return {
+    date: `${value('year')}-${value('month')}-${value('day')}`,
+    hour,
+  }
+}
+
+function resolvesToSignal(graph: PersistedGraph, signalId: string, rootId: string): boolean {
+  const signal = graph.signals.find(candidate => candidate.id === signalId)
+  if (signal === undefined)
+    throw new Error(`Persisted reader state points to missing Signal ${signalId}`)
+  return resolveSignal(graph, signal).id === rootId
+}
+
+function matchThreshold(basis: SignalTextBasis | null): number | null {
+  if (basis === 'own')
+    return 0.70
+  if (basis === 'citing')
+    return 0.67
+  return null
+}
+
+function whyText(
+  graph: PersistedGraph,
+  user: PersistedUser,
+  candidate: AdmissionCandidate,
+): string {
+  const contributors = contributingPublishers(graph, candidate.signal)
+  if (contributors.length !== candidate.signal.strength) {
+    throw new Error(
+      `Signal ${candidate.signal.id} has Strength ${candidate.signal.strength} but ${contributors.length} contributing Publishers`,
+    )
+  }
+  const publisherById = new Map(graph.publishers.map(publisher => [publisher.id, publisher]))
+  const names = contributors.map((contributor) => {
+    const publisher = publisherById.get(contributor.id)
+    if (publisher === undefined)
+      throw new Error(`Signal ${candidate.signal.id} cites missing Publisher ${contributor.id}`)
+    return publisher.name
+  })
+  const displayedNames = names.slice(0, 3)
+  if (names.length > displayedNames.length)
+    displayedNames.push(`+${names.length - displayedNames.length}`)
+
+  const target = graph.links.find(link => link.id === candidate.signal.targetLinkId)
+  if (target === undefined)
+    throw new Error(`Signal ${candidate.signal.id} targets missing Link ${candidate.signal.targetLinkId}`)
+  const provenance = `${candidate.signal.strength} Publishers converged · ${displayedNames.join(', ')} · origin: ${new URL(target.url).hostname}`
+  if (candidate.admittedBy === 'convergence')
+    return `${provenance} · no Interest matched — surfacing on convergence alone`
+
+  const interest = graph.interests.find(record =>
+    record.id === candidate.match.matchedInterestId && record.userId === user.id,
+  )
+  if (interest === undefined)
+    throw new Error(`Interest Admission for Signal ${candidate.signal.id} has no owned argmax Interest`)
+  return `${provenance} · matched: "${interest.statement}"`
+}
+
+function cutDueBriefs(graph: PersistedGraph, at: Date): void {
+  const liveSignals = graph.signals.filter(signal => signal.mergedIntoId === null)
+  for (const user of [...graph.users].sort((left, right) => left.id.localeCompare(right.id))) {
+    const clock = localClock(at, user)
+    if (clock.hour < user.cutHour)
+      continue
+    if (graph.briefs.some(brief => brief.userId === user.id && brief.localDate === clock.date))
+      continue
+    if (!graph.interests.some(interest => interest.userId === user.id))
+      throw new Error(`User ${user.id} must have an Interest Profile before the first Brief is cut`)
+
+    const candidates: AdmissionCandidate[] = []
+    for (const signal of liveSignals) {
+      if (signal.strength < 2)
+        continue
+      const citations = memberCitations(graph, signal)
+      if (citations.length === 0)
+        continue
+      const firstSeenAt = Math.min(...citations.map(citation => citation.firstSeenAt.getTime()))
+      if (at.getTime() - firstSeenAt > MAX_SIGNAL_AGE_MS)
+        continue
+      if (graph.briefEntries.some(entry =>
+        entry.userId === user.id && resolvesToSignal(graph, entry.signalId, signal.id),
+      )) {
+        continue
+      }
+      if (graph.readStates.some(readState =>
+        readState.userId === user.id && resolvesToSignal(graph, readState.signalId, signal.id),
+      )) {
+        continue
+      }
+
+      const match = graph.readerSignalMatches.find(record =>
+        record.userId === user.id && record.signalId === signal.id,
+      )
+      if (match === undefined)
+        throw new Error(`Signal ${signal.id} has no Interest match for User ${user.id}`)
+      const threshold = matchThreshold(signal.textBasis)
+      const matched = threshold !== null
+        && match.relevance !== null
+        && match.relevance >= threshold
+      if (!matched && signal.strength < 3)
+        continue
+      if (matched && match.matchedInterestId === null)
+        throw new Error(`Matched Signal ${signal.id} has no argmax Interest`)
+
+      const lastSeenAt = Math.max(...citations.map(citation => citation.firstSeenAt.getTime()))
+      const freshnessMs = Math.max(0, at.getTime() - lastSeenAt)
+      candidates.push({
+        signal,
+        match,
+        admittedBy: matched ? 'interest' : 'convergence',
+        relevance: match.relevance ?? Number.NEGATIVE_INFINITY,
+        convergenceOrderValue: 0.5 ** (freshnessMs / CONVERGENCE_HALF_LIFE_MS) * signal.strength,
+      })
+    }
+
+    candidates.sort((left, right) => {
+      if (left.admittedBy !== right.admittedBy)
+        return left.admittedBy === 'interest' ? -1 : 1
+      const difference = left.admittedBy === 'interest'
+        ? right.relevance - left.relevance
+        : right.convergenceOrderValue - left.convergenceOrderValue
+      return difference || left.signal.id.localeCompare(right.signal.id)
+    })
+
+    const brief: PersistedBrief = {
+      id: stableUuid('brief', `${user.id}\0${clock.date}`),
+      userId: user.id,
+      localDate: clock.date,
+      cutAt: new Date(at),
+      createdAt: new Date(at),
+    }
+    const entries = candidates.map((candidate, index): PersistedBriefEntry => ({
+      briefId: brief.id,
+      userId: user.id,
+      signalId: candidate.signal.id,
+      position: index + 1,
+      admittedBy: candidate.admittedBy,
+      whyText: whyText(graph, user, candidate),
+      createdAt: new Date(at),
+    }))
+    graph.briefs.push(brief)
+    graph.briefEntries.push(...entries)
+  }
+}
+
 function recordCitation(
   graph: PersistedGraph,
   item: PersistedItem,
@@ -1827,6 +2089,7 @@ export async function runIngestion({
   responses,
   fetch: liveFetch,
   now = () => new Date(),
+  wakeAt,
   initialGraph,
   embeddingProvider,
   onSourceCommitted,
@@ -1870,6 +2133,7 @@ export async function runIngestion({
   updateStrength(graph)
   if (embeddingProvider !== undefined)
     await embedSignalsAndMatchInterests(graph, embeddingProvider, now())
+  cutDueBriefs(graph, wakeAt ?? now())
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())
   const dormantBefore = new Date(now())
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)

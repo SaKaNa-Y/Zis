@@ -3,6 +3,8 @@ import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { describe, expect, it } from 'vitest'
 import {
+  briefEntries,
+  briefs,
   citations,
   httpCache,
   interests,
@@ -157,8 +159,57 @@ describe('the production ingestion startup assertion', () => {
       embeddedAt: null,
       createdAt: link.createdAt,
     }
+    const originPublisherId = '00000000-0000-4000-8000-000000000701'
+    const alphaPublisherId = '00000000-0000-4000-8000-000000000702'
+    const betaPublisherId = '00000000-0000-4000-8000-000000000703'
+    const sourceRows = [originPublisherId, alphaPublisherId, betaPublisherId].map((publisherId, index) => ({
+      id: `00000000-0000-4000-8000-${String(801 + index).padStart(12, '0')}`,
+      publisherId,
+      transport: 'rss' as const,
+      endpointUrl: `https://publisher-${index}.example/feed.xml`,
+      isAggregator: false,
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailures: 0,
+      retryAfterAt: null,
+      lastPolledAt: link.firstSeenAt,
+      newestItemAt: link.firstSeenAt,
+      createdAt: link.createdAt,
+    }))
+    const itemRows = sourceRows.map((source, index) => ({
+      id: `00000000-0000-4000-8000-${String(901 + index).padStart(12, '0')}`,
+      sourceId: source.id,
+      externalId: `item-${index}`,
+      url: index === 0 ? link.url : `https://publisher-${index}.example/items/1`,
+      title: index === 0 ? 'Stable release' : `Citation ${index}`,
+      summary: null,
+      rawFeedDate: null,
+      publishedAt: link.firstSeenAt,
+      fetchedAt: link.firstSeenAt,
+      issueHydratedAt: null,
+      createdAt: link.createdAt,
+      updatedAt: link.createdAt,
+    }))
+    const citationRows = sourceRows.map((source, index) => ({
+      id: `00000000-0000-4000-8000-${String(1001 + index).padStart(12, '0')}`,
+      itemId: itemRows[index]!.id,
+      sourceId: source.id,
+      linkId: link.id,
+      kind: index === 0 ? 'self' as const : 'outbound' as const,
+      rawUrl: link.url,
+      anchorText: null,
+      firstSeenAt: new Date(link.firstSeenAt.getTime() + index * 60_000),
+      createdAt: link.createdAt,
+    }))
+    const publisherRows = [
+      { id: originPublisherId, slug: 'origin', name: 'Origin', createdAt: link.createdAt },
+      { id: alphaPublisherId, slug: 'alpha', name: 'Alpha', createdAt: link.createdAt },
+      { id: betaPublisherId, slug: 'beta', name: 'Beta', createdAt: link.createdAt },
+    ]
     const user = {
       id: '00000000-0000-4000-8000-000000000501',
+      timezone: 'UTC',
+      cutHour: 8,
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
     }
     const interest = {
@@ -180,16 +231,20 @@ describe('the production ingestion startup assertion', () => {
       [],
       [],
       [],
+      sourceRows,
+      itemRows,
       [],
       [],
-      [],
-      [],
-      [],
+      [{ host: 'example.com', publisherId: originPublisherId }],
       [link],
       [signal],
-      [],
+      citationRows,
       [user],
       [interest],
+      [],
+      publisherRows,
+      [],
+      [],
       [],
     )
     const embeddedTexts: string[][] = []
@@ -213,12 +268,12 @@ describe('the production ingestion startup assertion', () => {
     )
 
     expect(embeddedTexts).toEqual([
-      ['example releases stable'],
+      ['Stable release.'],
       [interest.statement],
     ])
     expect(graph.signals[0]).toMatchObject({
-      textBasis: 'slug',
-      embeddingText: 'example releases stable',
+      textBasis: 'own',
+      embeddingText: 'Stable release.',
       embeddingModel: EMBEDDING_MODEL,
       embeddingDimensions: EMBEDDING_DIMENSIONS,
       embeddingVersion: EMBEDDING_VERSION,
@@ -236,6 +291,23 @@ describe('the production ingestion startup assertion', () => {
         matchedInterestId: interest.id,
         relevance: 1,
         gap: null,
+      }),
+    ])
+    expect(graph.briefs).toEqual([
+      expect.objectContaining({
+        userId: user.id,
+        localDate: '2026-08-29',
+        cutAt: at,
+      }),
+    ])
+    expect(graph.briefEntries).toEqual([
+      expect.objectContaining({
+        briefId: graph.briefs[0]!.id,
+        userId: user.id,
+        signalId: signal.id,
+        position: 1,
+        admittedBy: 'interest',
+        whyText: '2 Publishers converged · Alpha, Beta · origin: example.com · matched: "Stable software releases"',
       }),
     ])
 
@@ -285,6 +357,10 @@ describe('the production ingestion startup assertion', () => {
         matchedAt: expect.anything(),
       },
     })
+    const briefWrite = statements.find(statement => statement.table === briefs)
+    expect(briefWrite?.values).toEqual(graph.briefs)
+    const briefEntryWrite = statements.find(statement => statement.table === briefEntries)
+    expect(briefEntryWrite?.values).toEqual(graph.briefEntries)
     expect(transactions).toHaveLength(1)
   })
 

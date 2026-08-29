@@ -4,6 +4,7 @@ import {
   bigserial,
   boolean,
   check,
+  date,
   doublePrecision,
   foreignKey,
   halfvec,
@@ -13,6 +14,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   unique,
@@ -51,11 +53,21 @@ export const signalTextBasis = pgEnum('signal_text_basis', [
   'slug',
 ])
 
+export const briefAdmission = pgEnum('brief_admission', [
+  'interest',
+  'convergence',
+])
+
 /** The local reader identity that owns an Interest Profile. */
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
+  timezone: text('timezone').notNull().default('Asia/Shanghai'),
+  cutHour: smallint('cut_hour').notNull().default(6),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
-})
+}, table => [
+  check('user_timezone_nonempty_check', sql`length(btrim(${table.timezone})) > 0`),
+  check('user_cut_hour_range_check', sql`${table.cutHour} BETWEEN 0 AND 23`),
+])
 
 /** One owning voice, independently of how many hosts or Sources it uses. */
 export const publishers = pgTable('publisher', {
@@ -249,6 +261,56 @@ export const readerSignalMatches = pgTable('reader_signal_match', {
     'reader_signal_match_gap_range_check',
     sql`${table.gap} IS NULL OR ${table.gap} BETWEEN 0 AND 2`,
   ),
+])
+
+/** One reader's persisted selection for one local calendar day. */
+export const briefs = pgTable('brief', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  localDate: date('local_date', { mode: 'string' }).notNull(),
+  cutAt: timestampTz('cut_at').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+}, table => [
+  unique('brief_id_user_id_unique').on(table.id, table.userId),
+  unique('brief_user_id_local_date_unique').on(table.userId, table.localDate),
+])
+
+/** One Signal's frozen place and explanation inside a Brief. */
+export const briefEntries = pgTable('brief_entry', {
+  briefId: uuid('brief_id').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(),
+  admittedBy: briefAdmission('admitted_by').notNull(),
+  whyText: text('why_text').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+}, table => [
+  primaryKey({
+    name: 'brief_entry_brief_id_signal_id_pk',
+    columns: [table.briefId, table.signalId],
+  }),
+  foreignKey({
+    name: 'brief_entry_brief_owner_fk',
+    columns: [table.briefId, table.userId],
+    foreignColumns: [briefs.id, briefs.userId],
+  }).onDelete('cascade'),
+  unique('brief_entry_user_id_signal_id_unique').on(table.userId, table.signalId),
+  unique('brief_entry_brief_id_position_unique').on(table.briefId, table.position),
+  check('brief_entry_position_positive_check', sql`${table.position} >= 1`),
+  check('brief_entry_why_text_nonempty_check', sql`length(btrim(${table.whyText})) > 0`),
+])
+
+/** A Signal the reader has already met outside a Brief. */
+export const readStates = pgTable('read_state', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
+  readAt: timestampTz('read_at').notNull(),
+}, table => [
+  primaryKey({
+    name: 'read_state_user_id_signal_id_pk',
+    columns: [table.userId, table.signalId],
+  }),
+  index('read_state_signal_id_idx').on(table.signalId),
 ])
 
 export const sourceFetchLogs = pgTable('source_fetch_log', {

@@ -125,8 +125,14 @@ describe('the ingestion schema', () => {
     expect(getTableConfig(schema.users).name).toBe('user')
     expect(columnNames(schema.users)).toEqual([
       'id',
+      'timezone',
+      'cut_hour',
       'created_at',
     ])
+    expect(getTableConfig(schema.users).checks.map(check => check.name)).toEqual(expect.arrayContaining([
+      'user_timezone_nonempty_check',
+      'user_cut_hour_range_check',
+    ]))
 
     const interests = getTableConfig(schema.interests)
     expect(interests.name).toBe('interest')
@@ -183,33 +189,100 @@ describe('the ingestion schema', () => {
     expect(signals.checks.map(check => check.name)).toContain('signal_embedding_text_length_check')
   })
 
+  it('persists an unsealed Brief with reader-safe entries and Read State', () => {
+    expect(schema.briefAdmission.enumValues).toEqual(['interest', 'convergence'])
+
+    const briefs = getTableConfig(schema.briefs)
+    expect(briefs.name).toBe('brief')
+    expect(columnNames(schema.briefs)).toEqual([
+      'id',
+      'user_id',
+      'local_date',
+      'cut_at',
+      'created_at',
+    ])
+    expect(briefs.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'user_id,local_date',
+    )).toBe(true)
+    expect(briefs.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'id,user_id',
+    )).toBe(true)
+
+    const entries = getTableConfig(schema.briefEntries)
+    expect(entries.name).toBe('brief_entry')
+    expect(columnNames(schema.briefEntries)).toEqual([
+      'brief_id',
+      'user_id',
+      'signal_id',
+      'position',
+      'admitted_by',
+      'why_text',
+      'created_at',
+    ])
+    expect(entries.primaryKeys.some(key =>
+      key.columns.map(column => column.name).join(',') === 'brief_id,signal_id',
+    )).toBe(true)
+    expect(entries.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'user_id,signal_id',
+    )).toBe(true)
+    expect(entries.uniqueConstraints.some(constraint =>
+      constraint.columns.map(column => column.name).join(',') === 'brief_id,position',
+    )).toBe(true)
+    expect(entries.foreignKeys.some((key) => {
+      const reference = key.reference()
+      return reference.columns.map(column => column.name).join(',') === 'brief_id,user_id'
+        && reference.foreignColumns.map(column => column.name).join(',') === 'id,user_id'
+    })).toBe(true)
+    expect(entries.checks.map(check => check.name)).toEqual(expect.arrayContaining([
+      'brief_entry_position_positive_check',
+      'brief_entry_why_text_nonempty_check',
+    ]))
+    expect(columnNames(schema.briefEntries)).not.toContain('sealed_at')
+
+    const readStates = getTableConfig(schema.readStates)
+    expect(readStates.name).toBe('read_state')
+    expect(columnNames(schema.readStates)).toEqual([
+      'user_id',
+      'signal_id',
+      'read_at',
+    ])
+    expect(readStates.primaryKeys.some(key =>
+      key.columns.map(column => column.name).join(',') === 'user_id,signal_id',
+    )).toBe(true)
+  })
+
   it('has a committed migration and does not migrate from a build or workflow', () => {
     const migration = join(root, 'drizzle', '0000_rss_ingestion.sql')
     const linkCitationMigration = join(root, 'drizzle', '0001_link_citation_graph.sql')
     const signalStrengthMigration = join(root, 'drizzle', '0002_signal_strength.sql')
     const issueHydrationMigration = join(root, 'drizzle', '0003_issue_hydration_state.sql')
     const signalInterestMigration = join(root, 'drizzle', '0004_signal_interest_embedding.sql')
+    const briefAdmissionMigration = join(root, 'drizzle', '0005_brief_admission.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
     const signalStrengthSnapshot = join(root, 'drizzle', 'meta', '0002_snapshot.json')
     const issueHydrationSnapshot = join(root, 'drizzle', 'meta', '0003_snapshot.json')
     const signalInterestSnapshot = join(root, 'drizzle', 'meta', '0004_snapshot.json')
+    const briefAdmissionSnapshot = join(root, 'drizzle', 'meta', '0005_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
     expect(existsSync(issueHydrationMigration)).toBe(true)
     expect(existsSync(signalInterestMigration)).toBe(true)
+    expect(existsSync(briefAdmissionMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
     expect(existsSync(issueHydrationSnapshot)).toBe(true)
     expect(existsSync(signalInterestSnapshot)).toBe(true)
+    expect(existsSync(briefAdmissionSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
     const issueHydrationSql = readFileSync(issueHydrationMigration, 'utf8')
     const signalInterestSql = readFileSync(signalInterestMigration, 'utf8')
+    const briefAdmissionSql = readFileSync(briefAdmissionMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -231,6 +304,15 @@ describe('the ingestion schema', () => {
     expect(signalInterestSql).toContain('reader_signal_match_relevance_range_check')
     expect(signalInterestSql).toContain('reader_signal_match_gap_range_check')
     expect(signalInterestSql).toContain('signal_embedding_text_length_check')
+    expect(briefAdmissionSql).toContain('CREATE TYPE "public"."brief_admission"')
+    expect(briefAdmissionSql).toContain('CREATE TABLE "brief"')
+    expect(briefAdmissionSql).toContain('CREATE TABLE "brief_entry"')
+    expect(briefAdmissionSql).toContain('CREATE TABLE "read_state"')
+    expect(briefAdmissionSql).toContain('brief_user_id_local_date_unique')
+    expect(briefAdmissionSql).toContain('brief_entry_user_id_signal_id_unique')
+    expect(briefAdmissionSql).toContain('brief_entry_brief_id_position_unique')
+    expect(briefAdmissionSql).toContain('brief_entry_brief_owner_fk')
+    expect(briefAdmissionSql).not.toContain('sealed_at')
     const itemBoundAdded = signalInterestSql.indexOf('ADD CONSTRAINT "item_summary_length_check"')
     const itemSummariesBounded = signalInterestSql.indexOf('SET "summary" = left("summary", 1200)')
     const itemBoundValidated = signalInterestSql.indexOf('VALIDATE CONSTRAINT "item_summary_length_check"')
@@ -246,6 +328,7 @@ describe('the ingestion schema', () => {
       '0002_signal_strength',
       '0003_issue_hydration_state',
       '0004_signal_interest_embedding',
+      '0005_brief_admission',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')
