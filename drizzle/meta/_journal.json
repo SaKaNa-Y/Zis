@@ -15,6 +15,13 @@
       "when": 1787994155072,
       "tag": "0001_link_citation_graph",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787999534148,
+      "tag": "0002_signal_strength",
+      "breakpoints": true
     }
   ]
 }

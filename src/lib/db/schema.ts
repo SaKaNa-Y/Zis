@@ -1,3 +1,4 @@
+import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 import {
   bigserial,
   boolean,
@@ -98,6 +99,19 @@ export const links = pgTable('link', {
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
   unique('link_url_unique').on(table.url),
+])
+
+/** One eager Link identity, retained as a tombstone after an alias merge. */
+export const signals = pgTable('signal', {
+  id: uuid('id').primaryKey(),
+  targetLinkId: uuid('target_link_id').notNull().references(() => links.id),
+  mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => signals.id),
+  strength: integer('strength').notNull().default(0),
+  originPublisherId: uuid('origin_publisher_id').references(() => publishers.id),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+}, table => [
+  unique('signal_target_link_id_unique').on(table.targetLinkId),
+  index('signal_merged_into_id_idx').on(table.mergedIntoId),
 ])
 
 /** Item-to-Link provenance. The raw address survives canonicalization. */

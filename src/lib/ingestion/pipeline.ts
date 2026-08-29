@@ -270,7 +270,13 @@ function normalizedPublishedAt(rawFeedDate: string | undefined, fetchedAt: Date)
   return new Date(milliseconds)
 }
 
-export type IngestionTransport = 'rss' | 'atom'
+export type IngestionTransport
+  = 'rss'
+    | 'atom'
+    | 'hn_firebase'
+    | 'hn_algolia'
+    | 'github_graphql'
+    | 'bluesky_feed'
 export type FetchOutcome = 'ok' | 'not_modified' | 'http_error' | 'timeout' | 'robots_denied' | 'parse_error' | 'too_large'
 
 export const ROBOTS_AUTO_DISABLED_REASON = 'automatically disabled after 10 consecutive robots denials'
@@ -316,6 +322,15 @@ export interface PersistedLink {
   createdAt: Date
 }
 
+export interface PersistedSignal {
+  id: string
+  targetLinkId: string
+  mergedIntoId: string | null
+  strength: number
+  originPublisherId: string | null
+  createdAt: Date
+}
+
 export type CitationKind = 'self' | 'outbound'
 
 export interface PersistedCitation {
@@ -355,6 +370,7 @@ export interface PersistedGraph {
   items: PersistedItem[]
   publisherHosts: PublisherHost[]
   links: PersistedLink[]
+  signals: PersistedSignal[]
   citations: PersistedCitation[]
   fetchLogs: SourceFetchLog[]
   httpCache: HttpCacheRecord[]
@@ -415,6 +431,7 @@ function emptyGraph(sources: IngestionSource[], publisherHosts: PublisherHost[])
     items: [],
     publisherHosts: publisherHosts.map(record => ({ ...record })),
     links: [],
+    signals: [],
     citations: [],
     fetchLogs: [],
     httpCache: [],
@@ -785,6 +802,130 @@ function ownerOfHost(graph: PersistedGraph, host: string): string | undefined {
   return graph.publisherHosts.find(record => publisherHostKey(record.host) === canonicalHost)?.publisherId
 }
 
+function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSignal {
+  let signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
+  if (signal === undefined) {
+    signal = {
+      id: link.id,
+      targetLinkId: link.id,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: null,
+      createdAt: link.createdAt,
+    }
+    graph.signals.push(signal)
+  }
+  return signal
+}
+
+function resolveSignal(graph: PersistedGraph, signal: PersistedSignal): PersistedSignal {
+  const visited = new Set<string>()
+  let current = signal
+  while (current.mergedIntoId !== null) {
+    if (visited.has(current.id))
+      throw new Error(`Signal merge cycle includes ${current.id}`)
+    visited.add(current.id)
+    const next = graph.signals.find(candidate => candidate.id === current.mergedIntoId)
+    if (next === undefined)
+      throw new Error(`Signal ${current.id} merges into missing Signal ${current.mergedIntoId}`)
+    current = next
+  }
+  return current
+}
+
+const RELEASE_TAG_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/tag\/.+$/
+
+function mergeReleaseTagAliases(graph: PersistedGraph): void {
+  const linkById = new Map(graph.links.map(link => [link.id, link]))
+  const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
+  const targetLinkIdsByAliasLinkId = new Map<string, Set<string>>()
+
+  for (const item of graph.items) {
+    if (item.url === null)
+      continue
+    const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+    if (source === undefined)
+      throw new Error(`Item ${item.id} belongs to missing Source ${item.sourceId}`)
+    if (source.transport !== 'rss' && source.transport !== 'atom')
+      continue
+    const targetLink = graph.links.find(link => link.url === item.url)
+    if (targetLink === undefined)
+      continue
+    const aliasLinkIds = [...new Set(graph.citations
+      .filter(citation => citation.itemId === item.id && citation.kind === 'outbound')
+      .map(citation => citation.linkId)
+      .filter((linkId) => {
+        const link = linkById.get(linkId)
+        return link !== undefined && RELEASE_TAG_URL.test(link.url)
+      }))]
+    if (aliasLinkIds.length !== 1 || aliasLinkIds[0] === targetLink.id)
+      continue
+    const targets = targetLinkIdsByAliasLinkId.get(aliasLinkIds[0]!) ?? new Set<string>()
+    targets.add(targetLink.id)
+    targetLinkIdsByAliasLinkId.set(aliasLinkIds[0]!, targets)
+  }
+
+  const aliases = [...targetLinkIdsByAliasLinkId.entries()].sort(([leftId], [rightId]) => {
+    const leftUrl = linkById.get(leftId)?.url ?? leftId
+    const rightUrl = linkById.get(rightId)?.url ?? rightId
+    return leftUrl.localeCompare(rightUrl) || leftId.localeCompare(rightId)
+  })
+  for (const [aliasLinkId, targetLinkIds] of aliases) {
+    const orderedTargetLinkIds = [...targetLinkIds].sort((leftId, rightId) => {
+      const leftUrl = linkById.get(leftId)?.url ?? leftId
+      const rightUrl = linkById.get(rightId)?.url ?? rightId
+      return leftUrl.localeCompare(rightUrl) || leftId.localeCompare(rightId)
+    })
+    const preferredSignal = signalByLinkId.get(orderedTargetLinkIds[0]!)
+    const aliasSignal = signalByLinkId.get(aliasLinkId)
+    if (preferredSignal === undefined || aliasSignal === undefined)
+      throw new Error('Alias merge requires every Link to have a Signal')
+    const destination = resolveSignal(graph, preferredSignal)
+    const candidates = [aliasSignal, ...orderedTargetLinkIds
+      .map(linkId => signalByLinkId.get(linkId))
+      .filter((signal): signal is PersistedSignal => signal !== undefined)]
+    for (const candidate of candidates) {
+      const root = resolveSignal(graph, candidate)
+      if (root.id !== destination.id)
+        root.mergedIntoId = destination.id
+    }
+  }
+}
+
+function updateStrength(graph: PersistedGraph): void {
+  const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
+  const publishersBySignalId = new Map<string, Set<string>>()
+
+  for (const signal of graph.signals) {
+    signal.strength = 0
+    signal.originPublisherId = null
+    if (signal.mergedIntoId !== null)
+      continue
+    const target = graph.links.find(link => link.id === signal.targetLinkId)
+    if (target === undefined)
+      throw new Error(`Signal ${signal.id} targets missing Link ${signal.targetLinkId}`)
+    signal.originPublisherId = ownerOfHost(graph, new URL(target.url).hostname) ?? null
+    publishersBySignalId.set(signal.id, new Set())
+  }
+
+  for (const citation of graph.citations) {
+    const signal = signalByLinkId.get(citation.linkId)
+    if (signal === undefined)
+      throw new Error(`Citation ${citation.id} points to a Link without a Signal`)
+    const root = resolveSignal(graph, signal)
+    const source = graph.sources.find(candidate => candidate.id === citation.sourceId)
+    if (source === undefined)
+      throw new Error(`Citation ${citation.id} belongs to missing Source ${citation.sourceId}`)
+    if (source.publisherId !== root.originPublisherId)
+      publishersBySignalId.get(root.id)?.add(source.publisherId)
+  }
+
+  for (const signal of graph.signals) {
+    if (signal.mergedIntoId === null)
+      signal.strength = publishersBySignalId.get(signal.id)?.size ?? 0
+  }
+}
+
 function recordCitation(
   graph: PersistedGraph,
   item: PersistedItem,
@@ -820,6 +961,7 @@ function recordCitation(
   else if (firstSeenAt < link.firstSeenAt) {
     link.firstSeenAt = firstSeenAt
   }
+  ensureSignal(graph, link)
 
   const existing = graph.citations.find(candidate =>
     candidate.itemId === item.id
@@ -876,6 +1018,8 @@ async function ingestSource(
   fetch: ReturnType<typeof createCannedSafeFetch>,
   now: () => Date,
 ): Promise<void> {
+  if (source.transport !== 'rss' && source.transport !== 'atom')
+    throw new Error(`Source ${source.id} uses unsupported transport ${source.transport}`)
   const startedAt = now()
   let response: SafeFetchResponse | undefined
   let fetchedAt = startedAt
@@ -1008,6 +1152,8 @@ export async function runIngestion({
   onSourceCommitted,
 }: RunIngestionInput): Promise<PersistedGraph> {
   const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
+  for (const link of graph.links)
+    ensureSignal(graph, link)
   const rawFetch = liveFetch ?? createCannedSafeFetch(responses ?? [])
   const fetch = createPolicyFetch(graph, rawFetch, now)
   const byHost = new Map<string, IngestionSource[]>()
@@ -1040,6 +1186,8 @@ export async function runIngestion({
     }
   }
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
+  mergeReleaseTagAliases(graph)
+  updateStrength(graph)
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())
   const dormantBefore = new Date(now())
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)

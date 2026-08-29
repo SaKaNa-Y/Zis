@@ -475,6 +475,7 @@ describe('the Link and Citation graph through the ingestion seam', () => {
       ],
     })
     legacyGraph.links = []
+    legacyGraph.signals = []
     legacyGraph.citations = []
     legacyGraph.items[0]!.fetchedAt = new Date('2026-08-29T08:30:00.000Z')
 
