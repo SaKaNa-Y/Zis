@@ -140,6 +140,12 @@ export interface SafeFetchOptions {
   /** Total budget for the whole fetch including every hop. Defaults to 20s. */
   timeoutMs?: number
   signal?: AbortSignal
+  /**
+   * Acquire caller policy/concurrency state immediately before each network
+   * hop. The returned release callback is always invoked after that hop's body
+   * is consumed or discarded.
+   */
+  beforeRequest?: (url: string, signal: AbortSignal) => Promise<(() => void) | void>
 }
 
 export interface SafeFetchResponse {
@@ -245,6 +251,9 @@ function parseTarget(url: string, base?: URL): URL {
   if (!ALLOWED_PROTOCOLS.has(parsed.protocol))
     throw new SafeFetchError('blocked_scheme', parsed.href, `scheme ${parsed.protocol} is not http or https`)
 
+  // Fragments are client-side identifiers and must never be sent on the wire.
+  parsed.hash = ''
+
   const written = writtenHost(url)
   if (written !== undefined) {
     const numeric = numericHostReason(written)
@@ -316,6 +325,40 @@ function discard(body: AsyncIterable<Uint8Array> | null): void {
   if (body === null)
     return
   void Promise.resolve(body[Symbol.asyncIterator]().return?.()).catch(() => {})
+}
+
+async function acquireRequestLease(
+  beforeRequest: SafeFetchOptions['beforeRequest'],
+  url: string,
+  signal: AbortSignal,
+  aborted: () => SafeFetchError | undefined,
+): Promise<(() => void) | void> {
+  if (beforeRequest === undefined)
+    return undefined
+
+  const pending = beforeRequest(url, signal)
+  let onAbort: (() => void) | undefined
+  const abortRace = new Promise<never>((_resolve, reject) => {
+    onAbort = () => reject(aborted() ?? new SafeFetchError('aborted', url, 'aborted before request'))
+    if (signal.aborted)
+      onAbort()
+    else
+      signal.addEventListener('abort', onAbort, { once: true })
+  })
+  abortRace.catch(() => {})
+
+  try {
+    return await Promise.race([pending, abortRace])
+  }
+  catch (error) {
+    if (signal.aborted)
+      void pending.then(release => release?.(), () => {})
+    throw error
+  }
+  finally {
+    if (onAbort !== undefined)
+      signal.removeEventListener('abort', onAbort)
+  }
 }
 
 /** `net.LookupFunction`'s callback, in both of the shapes it may be called in. */
@@ -403,7 +446,13 @@ export const undiciTransport: Transport = async (request) => {
  */
 export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFetchDeps): SafeFetch {
   return async function safeFetch(url, options = {}) {
-    const { method = 'GET', headers: extraHeaders = {}, timeoutMs = DEFAULT_TIMEOUT_MS, signal: callerSignal } = options
+    const {
+      method = 'GET',
+      headers: extraHeaders = {},
+      timeoutMs = DEFAULT_TIMEOUT_MS,
+      signal: callerSignal,
+      beforeRequest,
+    } = options
 
     const controller = new AbortController()
     let abortError: SafeFetchError | undefined
@@ -432,63 +481,73 @@ export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFe
           throw abortError
 
         const pin = await pinAddress(target, resolve)
-
-        const requestHeaders: Record<string, string> = {
-          'user-agent': USER_AGENT,
-          'accept-encoding': 'gzip, deflate',
-        }
-        for (const [name, value] of Object.entries(extraHeaders))
-          requestHeaders[name.toLowerCase()] = value
-
-        const pinned: PinnedRequest = {
-          url: target.href,
-          method: hopMethod,
-          headers: requestHeaders,
-          pinnedIp: pin.address,
-          family: pin.family,
-          servername: target.hostname,
-          signal: controller.signal,
+        const release = await acquireRequestLease(beforeRequest, target.href, controller.signal, () => abortError)
+        if (abortError !== undefined) {
+          release?.()
+          throw abortError
         }
 
-        let response: TransportResponse
         try {
-          response = await transport(pinned)
+          const requestHeaders: Record<string, string> = {
+            'user-agent': USER_AGENT,
+            'accept-encoding': 'gzip, deflate',
+          }
+          for (const [name, value] of Object.entries(extraHeaders))
+            requestHeaders[name.toLowerCase()] = value
+
+          const pinned: PinnedRequest = {
+            url: target.href,
+            method: hopMethod,
+            headers: requestHeaders,
+            pinnedIp: pin.address,
+            family: pin.family,
+            servername: target.hostname,
+            signal: controller.signal,
+          }
+
+          let response: TransportResponse
+          try {
+            response = await transport(pinned)
+          }
+          catch (cause) {
+            if (abortError !== undefined)
+              throw abortError
+            throw new SafeFetchError('transport_error', target.href, 'the transport failed', { cause })
+          }
+
+          const location = response.headers.location
+          if (REDIRECT_STATUSES.has(response.status) && location !== undefined) {
+            discard(response.body)
+
+            if (hop >= MAX_REDIRECTS)
+              throw new SafeFetchError('too_many_redirects', target.href, `more than ${MAX_REDIRECTS} redirects`)
+
+            const next = parseTarget(location, target)
+            if (seen.has(next.href))
+              throw new SafeFetchError('redirect_loop', next.href, 'redirect loop')
+            seen.add(next.href)
+
+            hopMethod = response.status === 303 ? 'GET' : hopMethod
+            target = next
+            continue
+          }
+
+          const bytes = response.body === null
+            ? new Uint8Array(0)
+            : await readCapped(response.body, target.href, controller.signal, () => abortError)
+
+          return {
+            url: target.href,
+            status: response.status,
+            headers: response.headers,
+            contentType: mediaType(response.headers['content-type']),
+            bytes,
+            byteLength: bytes.byteLength,
+            text: () => new TextDecoder().decode(bytes),
+          }
         }
-        catch (cause) {
-          if (abortError !== undefined)
-            throw abortError
-          throw new SafeFetchError('transport_error', target.href, 'the transport failed', { cause })
-        }
-
-        const location = response.headers.location
-        if (REDIRECT_STATUSES.has(response.status) && location !== undefined) {
-          discard(response.body)
-
-          if (hop >= MAX_REDIRECTS)
-            throw new SafeFetchError('too_many_redirects', target.href, `more than ${MAX_REDIRECTS} redirects`)
-
-          const next = parseTarget(location, target)
-          if (seen.has(next.href))
-            throw new SafeFetchError('redirect_loop', next.href, 'redirect loop')
-          seen.add(next.href)
-
-          hopMethod = response.status === 303 ? 'GET' : hopMethod
-          target = next
-          continue
-        }
-
-        const bytes = response.body === null
-          ? new Uint8Array(0)
-          : await readCapped(response.body, target.href, controller.signal, () => abortError)
-
-        return {
-          url: target.href,
-          status: response.status,
-          headers: response.headers,
-          contentType: mediaType(response.headers['content-type']),
-          bytes,
-          byteLength: bytes.byteLength,
-          text: () => new TextDecoder().decode(bytes),
+        finally {
+          release?.()
         }
       }
     }

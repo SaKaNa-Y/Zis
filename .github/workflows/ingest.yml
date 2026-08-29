@@ -1,0 +1,28 @@
+name: Ingest
+
+# Deliberately manual for slice 1. The public flip is the gate for any cadence.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ingest-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Ingest due RSS and Atom Sources into Neon
+        run: pnpm exec tsx scripts/pipeline/run.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
