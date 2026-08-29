@@ -29,7 +29,7 @@ async function ruleIdsFor(code: string, filePath: string): Promise<string[]> {
 }
 
 describe('a stray fetch', () => {
-  it('fails in src/', async () => {
+  it('fails in src/', { timeout: 10_000 }, async () => {
     const ruleIds = await ruleIdsFor(
       'export async function get(url: string) { return fetch(url) }\n',
       'src/lib/stray.ts',

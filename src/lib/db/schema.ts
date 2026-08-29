@@ -61,10 +61,20 @@ export const briefAdmission = pgEnum('brief_admission', [
 /** The local reader identity that owns an Interest Profile. */
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
+  passphraseHash: text('passphrase_hash').notNull(),
+  sessionVersion: integer('session_version').notNull().default(0),
+  failedAttempts: integer('failed_attempts').notNull().default(0),
+  lockedUntil: timestampTz('locked_until'),
   timezone: text('timezone').notNull().default('Asia/Shanghai'),
   cutHour: smallint('cut_hour').notNull().default(6),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
+  check(
+    'user_passphrase_hash_argon2id_check',
+    sql`${table.passphraseHash} LIKE '$argon2id$v=19$m=65536,t=3,p=1$%'`,
+  ),
+  check('user_session_version_nonnegative_check', sql`${table.sessionVersion} >= 0`),
+  check('user_failed_attempts_nonnegative_check', sql`${table.failedAttempts} >= 0`),
   check('user_timezone_nonempty_check', sql`length(btrim(${table.timezone})) > 0`),
   check('user_cut_hour_range_check', sql`${table.cutHour} BETWEEN 0 AND 23`),
 ])

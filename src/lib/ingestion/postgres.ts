@@ -146,7 +146,12 @@ async function initialGraph(
   ])
   const [userRows, interestRows, matchRows, publisherRows, briefRows, briefEntryRows, readStateRows] = includeReaderStages
     ? await Promise.all([
-        database.select().from(userTable),
+        database.select({
+          id: userTable.id,
+          timezone: userTable.timezone,
+          cutHour: userTable.cutHour,
+          createdAt: userTable.createdAt,
+        }).from(userTable),
         database.select().from(interestTable),
         database.select().from(readerSignalMatchTable),
         database.select().from(publisherTable),
