@@ -251,7 +251,8 @@ issues**, and JavaScript Weekly appears as a voter in 5 of the top clusters.
 - **Completion is explicit.** `item.issue_hydrated_at` is written in the same
   transaction as the recovered Citations. A successful `http_cache` status is
   not completion evidence because that validator store is shared by unrelated
-  fetch populations.
+  fetch populations. A feed 304 still retries that Source's Items whose marker
+  is null, including pre-migration Items and earlier page-level failures.
 - **Position: after normalize, before canonicalize** (stage 4), so hydrated URLs
   flow through the identical L1–L5 cascade rather than a parallel path.
 - **`is_aggregator` is an explicit flag** on the Source, never inferred from the

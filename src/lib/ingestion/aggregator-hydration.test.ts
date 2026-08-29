@@ -429,6 +429,62 @@ describe('aggregator issue-page hydration', () => {
     expect(graph.items[0]?.issueHydratedAt).toBeNull()
   })
 
+  it('retries incomplete issue hydration when the feed later returns 304', async () => {
+    const issueUrl = 'https://newsletter.example/issues/retry-after-feed-304'
+    const targetUrl = 'https://target.example/releases/recovered-after-304'
+    const feed = `<rss><channel><item>
+      <guid>retry-after-feed-304</guid>
+      <title>Retry after feed 304</title>
+      <link>${issueUrl}</link>
+    </item></channel></rss>`
+    const first = await runIngestion({
+      sources: [source],
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://newsletter.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          headers: { etag: '"feed-v1"' },
+          body: feed,
+        },
+        { url: issueUrl, status: 503 },
+      ],
+    })
+    expect(first.items[0]?.issueHydratedAt).toBeNull()
+
+    const later = new Date('2026-08-29T09:00:00.000Z')
+    const second = await runIngestion({
+      sources: [source],
+      initialGraph: first,
+      now: () => new Date(later),
+      responses: [
+        {
+          url: source.endpointUrl,
+          status: 304,
+          whenHeaders: { 'if-none-match': '"feed-v1"' },
+        },
+        {
+          url: issueUrl,
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+          body: `<a href="${targetUrl}">Recovered release</a>`,
+        },
+      ],
+    })
+
+    expect(second.fetchLogs.at(-1)).toMatchObject({ outcome: 'not_modified' })
+    expect(second.items[0]?.issueHydratedAt).toEqual(later)
+    expect(second.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'self', rawUrl: issueUrl }),
+      expect.objectContaining({ kind: 'outbound', rawUrl: targetUrl }),
+    ]))
+    expect(second.httpCache.find(record => record.url === issueUrl)).toMatchObject({
+      lastStatus: 200,
+      fetchedAt: later,
+    })
+  })
+
   it.each<{
     body: string
     headers: Record<string, string>

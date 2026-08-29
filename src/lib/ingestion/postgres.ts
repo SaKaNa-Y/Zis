@@ -250,6 +250,7 @@ function sourceStatements(
   source: IngestionSource,
   graph: PersistedGraph,
   touchedHttpCacheKeys: ReadonlySet<string>,
+  touchedItemIds: ReadonlySet<string>,
 ): CompiledQuery[] {
   const latestLog = [...graph.fetchLogs].reverse().find(log => log.sourceId === source.id)
   if (latestLog === undefined)
@@ -283,8 +284,12 @@ function sourceStatements(
   for (const robots of updatedRobots)
     statements.push(robotsStatement(database, robots))
 
-  if (latestLog.outcome === 'ok') {
-    for (const item of graph.items.filter(candidate => candidate.sourceId === source.id)) {
+  const contentItems = graph.items.filter(candidate =>
+    candidate.sourceId === source.id
+    && (latestLog.outcome === 'ok' || touchedItemIds.has(candidate.id)),
+  )
+  if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
+    for (const item of contentItems) {
       statements.push(database.insert(items).values(item).onConflictDoUpdate({
         target: [items.sourceId, items.externalId],
         set: {
@@ -301,8 +306,11 @@ function sourceStatements(
     }
   }
 
-  if (latestLog.outcome === 'ok') {
-    const sourceCitations = graph.citations.filter(candidate => candidate.sourceId === source.id)
+  if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
+    const sourceCitations = graph.citations.filter(candidate =>
+      candidate.sourceId === source.id
+      && (latestLog.outcome === 'ok' || touchedItemIds.has(candidate.itemId)),
+    )
     const citedLinkIds = new Set(sourceCitations.map(citation => citation.linkId))
     for (const link of graph.links.filter(candidate => citedLinkIds.has(candidate.id))) {
       statements.push(database.insert(linkTable).values(link).onConflictDoUpdate({
@@ -350,8 +358,15 @@ async function commitSource(
   source: IngestionSource,
   graph: PersistedGraph,
   touchedHttpCacheKeys: ReadonlySet<string>,
+  touchedItemIds: ReadonlySet<string>,
 ): Promise<void> {
-  await commitStatements(database, sourceStatements(database, source, graph, touchedHttpCacheKeys))
+  await commitStatements(database, sourceStatements(
+    database,
+    source,
+    graph,
+    touchedHttpCacheKeys,
+    touchedItemIds,
+  ))
 }
 
 async function commitSignalGraph(database: Database, graph: PersistedGraph): Promise<void> {
@@ -413,8 +428,8 @@ export async function runNeonIngestion(
     fetch: fetcher,
     now: () => new Date(),
     initialGraph: graph,
-    onSourceCommitted: async (source, persisted, touchedHttpCacheKeys) =>
-      commitSource(database, source, persisted, touchedHttpCacheKeys),
+    onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
+      commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
   })
   await commitSignalGraph(database, persisted)
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))

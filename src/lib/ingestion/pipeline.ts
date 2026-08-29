@@ -25,6 +25,7 @@ interface ParsedFeedItem {
   link?: string
   issueHydratedAt?: Date
   outboundUrls: ParsedOutboundUrl[]
+  persistedItemId?: string
   title: string
   summary?: string
   rawFeedDate?: string
@@ -413,6 +414,7 @@ interface RunIngestionCommon {
     source: IngestionSource,
     graph: PersistedGraph,
     touchedHttpCacheKeys: ReadonlySet<string>,
+    touchedItemIds: ReadonlySet<string>,
   ) => Promise<void>
 }
 
@@ -729,6 +731,13 @@ function persistedItemForHydration(
   source: IngestionSource,
   item: ParsedFeedItem,
 ): PersistedItem | undefined {
+  if (item.persistedItemId !== undefined) {
+    const persisted = graph.items.find(candidate =>
+      candidate.id === item.persistedItemId && candidate.sourceId === source.id,
+    )
+    if (persisted !== undefined)
+      return persisted
+  }
   const guid = item.guid?.trim()
   if (guid !== undefined && guid !== '') {
     const exact = graph.items.find(candidate =>
@@ -858,6 +867,59 @@ async function hydrateIssuePages(
   for (const update of cacheUpdates)
     upsertHttpCache(graph.httpCache, update)
   return { retryAfterAt, touchedCacheKeys }
+}
+
+function pendingIssueHydrationItems(
+  graph: PersistedGraph,
+  source: IngestionSource,
+): ParsedFeedItem[] {
+  if (!source.isAggregator)
+    return []
+  return graph.items.flatMap((item): ParsedFeedItem[] => {
+    if (item.sourceId !== source.id || item.issueHydratedAt !== null)
+      return []
+    const selfCitation = graph.citations.find(candidate =>
+      candidate.itemId === item.id && candidate.kind === 'self',
+    )
+    const link = selfCitation?.rawUrl ?? item.url ?? undefined
+    if (link === undefined)
+      return []
+    return [{
+      guid: item.externalId,
+      link,
+      outboundUrls: [],
+      persistedItemId: item.id,
+      title: item.title,
+    }]
+  })
+}
+
+function applyHydrationToPersistedItems(
+  graph: PersistedGraph,
+  source: IngestionSource,
+  feedItems: ParsedFeedItem[],
+  touchedItemIds: Set<string>,
+): void {
+  for (const item of feedItems) {
+    if (item.issueHydratedAt === undefined)
+      continue
+    const persistedItem = persistedItemForHydration(graph, source, item)
+    if (persistedItem === undefined)
+      throw new Error(`hydrated issue has no persisted Item for Source ${source.id}`)
+    persistedItem.issueHydratedAt ??= item.issueHydratedAt
+    touchedItemIds.add(persistedItem.id)
+    for (const outboundUrl of item.outboundUrls) {
+      recordCitation(
+        graph,
+        persistedItem,
+        source,
+        outboundUrl.rawUrl,
+        'outbound',
+        item.issueHydratedAt,
+        outboundUrl.baseUrl ?? item.link,
+      )
+    }
+  }
 }
 
 function addLog(
@@ -1185,8 +1247,13 @@ async function ingestSource(
   source: IngestionSource,
   fetch: ReturnType<typeof createCannedSafeFetch>,
   now: () => Date,
-): Promise<ReadonlySet<string>> {
+): Promise<{
+  touchedHttpCacheKeys: ReadonlySet<string>
+  touchedItemIds: ReadonlySet<string>
+}> {
   const touchedHttpCacheKeys = new Set<string>()
+  const touchedItemIds = new Set<string>()
+  const result = { touchedHttpCacheKeys, touchedItemIds }
   if (source.transport !== 'rss' && source.transport !== 'atom')
     throw new Error(`Source ${source.id} uses unsupported transport ${source.transport}`)
   const startedAt = now()
@@ -1217,17 +1284,22 @@ async function ingestSource(
           response,
           originDeferral,
         )
-        return touchedHttpCacheKeys
+        return result
       }
+      const pendingHydration = pendingIssueHydrationItems(graph, source)
+      const hydration = await hydrateIssuePages(graph, source, pendingHydration, fetch, now)
+      for (const hydratedCacheKey of hydration.touchedCacheKeys)
+        touchedHttpCacheKeys.add(hydratedCacheKey)
+      applyHydrationToPersistedItems(graph, source, pendingHydration, touchedItemIds)
       putHttpCache(graph, cacheKey, response, fetchedAt, true)
       touchedHttpCacheKeys.add(cacheKey)
       source.consecutiveFailures = 0
-      source.retryAfterAt = originDeferral
+      source.retryAfterAt = laterDate(originDeferral, hydration.retryAfterAt)
       addLog(graph, source.id, startedAt, now(), 'not_modified', {
         httpStatus: response.status,
         bytes: response.byteLength,
       })
-      return touchedHttpCacheKeys
+      return result
     }
     if (response.status < 200 || response.status >= 300) {
       recordFailure(
@@ -1240,7 +1312,7 @@ async function ingestSource(
         response,
         originDeferral,
       )
-      return touchedHttpCacheKeys
+      return result
     }
 
     const parsed = parseFeed(response.bytes)
@@ -1290,6 +1362,7 @@ async function ingestSource(
         })
         persistedItem = existing
       }
+      touchedItemIds.add(persistedItem.id)
       recordCitation(graph, persistedItem, source, item.link, 'self', fetchedAt)
       for (const outboundUrl of item.outboundUrls) {
         recordCitation(
@@ -1316,12 +1389,13 @@ async function ingestSource(
   }
   catch (error) {
     touchedHttpCacheKeys.clear()
+    touchedItemIds.clear()
     const outcome = failureOutcome(error)
     const failedAt = now()
     const originDeferral = response === undefined ? undefined : responseDeferral(response.headers, failedAt)
     recordFailure(graph, source, startedAt, failedAt, outcome, error, response, originDeferral)
   }
-  return touchedHttpCacheKeys
+  return result
 }
 
 /**
@@ -1367,8 +1441,8 @@ export async function runIngestion({
       if (queue === undefined)
         return
       for (const source of queue) {
-        const touchedHttpCacheKeys = await ingestSource(graph, source, fetch, now)
-        await onSourceCommitted?.(source, graph, touchedHttpCacheKeys)
+        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now)
+        await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
       }
     }
   }

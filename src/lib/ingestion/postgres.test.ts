@@ -312,6 +312,139 @@ describe('the production ingestion startup assertion', () => {
     expect(transactions).toHaveLength(1)
   })
 
+  it('commits pending Aggregator hydration even when the feed is not modified', async () => {
+    const at = new Date('2026-08-29T08:00:00.000Z')
+    const aggregator = {
+      id: '00000000-0000-4000-8000-000000000111',
+      publisherId: '00000000-0000-4000-8000-000000000011',
+      transport: 'rss' as const,
+      endpointUrl: 'https://newsletter.example/feed.xml',
+      isAggregator: true,
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailures: 0,
+      retryAfterAt: null,
+      lastPolledAt: null,
+      newestItemAt: null,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    }
+    const issueUrl = 'https://newsletter.example/issues/pending'
+    const targetUrl = 'https://target.example/releases/pending'
+    const item = {
+      id: '00000000-0000-8000-8000-000000000211',
+      sourceId: aggregator.id,
+      externalId: 'pending-issue',
+      url: issueUrl,
+      title: 'Pending issue',
+      summary: null,
+      rawFeedDate: null,
+      publishedAt: new Date('2026-08-28T08:00:00.000Z'),
+      fetchedAt: new Date('2026-08-28T08:00:00.000Z'),
+      issueHydratedAt: null,
+      createdAt: new Date('2026-08-28T08:00:00.000Z'),
+      updatedAt: new Date('2026-08-28T08:00:00.000Z'),
+    }
+    const selfLink = {
+      id: '00000000-0000-8000-8000-000000000311',
+      url: issueUrl,
+      firstSeenAt: item.createdAt,
+      createdAt: item.createdAt,
+    }
+    const selfSignal = {
+      id: selfLink.id,
+      targetLinkId: selfLink.id,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: aggregator.publisherId,
+      createdAt: item.createdAt,
+    }
+    const selfCitation = {
+      id: '00000000-0000-8000-8000-000000000411',
+      itemId: item.id,
+      sourceId: aggregator.id,
+      linkId: selfLink.id,
+      kind: 'self' as const,
+      rawUrl: issueUrl,
+      firstSeenAt: item.createdAt,
+      createdAt: item.createdAt,
+    }
+    const feedCache = {
+      url: aggregator.endpointUrl,
+      etag: '"feed-v1"',
+      lastModified: null,
+      lastStatus: 200,
+      fetchedAt: item.fetchedAt,
+    }
+    const robots = {
+      host: 'newsletter.example',
+      verdict: 'allow',
+      directives: { matchedUserAgent: null, rules: [] },
+      status: 404,
+      contentType: null,
+      wafAction: null,
+      authoritative: true,
+      fetchedAt: item.fetchedAt,
+      expiresAt: new Date('2099-01-01T00:00:00.000Z'),
+    }
+    const host = { host: 'newsletter.example', publisherId: aggregator.publisherId }
+    const { database, statements, transactions } = capturingDatabase(
+      [{ itemUrl: issueUrl, publisherId: aggregator.publisherId, sourceId: aggregator.id, transport: aggregator.transport }],
+      [host],
+      [],
+      [aggregator],
+      [],
+      [aggregator],
+      [item],
+      [feedCache],
+      [robots],
+      [host],
+      [selfLink],
+      [selfSignal],
+      [selfCitation],
+    )
+    const fetcher = fixtureFetcher((url) => {
+      if (url === aggregator.endpointUrl)
+        return { status: 304 }
+      if (url === issueUrl) {
+        return {
+          status: 200,
+          contentType: 'text/html',
+          headers: { etag: '"issue-v1"' },
+          body: `<a href="${targetUrl}">Recovered release</a>`,
+        }
+      }
+      throw new Error(`unexpected fetch ${url}`)
+    })
+
+    const graph = await runNeonIngestion(at, database, fetcher)
+
+    expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'not_modified' })
+    expect(graph.items[0]?.issueHydratedAt).toBeInstanceOf(Date)
+    expect(graph.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'outbound', rawUrl: targetUrl }),
+    ]))
+    const itemStatementIndex = statements.findIndex(statement =>
+      statement.table === items
+      && (statement.values as { issueHydratedAt?: Date }).issueHydratedAt instanceof Date,
+    )
+    const issueCacheStatementIndex = statements.findIndex(statement =>
+      statement.table === httpCache
+      && (statement.values as { url?: string }).url === issueUrl,
+    )
+    const citationStatementIndex = statements.findIndex(statement =>
+      statement.table === citations
+      && (statement.values as { rawUrl?: string }).rawUrl === targetUrl,
+    )
+    expect(itemStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(issueCacheStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(citationStatementIndex).toBeGreaterThanOrEqual(0)
+    expect(transactions).toContainEqual(expect.arrayContaining([
+      expect.objectContaining({ sql: `statement-${itemStatementIndex + 1}` }),
+      expect.objectContaining({ sql: `statement-${issueCacheStatementIndex + 1}` }),
+      expect.objectContaining({ sql: `statement-${citationStatementIndex + 1}` }),
+    ]))
+  })
+
   it('commits an issue-page validator with its hydrated Citations without creating a Source', async () => {
     const at = new Date('2026-08-29T08:00:00.000Z')
     const aggregator = {

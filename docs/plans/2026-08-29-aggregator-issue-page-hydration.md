@@ -72,6 +72,7 @@ Add vertical seam tests that prove:
 - `isAggregator: false` never fetches an issue page, regardless of hostname;
 - a successful page without validators is not fully fetched/extracted again;
 - a cached ETag is sent byte-identically and a 304 preserves validators and existing Citations without inspecting its body;
+- a feed 304 still retries previously persisted Aggregator Items whose hydration marker is null;
 - 25 issue pages all hydrate, catching the prototype's former 24-page cap;
 - a separate issue-page host is checked against `robots.txt` and denied with no exemption;
 - an issue-page redirect resolves relative hrefs against the final response URL while retaining the observed raw href.
