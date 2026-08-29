@@ -79,6 +79,12 @@ function collapse(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
+function capEmbeddingText(text: string): string {
+  if (text.length <= MAX_EMBEDDING_TEXT_CHARS)
+    return text
+  return Array.from(text).slice(0, MAX_EMBEDDING_TEXT_CHARS).join('')
+}
+
 function decodeCharacterReferences(text: string): string {
   const named: Record<string, string> = {
     amp: '&',
@@ -168,7 +174,7 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
     for (const outboundUrl of extractOutboundUrls(item.fields.get(field) ?? ''))
       retainLongestAnchor(outboundUrls, outboundUrl.rawUrl, outboundUrl.anchorText)
   }
-  const summary = plainText(rawSummary).slice(0, MAX_EMBEDDING_TEXT_CHARS)
+  const summary = capEmbeddingText(plainText(rawSummary))
   return {
     guid,
     link,
@@ -1293,7 +1299,7 @@ function slugText(url: string): string {
     parsed = new URL(url)
   }
   catch {
-    return collapse(url).slice(0, MAX_EMBEDDING_TEXT_CHARS)
+    return capEmbeddingText(collapse(url))
   }
 
   let path = parsed.pathname
@@ -1313,7 +1319,7 @@ function slugText(url: string): string {
     .replace(/^www\./, '')
     .split('.')
     .filter(word => word !== '' && !SLUG_HOST_SUFFIXES.has(word))
-  return collapse([...hostWords, ...pathWords].join(' ')).slice(0, MAX_EMBEDDING_TEXT_CHARS)
+  return capEmbeddingText(collapse([...hostWords, ...pathWords].join(' ')))
 }
 
 function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextBasisCandidate {
@@ -1331,7 +1337,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
   if (own !== undefined) {
     return {
       basis: 'own',
-      text: collapse(`${own.title}. ${own.summary ?? ''}`).slice(0, MAX_EMBEDDING_TEXT_CHARS),
+      text: capEmbeddingText(collapse(`${own.title}. ${own.summary ?? ''}`)),
     }
   }
 
@@ -1346,7 +1352,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
   if (anchor !== null && anchor !== undefined) {
     return {
       basis: 'citing',
-      text: anchor.slice(0, MAX_EMBEDDING_TEXT_CHARS),
+      text: capEmbeddingText(anchor),
     }
   }
 
@@ -1363,7 +1369,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
   if (citingTitle !== undefined) {
     return {
       basis: 'citing',
-      text: collapse(citingTitle).slice(0, MAX_EMBEDDING_TEXT_CHARS),
+      text: capEmbeddingText(collapse(citingTitle)),
     }
   }
 

@@ -63,6 +63,7 @@ describe('the ingestion schema', () => {
     expect(items.uniqueConstraints.some(constraint =>
       constraint.columns.map(column => column.name).join(',') === 'source_id,external_id',
     )).toBe(true)
+    expect(items.checks.map(check => check.name)).toContain('item_summary_length_check')
   })
 
   it('stores canonical Links and Citation provenance idempotently', () => {
@@ -230,6 +231,12 @@ describe('the ingestion schema', () => {
     expect(signalInterestSql).toContain('reader_signal_match_relevance_range_check')
     expect(signalInterestSql).toContain('reader_signal_match_gap_range_check')
     expect(signalInterestSql).toContain('signal_embedding_text_length_check')
+    const itemBoundAdded = signalInterestSql.indexOf('ADD CONSTRAINT "item_summary_length_check"')
+    const itemSummariesBounded = signalInterestSql.indexOf('SET "summary" = left("summary", 1200)')
+    const itemBoundValidated = signalInterestSql.indexOf('VALIDATE CONSTRAINT "item_summary_length_check"')
+    expect(itemBoundAdded).toBeGreaterThanOrEqual(0)
+    expect(itemSummariesBounded).toBeGreaterThan(itemBoundAdded)
+    expect(itemBoundValidated).toBeGreaterThan(itemSummariesBounded)
     const journal = JSON.parse(readFileSync(migrationJournal, 'utf8')) as {
       entries: Array<{ tag: string }>
     }

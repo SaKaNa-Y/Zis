@@ -108,6 +108,10 @@ export const items = pgTable('item', {
 }, table => [
   unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
   index('item_published_at_idx').on(table.publishedAt),
+  check(
+    'item_summary_length_check',
+    sql`${table.summary} IS NULL OR length(${table.summary}) <= 1200`,
+  ),
 ])
 
 /** A canonical web address, whether or not Zis ingested an Item from it. */

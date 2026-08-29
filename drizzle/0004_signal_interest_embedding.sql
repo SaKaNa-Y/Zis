@@ -61,6 +61,9 @@ ALTER TABLE "reader_signal_match" ADD CONSTRAINT "reader_signal_match_signal_id_
 ALTER TABLE "reader_signal_match" ADD CONSTRAINT "reader_signal_match_interest_owner_fk" FOREIGN KEY ("matched_interest_id","user_id") REFERENCES "public"."interest"("id","user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "interest_user_id_idx" ON "interest" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "reader_signal_match_signal_id_idx" ON "reader_signal_match" USING btree ("signal_id");--> statement-breakpoint
+ALTER TABLE "item" ADD CONSTRAINT "item_summary_length_check" CHECK ("item"."summary" IS NULL OR length("item"."summary") <= 1200) NOT VALID;--> statement-breakpoint
+UPDATE "item" SET "summary" = left("summary", 1200) WHERE length("summary") > 1200;--> statement-breakpoint
+ALTER TABLE "item" VALIDATE CONSTRAINT "item_summary_length_check";--> statement-breakpoint
 ALTER TABLE "signal" ADD CONSTRAINT "signal_embedding_complete_check" CHECK (("signal"."embedding" IS NULL
       AND "signal"."text_basis" IS NULL
       AND "signal"."embedding_text" IS NULL

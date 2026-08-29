@@ -12,7 +12,10 @@
 
 import process from 'node:process'
 import { db } from '@/lib/db'
-import { createTransformersEmbeddingProvider } from '@/lib/embeddings/transformers'
+import {
+  createTransformersEmbeddingProvider,
+  prepareTransformersModelCache,
+} from '@/lib/embeddings/transformers'
 import * as env from '@/lib/env'
 import { runNeonIngestion } from '@/lib/ingestion/postgres'
 import { safeFetch } from '@/lib/safe-fetch'
@@ -25,11 +28,13 @@ async function main(argv: string[]): Promise<void> {
 
   // Fail before the first query, so a missing secret never partially runs.
   env.databaseUrl()
+  // A cold model download must finish before Neon wakes (ADR-0008).
+  await prepareTransformersModelCache(safeFetch)
   const graph = await runNeonIngestion(
     new Date(),
     db(),
     safeFetch,
-    createTransformersEmbeddingProvider(),
+    createTransformersEmbeddingProvider({ fetcher: safeFetch }),
   )
   process.stdout.write(
     `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.items.length} persisted Item(s)\n`,

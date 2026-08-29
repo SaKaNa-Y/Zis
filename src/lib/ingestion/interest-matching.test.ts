@@ -295,6 +295,38 @@ describe('signal Interest matching through the ingestion seam', () => {
     expect(inputs.some(text => text.includes(firstInterest) && text.includes(secondInterest))).toBe(false)
   })
 
+  it('applies the 1200-character storage and compute bound by Unicode code point', async () => {
+    const ownSource = source('unicode-own.example', 104)
+    const ownUrl = 'https://unicode-own.example/articles/code-points'
+    const profile = graphWithProfile([], [], [{
+      host: 'unicode-own.example',
+      publisherId: ownSource.publisherId,
+    }])
+    const provider = fakeProvider(new Map())
+
+    const graph = await runMatching({
+      sources: [ownSource],
+      initialGraph: profile,
+      embeddingProvider: provider,
+      now: () => new Date(NOW),
+      responses: [
+        { url: 'https://unicode-own.example/robots.txt', status: 404 },
+        {
+          url: ownSource.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>unicode-own</guid><title>Unicode own title</title><link>${ownUrl}</link>
+            <description><![CDATA[${'😀'.repeat(1201)}]]></description>
+          </item></channel></rss>`,
+        },
+      ],
+    })
+
+    const summary = graph.items.find(item => item.url === ownUrl)?.summary
+    expect(Array.from(summary ?? '')).toHaveLength(1200)
+    expect(Array.from(signalFor(graph, ownUrl).embeddingText ?? '')).toHaveLength(1200)
+  })
+
   it('stores exact per-reader MAX cosine, argmax Interest, GAP, and deterministic edge cases', async () => {
     const signalUrl = 'https://ranking.example/items/match.html'
     const signalText = 'ranking example items match'

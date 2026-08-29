@@ -125,4 +125,14 @@ describe('the pipeline imports the shared modules rather than copying them', () 
     expect(runner).toContain('graph.dormantSourceIds')
     expect(runner).toContain('::warning title=Dormant Source::')
   })
+
+  it('warms the local model cache before the first Neon query', () => {
+    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
+    const cacheWarm = runner.indexOf('await prepareTransformersModelCache(safeFetch)')
+    const neonWake = runner.indexOf('await runNeonIngestion(')
+
+    expect(cacheWarm).toBeGreaterThan(-1)
+    expect(neonWake).toBeGreaterThan(-1)
+    expect(cacheWarm).toBeLessThan(neonWake)
+  })
 })

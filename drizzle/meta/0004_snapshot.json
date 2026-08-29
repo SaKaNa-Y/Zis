@@ -452,7 +452,12 @@
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "item_summary_length_check": {
+          "name": "item_summary_length_check",
+          "value": "\"item\".\"summary\" IS NULL OR length(\"item\".\"summary\") <= 1200"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.link": {

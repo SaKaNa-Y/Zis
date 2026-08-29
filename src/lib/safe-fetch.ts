@@ -137,7 +137,7 @@ export interface SafeFetchDeps {
 export interface SafeFetchOptions {
   method?: 'GET' | 'HEAD'
   headers?: Record<string, string>
-  /** Total budget for the whole fetch including every hop. Defaults to 20s. */
+  /** Total budget for the whole fetch including every hop. May lower, never raise, the 20s limit. */
   timeoutMs?: number
   signal?: AbortSignal
   /**
@@ -453,6 +453,9 @@ export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFe
       signal: callerSignal,
       beforeRequest,
     } = options
+
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > DEFAULT_TIMEOUT_MS)
+      throw new TypeError(`timeoutMs must be between 1 and ${DEFAULT_TIMEOUT_MS}`)
 
     const controller = new AbortController()
     let abortError: SafeFetchError | undefined
