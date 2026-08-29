@@ -31,6 +31,8 @@ type ExpectedSignal = BaseGraph['signals'][number] & {
 
 interface ExpectedUser {
   id: string
+  timezone: string
+  cutHour: number
   createdAt: Date
 }
 
@@ -87,7 +89,12 @@ function source(host: string, ordinal: number) {
 }
 
 function user(id: string): ExpectedUser {
-  return { id, createdAt: new Date('2026-01-01T00:00:00.000Z') }
+  return {
+    id,
+    timezone: 'Asia/Shanghai',
+    cutHour: 23,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  }
 }
 
 function interest(id: string, userId: string, statement: string): ExpectedInterest {
@@ -114,6 +121,7 @@ function graphWithProfile(
   return {
     sources: [],
     items: [],
+    publishers: [],
     publisherHosts,
     links: [],
     signals: [],
@@ -125,6 +133,9 @@ function graphWithProfile(
     users,
     interests,
     readerSignalMatches: [],
+    briefs: [],
+    briefEntries: [],
+    readStates: [],
   }
 }
 
