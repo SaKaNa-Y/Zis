@@ -1,11 +1,14 @@
 import type { IngestionSource, PersistedGraph, SourceFetchLog } from './pipeline'
 import type { Database } from '@/lib/db'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
-import { and, eq, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm'
+import type { SafeFetch } from '@/lib/safe-fetch'
+import { and, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db as defaultDatabase } from '@/lib/db'
 import {
+  citations as citationTable,
   httpCache,
   items,
+  links as linkTable,
   publisherHosts,
   robotsCache,
   sourceFetchLogs,
@@ -13,6 +16,7 @@ import {
 } from '@/lib/db/schema'
 import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
+import { publisherHostKey } from './canonicalize'
 import { ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
 
 interface CompiledQuery {
@@ -59,14 +63,14 @@ async function assertHostOwnership(database: Database): Promise<void> {
       publisherId: publisherHosts.publisherId,
     }).from(publisherHosts),
   ])
-  const ownerByHost = new Map(registeredHosts.map(row => [row.host.toLowerCase(), row.publisherId]))
+  const ownerByHost = new Map(registeredHosts.map(row => [publisherHostKey(row.host), row.publisherId]))
 
   for (const row of publishedItems) {
     if (row.itemUrl === null)
       continue
     let host: string
     try {
-      host = new URL(row.itemUrl).host.toLowerCase()
+      host = publisherHostKey(new URL(row.itemUrl).hostname)
     }
     catch {
       throw new Error(
@@ -94,6 +98,9 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
     return {
       sources: [],
       items: [],
+      publisherHosts: [],
+      links: [],
+      citations: [],
       fetchLogs: [],
       httpCache: [],
       robotsCache: [],
@@ -103,14 +110,20 @@ async function initialGraph(database: Database, dueSources: IngestionSource[]): 
 
   const sourceIds = dueSources.map(source => source.id)
   const endpointUrls = dueSources.map(source => canonicalRequestUrl(source.endpointUrl))
-  const [itemRows, cacheRows, robotsRows] = await Promise.all([
+  const [itemRows, cacheRows, robotsRows, hostRows, linkRows, citationRows] = await Promise.all([
     database.select().from(items).where(inArray(items.sourceId, sourceIds)),
     database.select().from(httpCache).where(inArray(httpCache.url, endpointUrls)),
     database.select().from(robotsCache),
+    database.select().from(publisherHosts),
+    database.select().from(linkTable),
+    database.select().from(citationTable).where(inArray(citationTable.sourceId, sourceIds)),
   ])
   return {
     sources: dueSources,
     items: itemRows,
+    publisherHosts: hostRows,
+    links: linkRows,
+    citations: citationRows,
     fetchLogs: [],
     httpCache: cacheRows,
     robotsCache: robotsRows.map(asRobotsCache),
@@ -144,7 +157,7 @@ async function commitStatements(database: Database, statements: CompiledQuery[])
   await database.$client.transaction(queries)
 }
 
-async function refreshRobotDisabledSources(database: Database, at: Date): Promise<void> {
+async function refreshRobotDisabledSources(database: Database, at: Date, fetcher: SafeFetch): Promise<void> {
   const rows = await database.select().from(sources).where(and(
     isNotNull(sources.disabledAt),
     eq(sources.disabledReason, ROBOTS_AUTO_DISABLED_REASON),
@@ -166,7 +179,7 @@ async function refreshRobotDisabledSources(database: Database, at: Date): Promis
   const gate = createRobotsGate({
     fetchRobots: async (url) => {
       const requestedHost = new URL(url).host
-      return safeFetch(url, {
+      return fetcher(url, {
         beforeRequest: async (hopUrl) => {
           const hopHost = new URL(hopUrl).host
           if (hopHost !== requestedHost)
@@ -271,6 +284,29 @@ function sourceStatements(database: Database, source: IngestionSource, graph: Pe
     }
   }
 
+  if (latestLog.outcome === 'ok') {
+    const sourceCitations = graph.citations.filter(candidate => candidate.sourceId === source.id)
+    const citedLinkIds = new Set(sourceCitations.map(citation => citation.linkId))
+    for (const link of graph.links.filter(candidate => citedLinkIds.has(candidate.id))) {
+      statements.push(database.insert(linkTable).values(link).onConflictDoUpdate({
+        target: linkTable.url,
+        set: {
+          firstSeenAt: sql`least(${linkTable.firstSeenAt}, excluded.first_seen_at)`,
+        },
+      }))
+    }
+    for (const citation of sourceCitations) {
+      statements.push(database.insert(citationTable).values(citation).onConflictDoUpdate({
+        target: [citationTable.itemId, citationTable.kind, citationTable.rawUrl],
+        set: {
+          linkId: citation.linkId,
+          sourceId: citation.sourceId,
+          firstSeenAt: sql`least(${citationTable.firstSeenAt}, excluded.first_seen_at)`,
+        },
+      }))
+    }
+  }
+
   const log: Omit<SourceFetchLog, 'id'> = latestLog
   statements.push(database.insert(sourceFetchLogs).values({
     sourceId: log.sourceId,
@@ -291,9 +327,13 @@ async function commitSource(database: Database, source: IngestionSource, graph: 
 }
 
 /** Run every due RSS/Atom Source through the same seam against Neon directly. */
-export async function runNeonIngestion(at: Date = new Date(), database: Database = defaultDatabase()): Promise<PersistedGraph> {
+export async function runNeonIngestion(
+  at: Date = new Date(),
+  database: Database = defaultDatabase(),
+  fetcher: SafeFetch = safeFetch,
+): Promise<PersistedGraph> {
   await assertHostOwnership(database)
-  await refreshRobotDisabledSources(database, at)
+  await refreshRobotDisabledSources(database, at, fetcher)
   const dormantBefore = new Date(at)
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)
   const [rows, dormantRows] = await Promise.all([
@@ -312,7 +352,7 @@ export async function runNeonIngestion(at: Date = new Date(), database: Database
   const graph = await initialGraph(database, dueSources)
   const persisted = await runIngestion({
     sources: dueSources,
-    fetch: safeFetch,
+    fetch: fetcher,
     now: () => new Date(),
     initialGraph: graph,
     onSourceCommitted: async (source, persisted) => commitSource(database, source, persisted),

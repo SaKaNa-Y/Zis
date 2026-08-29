@@ -33,6 +33,11 @@ export const sourceFetchOutcome = pgEnum('source_fetch_outcome', [
   'too_large',
 ])
 
+export const citationKind = pgEnum('citation_kind', [
+  'self',
+  'outbound',
+])
+
 /** One owning voice, independently of how many hosts or Sources it uses. */
 export const publishers = pgTable('publisher', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -83,6 +88,32 @@ export const items = pgTable('item', {
 }, table => [
   unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
   index('item_published_at_idx').on(table.publishedAt),
+])
+
+/** A canonical web address, whether or not Zis ingested an Item from it. */
+export const links = pgTable('link', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  url: text('url').notNull(),
+  firstSeenAt: timestampTz('first_seen_at').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+}, table => [
+  unique('link_url_unique').on(table.url),
+])
+
+/** Item-to-Link provenance. The raw address survives canonicalization. */
+export const citations = pgTable('citation', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
+  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
+  linkId: uuid('link_id').notNull().references(() => links.id),
+  kind: citationKind('kind').notNull(),
+  rawUrl: text('raw_url').notNull(),
+  firstSeenAt: timestampTz('first_seen_at').notNull(),
+  createdAt: timestampTz('created_at').notNull().defaultNow(),
+}, table => [
+  unique('citation_item_kind_raw_url_unique').on(table.itemId, table.kind, table.rawUrl),
+  index('citation_link_id_idx').on(table.linkId),
+  index('citation_source_id_idx').on(table.sourceId),
 ])
 
 export const sourceFetchLogs = pgTable('source_fetch_log', {

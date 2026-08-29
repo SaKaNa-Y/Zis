@@ -1,9 +1,10 @@
 import type { RobotsCacheRecord, RobotsStore } from '@/lib/robots'
 import type { PinnedRequest, SafeFetch, SafeFetchResponse, TransportResponse } from '@/lib/safe-fetch'
-import { createHash, randomUUID } from 'node:crypto'
+import { createHash } from 'node:crypto'
 import { SaxesParser } from 'saxes'
 import { createRobotsGate } from '@/lib/robots'
 import { createSafeFetch, SafeFetchError } from '@/lib/safe-fetch'
+import { canonicalizeLink, publisherHostKey } from './canonicalize'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
 
@@ -22,6 +23,7 @@ class FeedParseError extends Error {
 interface ParsedFeedItem {
   guid?: string
   link?: string
+  outboundUrls: string[]
   title: string
   summary?: string
   rawFeedDate?: string
@@ -30,6 +32,8 @@ interface ParsedFeedItem {
 interface MutableFeedItem {
   fields: Map<string, string>
   atomLink?: string
+  guidCanBeLink?: boolean
+  outboundUrls: Set<string>
 }
 
 const ITEM_FIELDS = new Set([
@@ -45,6 +49,8 @@ const ITEM_FIELDS = new Set([
   'updated',
   'link',
 ])
+
+const CONTENT_FIELDS = new Set(['summary', 'description', 'content', 'encoded'])
 
 function localName(name: string): string {
   return (name.split(':').at(-1) ?? name).toLowerCase()
@@ -75,6 +81,24 @@ function plainText(text: string): string {
   return collapse(decodeCharacterReferences(text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ')))
 }
 
+function extractHrefs(html: string): string[] {
+  const urls = new Set<string>()
+  const anchors = /<a(?=\s|>)[^>]*>/gi
+  const href = /\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i
+  for (const anchor of html.matchAll(anchors)) {
+    const match = href.exec(anchor[0])
+    if (match === null)
+      continue
+    const raw = match[1] ?? match[2] ?? match[3]
+    if (raw === undefined)
+      continue
+    const decoded = decodeCharacterReferences(raw).trim()
+    if (decoded !== '')
+      urls.add(decoded)
+  }
+  return [...urls]
+}
+
 function readField(item: MutableFeedItem, ...names: string[]): string | undefined {
   for (const name of names) {
     const value = collapse(item.fields.get(name) ?? '')
@@ -89,11 +113,19 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   if (title === '')
     return undefined
 
-  const link = item.atomLink ?? readField(item, 'link')
-  const summary = plainText(readField(item, 'summary', 'description', 'content', 'encoded') ?? '')
+  const guid = readField(item, 'guid', 'id')
+  const link = item.atomLink ?? readField(item, 'link') ?? (item.guidCanBeLink ? guid : undefined)
+  const rawSummary = readField(item, 'summary', 'description', 'content', 'encoded') ?? ''
+  const outboundUrls = new Set(item.outboundUrls)
+  for (const field of CONTENT_FIELDS) {
+    for (const href of extractHrefs(item.fields.get(field) ?? ''))
+      outboundUrls.add(href)
+  }
+  const summary = plainText(rawSummary)
   return {
-    guid: readField(item, 'guid', 'id'),
+    guid,
     link,
+    outboundUrls: [...outboundUrls],
     title,
     summary: summary === '' ? undefined : summary,
     rawFeedDate: readField(item, 'published', 'pubdate', 'updated'),
@@ -138,15 +170,32 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
       stack.push(name)
       const expectedItem = feedKind === 'atom' ? 'entry' : 'item'
       if (name === expectedItem) {
-        current = { fields: new Map() }
+        current = { fields: new Map(), outboundUrls: new Set() }
         return
       }
-      if (current === undefined || name !== 'link')
+      if (current === undefined)
+        return
+
+      if (name === 'guid' && feedKind === 'rss') {
+        const marker = tag.attributes.isPermaLink ?? tag.attributes.ispermalink
+        current.guidCanBeLink = typeof marker !== 'string' || marker.toLowerCase() !== 'false'
+        return
+      }
+
+      if (name === 'a') {
+        const href = tag.attributes.href
+        const field = [...stack].reverse().find(candidate => ITEM_FIELDS.has(candidate))
+        if (field !== undefined && CONTENT_FIELDS.has(field) && typeof href === 'string' && href.trim() !== '')
+          current.outboundUrls.add(href.trim())
+        return
+      }
+      if (name !== 'link')
         return
 
       const href = tag.attributes.href
       const rel = tag.attributes.rel
-      if (typeof href === 'string' && (rel === undefined || rel === 'alternate'))
+      const relation = typeof rel === 'string' ? rel.toLowerCase() : rel
+      if (typeof href === 'string' && (relation === undefined || relation === 'alternate'))
         current.atomLink ??= href
     })
     const append = (text: string): void => {
@@ -183,26 +232,6 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
   return parsed
 }
 
-const TRACKING_PARAMS = new Set(['fbclid', 'gclid', 'mc_cid', 'mc_eid'])
-
-function canonicalizeItemUrl(value: string | undefined): string | undefined {
-  if (value === undefined || value.trim() === '')
-    return undefined
-  try {
-    const url = new URL(value.trim())
-    url.hash = ''
-    for (const name of [...url.searchParams.keys()]) {
-      if (name.toLowerCase().startsWith('utm_') || TRACKING_PARAMS.has(name.toLowerCase()))
-        url.searchParams.delete(name)
-    }
-    url.searchParams.sort()
-    return url.href
-  }
-  catch {
-    return undefined
-  }
-}
-
 function itemExternalId(item: ParsedFeedItem, canonicalUrl: string | undefined): string {
   const guid = item.guid?.trim()
   if (guid !== undefined && guid !== '')
@@ -210,6 +239,26 @@ function itemExternalId(item: ParsedFeedItem, canonicalUrl: string | undefined):
   if (canonicalUrl !== undefined)
     return canonicalUrl
   return `sha256:${createHash('sha256').update(`${item.title}${item.link ?? ''}`).digest('hex')}`
+}
+
+function stableUuid(namespace: 'citation' | 'item' | 'link', identity: string): string {
+  const bytes = createHash('sha256').update(`zis:${namespace}:${identity}`).digest().subarray(0, 16)
+  bytes[6] = ((bytes[6] ?? 0) & 0x0F) | 0x80
+  bytes[8] = ((bytes[8] ?? 0) & 0x3F) | 0x80
+  const hex = bytes.toString('hex')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
+function linkIdForUrl(url: string): string {
+  return stableUuid('link', url)
+}
+
+function itemIdForNaturalKey(sourceId: string, externalId: string): string {
+  return stableUuid('item', `${sourceId}\0${externalId}`)
+}
+
+function citationIdForNaturalKey(itemId: string, kind: CitationKind, rawUrl: string): string {
+  return stableUuid('citation', `${itemId}\0${kind}\0${rawUrl}`)
 }
 
 function normalizedPublishedAt(rawFeedDate: string | undefined, fetchedAt: Date): Date {
@@ -255,6 +304,31 @@ export interface PersistedItem {
   updatedAt: Date
 }
 
+export interface PublisherHost {
+  host: string
+  publisherId: string
+}
+
+export interface PersistedLink {
+  id: string
+  url: string
+  firstSeenAt: Date
+  createdAt: Date
+}
+
+export type CitationKind = 'self' | 'outbound'
+
+export interface PersistedCitation {
+  id: string
+  itemId: string
+  sourceId: string
+  linkId: string
+  kind: CitationKind
+  rawUrl: string
+  firstSeenAt: Date
+  createdAt: Date
+}
+
 export interface HttpCacheRecord {
   url: string
   etag: string | null
@@ -279,6 +353,9 @@ export interface SourceFetchLog {
 export interface PersistedGraph {
   sources: IngestionSource[]
   items: PersistedItem[]
+  publisherHosts: PublisherHost[]
+  links: PersistedLink[]
+  citations: PersistedCitation[]
   fetchLogs: SourceFetchLog[]
   httpCache: HttpCacheRecord[]
   robotsCache: RobotsCacheRecord[]
@@ -306,6 +383,7 @@ export interface CannedTransportResponse {
 
 interface RunIngestionCommon {
   sources: IngestionSource[]
+  publisherHosts?: PublisherHost[]
   now?: () => Date
   initialGraph?: PersistedGraph
   onSourceCommitted?: (source: IngestionSource, graph: PersistedGraph) => Promise<void>
@@ -331,10 +409,13 @@ function cloneSource(source: IngestionSource): IngestionSource {
   }
 }
 
-function emptyGraph(sources: IngestionSource[]): PersistedGraph {
+function emptyGraph(sources: IngestionSource[], publisherHosts: PublisherHost[]): PersistedGraph {
   return {
     sources: sources.map(cloneSource),
     items: [],
+    publisherHosts: publisherHosts.map(record => ({ ...record })),
+    links: [],
+    citations: [],
     fetchLogs: [],
     httpCache: [],
     robotsCache: [],
@@ -680,6 +761,115 @@ function recordFailure(
   })
 }
 
+const REFERENCE_ONLY_URLS = [
+  /^https:\/\/developer\.mozilla\.org\//i,
+  /^https:\/\/(?:www\.)?(?:w3\.org|whatwg\.org|rfc-editor\.org|ietf\.org|unicode\.org|khronos\.org)\//i,
+  /^https:\/\/(?:www\.)?caniuse\.com\//i,
+  /^https:\/\/(?:[a-z]{2}\.)?wikipedia\.org\//i,
+  /^https:\/\/(?:www\.)?npmjs\.com\/package\//i,
+  /^https:\/\/(?:www\.)?stackoverflow\.com\/questions\//i,
+  /^https:\/\/(?:bugs|bugzilla|bugreport)\./i,
+  /^https:\/\/(?:crbug\.com|issues\.chromium\.org|bugs\.webkit\.org|bugzilla\.mozilla\.org)\//i,
+  /^https:\/\/github\.com\/[^/]+\/[^/]+\/(?:pull|issues|commit|commits|compare|blob|discussions|labels|milestone|projects|wiki)\b/i,
+  /^https:\/\/[^/]+\/(?:docs|api|reference|guide|guides|manual|spec|schema)\//i,
+  /^https:\/\/(?:www\.)?(?:youtube|youtu)\.[a-z.]+\/playlist/i,
+  /^https:\/\/(?:www\.)?doi\.org\//i,
+]
+
+function isReferenceOnly(url: string): boolean {
+  return REFERENCE_ONLY_URLS.some(pattern => pattern.test(url))
+}
+
+function ownerOfHost(graph: PersistedGraph, host: string): string | undefined {
+  const canonicalHost = publisherHostKey(host)
+  return graph.publisherHosts.find(record => publisherHostKey(record.host) === canonicalHost)?.publisherId
+}
+
+function recordCitation(
+  graph: PersistedGraph,
+  item: PersistedItem,
+  source: IngestionSource,
+  rawUrl: string | undefined,
+  kind: CitationKind,
+  firstSeenAt: Date,
+  baseUrl?: string,
+): void {
+  if (rawUrl === undefined || rawUrl.trim() === '')
+    return
+  const preservedRawUrl = rawUrl.trim()
+  const canonicalUrl = canonicalizeLink(preservedRawUrl, baseUrl)
+  if (canonicalUrl === undefined)
+    return
+  if (kind === 'outbound') {
+    if (isReferenceOnly(canonicalUrl))
+      return
+    if (ownerOfHost(graph, new URL(canonicalUrl).hostname) === source.publisherId)
+      return
+  }
+
+  let link = graph.links.find(candidate => candidate.url === canonicalUrl)
+  if (link === undefined) {
+    link = {
+      id: linkIdForUrl(canonicalUrl),
+      url: canonicalUrl,
+      firstSeenAt,
+      createdAt: firstSeenAt,
+    }
+    graph.links.push(link)
+  }
+  else if (firstSeenAt < link.firstSeenAt) {
+    link.firstSeenAt = firstSeenAt
+  }
+
+  const existing = graph.citations.find(candidate =>
+    candidate.itemId === item.id
+    && candidate.kind === kind
+    && candidate.rawUrl === preservedRawUrl,
+  )
+  if (existing !== undefined) {
+    existing.linkId = link.id
+    if (firstSeenAt < existing.firstSeenAt)
+      existing.firstSeenAt = firstSeenAt
+    return
+  }
+
+  graph.citations.push({
+    id: citationIdForNaturalKey(item.id, kind, preservedRawUrl),
+    itemId: item.id,
+    sourceId: source.id,
+    linkId: link.id,
+    kind,
+    rawUrl: preservedRawUrl,
+    firstSeenAt,
+    createdAt: firstSeenAt,
+  })
+}
+
+function findPersistedItem(
+  graph: PersistedGraph,
+  source: IngestionSource,
+  parsed: ParsedFeedItem,
+  externalId: string,
+  canonicalUrl: string | undefined,
+): PersistedItem | undefined {
+  const exact = graph.items.find(candidate =>
+    candidate.sourceId === source.id && candidate.externalId === externalId,
+  )
+  if (exact !== undefined || parsed.guid?.trim())
+    return exact
+  if (canonicalUrl === undefined)
+    return undefined
+
+  const legacy = graph.items
+    .filter(candidate => candidate.sourceId === source.id
+      && candidate.url !== null
+      && canonicalizeLink(candidate.externalId) === canonicalUrl
+      && canonicalizeLink(candidate.url) === canonicalUrl)
+    .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime()
+      || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
+  return legacy[0]
+}
+
 async function ingestSource(
   graph: PersistedGraph,
   source: IngestionSource,
@@ -746,13 +936,14 @@ async function ingestSource(
     let itemsNew = 0
     let newest: Date | null = null
     for (const item of parsed) {
-      const url = canonicalizeItemUrl(item.link)
+      const url = canonicalizeLink(item.link)
       const externalId = itemExternalId(item, url)
       const publishedAt = normalizedPublishedAt(item.rawFeedDate, fetchedAt)
-      const existing = graph.items.find(candidate => candidate.sourceId === source.id && candidate.externalId === externalId)
+      const existing = findPersistedItem(graph, source, item, externalId, url)
+      let persistedItem: PersistedItem
       if (existing === undefined) {
-        graph.items.push({
-          id: randomUUID(),
+        persistedItem = {
+          id: itemIdForNaturalKey(source.id, externalId),
           sourceId: source.id,
           externalId,
           url: url ?? null,
@@ -763,7 +954,8 @@ async function ingestSource(
           fetchedAt,
           createdAt: fetchedAt,
           updatedAt: fetchedAt,
-        })
+        }
+        graph.items.push(persistedItem)
         itemsNew++
       }
       else {
@@ -776,7 +968,11 @@ async function ingestSource(
           fetchedAt,
           updatedAt: fetchedAt,
         })
+        persistedItem = existing
       }
+      recordCitation(graph, persistedItem, source, item.link, 'self', fetchedAt)
+      for (const outboundUrl of item.outboundUrls)
+        recordCitation(graph, persistedItem, source, outboundUrl, 'outbound', fetchedAt, item.link)
       if (newest === null || publishedAt > newest)
         newest = publishedAt
     }
@@ -804,13 +1000,14 @@ async function ingestSource(
  */
 export async function runIngestion({
   sources,
+  publisherHosts = [],
   responses,
   fetch: liveFetch,
   now = () => new Date(),
   initialGraph,
   onSourceCommitted,
 }: RunIngestionInput): Promise<PersistedGraph> {
-  const graph = initialGraph ?? emptyGraph(sources)
+  const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
   const rawFetch = liveFetch ?? createCannedSafeFetch(responses ?? [])
   const fetch = createPolicyFetch(graph, rawFetch, now)
   const byHost = new Map<string, IngestionSource[]>()
