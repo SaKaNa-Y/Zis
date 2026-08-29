@@ -205,7 +205,10 @@ the invariant that makes the whole boundary structural.
   in the same transaction as the password verify. No new infrastructure, survives
   redeploys, and does not tie a security property to a hosting vendor. Argon2id at
   a real cost factor is itself a throttle, but a public login route with no
-  lockout is the one thing a scanner will find.
+  lockout is the one thing a scanner will find. The transaction holds the sole
+  reader row `FOR UPDATE` through Argon2 verification, so a stale success cannot
+  clear failures recorded by a later request. Five consecutive failures lock the
+  row for 15 minutes; the first attempt after expiry starts the count at one.
 - `verifySession()` in the DAL is the auth boundary, **not `proxy.ts`** — Server
   Actions POST to the route they are used on, so a proxy matcher that excludes a
   path also un-gates its Server Actions (#4).
@@ -249,6 +252,33 @@ next reader. Argon2id at a real cost factor is what makes committing it safe.
 
 Recovery is the deploy path, not an app path: connect to Neon with credentials
 already held and replace the hash.
+
+Generate the replacement digest locally without putting plaintext in a command
+argument or shell history. On PowerShell, the committed helper accepts stdin
+only and prints only the Argon2id PHC digest:
+
+```powershell
+(Read-Host 'Generated passphrase' -AsSecureString |
+  ConvertFrom-SecureString -AsPlainText) |
+  pnpm exec tsx scripts/auth/hash-passphrase.ts
+```
+
+Then run this **single statement** in the Neon SQL editor, replacing the sample
+digest with that output:
+
+```sql
+UPDATE "user"
+SET
+  "passphrase_hash" = '$argon2id$v=19$m=65536,t=3,p=1$<salt>$<digest>',
+  "session_version" = "session_version" + 1,
+  "failed_attempts" = 0,
+  "locked_until" = NULL
+WHERE "id" = (SELECT singleton."id" FROM "user" AS singleton);
+```
+
+The scalar subquery deliberately fails if the one-reader invariant has been
+broken; a successful recovery must report exactly one updated row. The new
+plaintext stays in the password manager, while only its digest reaches Neon.
 
 **The same statement must bump `session_version`.** This is required, not
 optional. A re-seed cannot distinguish "I forgot the passphrase" from "someone

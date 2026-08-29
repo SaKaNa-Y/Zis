@@ -43,6 +43,13 @@
       "when": 1788010930020,
       "tag": "0005_brief_admission",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788013014146,
+      "tag": "0006_auth",
+      "breakpoints": true
     }
   ]
 }

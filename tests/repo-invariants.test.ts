@@ -82,6 +82,27 @@ describe('no workflow is scheduled', () => {
     expect(steps.find(step => step.run === 'pnpm exec tsx scripts/pipeline/run.ts')?.env)
       .toHaveProperty('DATABASE_URL')
   })
+
+  it('never gives the Vercel-only session secret to GitHub Actions', () => {
+    for (const file of readdirSync(workflowsDirectory)) {
+      if (!file.endsWith('.yml') && !file.endsWith('.yaml'))
+        continue
+      expect(readFileSync(join(workflowsDirectory, file), 'utf8'), file)
+        .not
+        .toContain('SESSION_SECRET')
+    }
+  })
+})
+
+describe('authentication code stays on the server', () => {
+  it.each([
+    'src/lib/auth/credentials.ts',
+    'src/lib/auth/dal.ts',
+    'src/lib/auth/postgres.ts',
+    'src/lib/auth/session.ts',
+  ])('%s carries the server-only boundary', (file) => {
+    expect(readFileSync(join(root, file), 'utf8')).toContain('import \'server-only\'')
+  })
 })
 
 describe('ci is one sequential job, cheapest first', () => {

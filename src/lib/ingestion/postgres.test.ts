@@ -41,10 +41,12 @@ interface CapturedStatement {
 
 function capturingDatabase(...results: unknown[][]): {
   database: Database
+  selections: Array<string[] | null>
   statements: CapturedStatement[]
   transactions: unknown[][]
 } {
   const queued = [...results]
+  const selections: Array<string[] | null> = []
   const statements: CapturedStatement[] = []
   const transactions: unknown[][] = []
 
@@ -65,15 +67,18 @@ function capturingDatabase(...results: unknown[][]): {
   }
 
   const database = {
-    select: () => ({
-      from: () => {
-        const result = Promise.resolve(queued.shift() ?? [])
-        return Object.assign(result, {
-          innerJoin: () => result,
-          where: () => result,
-        })
-      },
-    }),
+    select: (fields?: Record<string, unknown>) => {
+      selections.push(fields === undefined ? null : Object.keys(fields))
+      return {
+        from: () => {
+          const result = Promise.resolve(queued.shift() ?? [])
+          return Object.assign(result, {
+            innerJoin: () => result,
+            where: () => result,
+          })
+        },
+      }
+    },
     insert: (table: object) => ({
       values: (values: unknown) => capture('insert', table, values),
     }),
@@ -90,7 +95,7 @@ function capturingDatabase(...results: unknown[][]): {
     },
   } as unknown as Database
 
-  return { database, statements, transactions }
+  return { database, selections, statements, transactions }
 }
 
 interface FetchFixture {
@@ -225,7 +230,7 @@ describe('the production ingestion startup assertion', () => {
       createdAt: user.createdAt,
       updatedAt: user.createdAt,
     }
-    const { database, statements, transactions } = capturingDatabase(
+    const { database, selections, statements, transactions } = capturingDatabase(
       [],
       [],
       [],
@@ -266,6 +271,8 @@ describe('the production ingestion startup assertion', () => {
       }),
       provider,
     )
+
+    expect(selections).toContainEqual(['id', 'timezone', 'cutHour', 'createdAt'])
 
     expect(embeddedTexts).toEqual([
       ['Stable release.'],

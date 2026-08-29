@@ -125,6 +125,10 @@ describe('the ingestion schema', () => {
     expect(getTableConfig(schema.users).name).toBe('user')
     expect(columnNames(schema.users)).toEqual([
       'id',
+      'passphrase_hash',
+      'session_version',
+      'failed_attempts',
+      'locked_until',
       'timezone',
       'cut_hour',
       'created_at',
@@ -132,6 +136,9 @@ describe('the ingestion schema', () => {
     expect(getTableConfig(schema.users).checks.map(check => check.name)).toEqual(expect.arrayContaining([
       'user_timezone_nonempty_check',
       'user_cut_hour_range_check',
+      'user_passphrase_hash_argon2id_check',
+      'user_session_version_nonnegative_check',
+      'user_failed_attempts_nonnegative_check',
     ]))
 
     const interests = getTableConfig(schema.interests)
@@ -258,6 +265,7 @@ describe('the ingestion schema', () => {
     const issueHydrationMigration = join(root, 'drizzle', '0003_issue_hydration_state.sql')
     const signalInterestMigration = join(root, 'drizzle', '0004_signal_interest_embedding.sql')
     const briefAdmissionMigration = join(root, 'drizzle', '0005_brief_admission.sql')
+    const authMigration = join(root, 'drizzle', '0006_auth.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
@@ -265,24 +273,28 @@ describe('the ingestion schema', () => {
     const issueHydrationSnapshot = join(root, 'drizzle', 'meta', '0003_snapshot.json')
     const signalInterestSnapshot = join(root, 'drizzle', 'meta', '0004_snapshot.json')
     const briefAdmissionSnapshot = join(root, 'drizzle', 'meta', '0005_snapshot.json')
+    const authSnapshot = join(root, 'drizzle', 'meta', '0006_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
     expect(existsSync(issueHydrationMigration)).toBe(true)
     expect(existsSync(signalInterestMigration)).toBe(true)
     expect(existsSync(briefAdmissionMigration)).toBe(true)
+    expect(existsSync(authMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
     expect(existsSync(issueHydrationSnapshot)).toBe(true)
     expect(existsSync(signalInterestSnapshot)).toBe(true)
     expect(existsSync(briefAdmissionSnapshot)).toBe(true)
+    expect(existsSync(authSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
     const issueHydrationSql = readFileSync(issueHydrationMigration, 'utf8')
     const signalInterestSql = readFileSync(signalInterestMigration, 'utf8')
     const briefAdmissionSql = readFileSync(briefAdmissionMigration, 'utf8')
+    const authSql = readFileSync(authMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -313,6 +325,13 @@ describe('the ingestion schema', () => {
     expect(briefAdmissionSql).toContain('brief_entry_brief_id_position_unique')
     expect(briefAdmissionSql).toContain('brief_entry_brief_owner_fk')
     expect(briefAdmissionSql).not.toContain('sealed_at')
+    expect(authSql).toContain('ADD COLUMN "passphrase_hash"')
+    expect(authSql).toContain('ADD COLUMN "session_version"')
+    expect(authSql).toContain('ADD COLUMN "failed_attempts"')
+    expect(authSql).toContain('ADD COLUMN "locked_until"')
+    expect(authSql).toContain('RAISE EXCEPTION')
+    expect(authSql).toMatch(/\$argon2id\$v=19\$m=65536,t=3,p=1\$/)
+    expect(authSql).not.toContain('REPLACE_WITH')
     const itemBoundAdded = signalInterestSql.indexOf('ADD CONSTRAINT "item_summary_length_check"')
     const itemSummariesBounded = signalInterestSql.indexOf('SET "summary" = left("summary", 1200)')
     const itemBoundValidated = signalInterestSql.indexOf('VALIDATE CONSTRAINT "item_summary_length_check"')
@@ -329,6 +348,7 @@ describe('the ingestion schema', () => {
       '0003_issue_hydration_state',
       '0004_signal_interest_embedding',
       '0005_brief_admission',
+      '0006_auth',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')
