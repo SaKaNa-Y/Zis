@@ -323,6 +323,19 @@ export const readStates = pgTable('read_state', {
   index('read_state_signal_id_idx').on(table.signalId),
 ])
 
+/** A Signal the reader kept to return to outside its Brief. */
+export const bookmarks = pgTable('bookmark', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
+  savedAt: timestampTz('saved_at').notNull().defaultNow(),
+}, table => [
+  primaryKey({
+    name: 'bookmark_user_id_signal_id_pk',
+    columns: [table.userId, table.signalId],
+  }),
+  index('bookmark_signal_id_idx').on(table.signalId),
+])
+
 export const sourceFetchLogs = pgTable('source_fetch_log', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
   sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),

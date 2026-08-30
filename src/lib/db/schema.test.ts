@@ -197,7 +197,7 @@ describe('the ingestion schema', () => {
     expect(signals.checks.map(check => check.name)).toContain('signal_embedding_text_length_check')
   })
 
-  it('persists an unsealed Brief with reader-safe entries and Read State', () => {
+  it('persists an unsealed Brief with reader-safe entries, Bookmark, and Read State', () => {
     expect(schema.briefAdmission.enumValues).toEqual(['interest', 'convergence'])
 
     const briefs = getTableConfig(schema.briefs)
@@ -257,6 +257,20 @@ describe('the ingestion schema', () => {
     expect(readStates.primaryKeys.some(key =>
       key.columns.map(column => column.name).join(',') === 'user_id,signal_id',
     )).toBe(true)
+
+    const bookmarks = getTableConfig(schema.bookmarks)
+    expect(bookmarks.name).toBe('bookmark')
+    expect(columnNames(schema.bookmarks)).toEqual([
+      'user_id',
+      'signal_id',
+      'saved_at',
+    ])
+    expect(bookmarks.primaryKeys.some(key =>
+      key.columns.map(column => column.name).join(',') === 'user_id,signal_id',
+    )).toBe(true)
+    expect(bookmarks.indexes.some(index =>
+      index.config.columns.map(column => 'name' in column ? column.name : '').join(',') === 'signal_id',
+    )).toBe(true)
   })
 
   it('has a committed migration and does not migrate from a build or workflow', async () => {
@@ -267,6 +281,7 @@ describe('the ingestion schema', () => {
     const signalInterestMigration = join(root, 'drizzle', '0004_signal_interest_embedding.sql')
     const briefAdmissionMigration = join(root, 'drizzle', '0005_brief_admission.sql')
     const authMigration = join(root, 'drizzle', '0006_auth.sql')
+    const todayReaderActionsMigration = join(root, 'drizzle', '0007_today_reader_actions.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
@@ -275,6 +290,7 @@ describe('the ingestion schema', () => {
     const signalInterestSnapshot = join(root, 'drizzle', 'meta', '0004_snapshot.json')
     const briefAdmissionSnapshot = join(root, 'drizzle', 'meta', '0005_snapshot.json')
     const authSnapshot = join(root, 'drizzle', 'meta', '0006_snapshot.json')
+    const todayReaderActionsSnapshot = join(root, 'drizzle', 'meta', '0007_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
@@ -282,6 +298,7 @@ describe('the ingestion schema', () => {
     expect(existsSync(signalInterestMigration)).toBe(true)
     expect(existsSync(briefAdmissionMigration)).toBe(true)
     expect(existsSync(authMigration)).toBe(true)
+    expect(existsSync(todayReaderActionsMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
@@ -289,6 +306,7 @@ describe('the ingestion schema', () => {
     expect(existsSync(signalInterestSnapshot)).toBe(true)
     expect(existsSync(briefAdmissionSnapshot)).toBe(true)
     expect(existsSync(authSnapshot)).toBe(true)
+    expect(existsSync(todayReaderActionsSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
@@ -296,6 +314,7 @@ describe('the ingestion schema', () => {
     const signalInterestSql = readFileSync(signalInterestMigration, 'utf8')
     const briefAdmissionSql = readFileSync(briefAdmissionMigration, 'utf8')
     const authSql = readFileSync(authMigration, 'utf8')
+    const todayReaderActionsSql = readFileSync(todayReaderActionsMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -333,6 +352,9 @@ describe('the ingestion schema', () => {
     expect(authSql).toContain('RAISE EXCEPTION')
     expect(authSql).toMatch(/\$argon2id\$v=19\$m=65536,t=3,p=1\$/)
     expect(authSql).not.toContain('REPLACE_WITH')
+    expect(todayReaderActionsSql).toContain('CREATE TABLE "bookmark"')
+    expect(todayReaderActionsSql).toContain('bookmark_user_id_signal_id_pk')
+    expect(todayReaderActionsSql).toContain('bookmark_signal_id_idx')
     const seededHash = /seed_hash text := '([^']+)'/.exec(authSql)?.[1]
     expect(seededHash).toBeDefined()
     if (seededHash === undefined)
@@ -355,6 +377,7 @@ describe('the ingestion schema', () => {
       '0004_signal_interest_embedding',
       '0005_brief_admission',
       '0006_auth',
+      '0007_today_reader_actions',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

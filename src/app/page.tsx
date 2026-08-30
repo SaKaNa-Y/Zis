@@ -1,11 +1,21 @@
+import type { Metadata } from 'next'
 import { verifySession } from '@/lib/auth/dal'
+import { readTodayBrief } from '@/lib/briefs/today'
+import { markSignalRead, saveSignal } from './actions'
+import { TodayBriefView } from './today'
+
+export const metadata: Metadata = {
+  title: 'Today — Zis',
+}
 
 export default async function Home() {
-  await verifySession()
+  const { userId } = await verifySession()
+  const brief = await readTodayBrief(userId)
 
   return (
-    <main>
-      <p>Nothing is ingested and nothing is rendered yet.</p>
-    </main>
+    <TodayBriefView
+      actionTargets={{ markRead: markSignalRead, save: saveSignal }}
+      brief={brief}
+    />
   )
 }
