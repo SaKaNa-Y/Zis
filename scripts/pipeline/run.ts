@@ -20,6 +20,25 @@ import * as env from '@/lib/env'
 import { runNeonIngestion } from '@/lib/ingestion/postgres'
 import { safeFetch } from '@/lib/safe-fetch'
 
+const NEON_WAKE_BUDGET_MS = 120_000
+const PIPELINE_STAGE_ORDER = [
+  'stage 0 assertion',
+  'select due',
+  'fetch',
+  'normalize',
+  'hydrate',
+  'canonicalize',
+  'citation-worthiness',
+  'alias merge',
+  'strength',
+  'embed',
+  'match',
+  'admission',
+  'cut',
+  'order',
+  'prune',
+] as const
+
 async function main(argv: string[]): Promise<void> {
   if (argv.includes('--dry-run')) {
     process.stdout.write('zis pipeline: shared modules resolve; RSS ingestion is ready\n')
@@ -30,12 +49,32 @@ async function main(argv: string[]): Promise<void> {
   env.databaseUrl()
   // A cold model download must finish before Neon wakes (ADR-0008).
   await prepareTransformersModelCache(safeFetch)
-  const graph = await runNeonIngestion(
-    new Date(),
-    db(),
-    safeFetch,
-    createTransformersEmbeddingProvider({ fetcher: safeFetch }),
+
+  const database = db()
+  const embeddingProvider = createTransformersEmbeddingProvider({ fetcher: safeFetch })
+  const wakeAt = new Date()
+  process.stdout.write(
+    `zis pipeline stage order: ${PIPELINE_STAGE_ORDER.join(' -> ')}\n`,
   )
+
+  const neonWakeStartedAt = Date.now()
+  const graph = await runNeonIngestion(
+    wakeAt,
+    database,
+    safeFetch,
+    embeddingProvider,
+  )
+  const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
+
+  process.stdout.write(
+    `zis pipeline Neon wake through prune: ${neonWakeElapsedMs} ms (budget ${NEON_WAKE_BUDGET_MS} ms)\n`,
+  )
+  if (neonWakeElapsedMs > NEON_WAKE_BUDGET_MS) {
+    process.stdout.write(
+      `::warning title=Neon wake budget exceeded::Pipeline took ${neonWakeElapsedMs} ms from the first Neon query through completed prune; budget is ${NEON_WAKE_BUDGET_MS} ms.\n`,
+    )
+  }
+
   process.stdout.write(
     `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.items.length} persisted Item(s)\n`,
   )

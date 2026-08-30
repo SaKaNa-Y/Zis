@@ -58,6 +58,7 @@ describe('the ingestion schema', () => {
   it('keys Items naturally per Source and keeps both raw and normalized dates', () => {
     const items = getTableConfig(schema.items)
     expect(items.name).toBe('item')
+    expect(columnNames(schema.items)).toContain('text')
     expect(columnNames(schema.items)).toContain('raw_feed_date')
     expect(columnNames(schema.items)).toContain('published_at')
     expect(columnNames(schema.items)).toContain('issue_hydrated_at')
@@ -65,6 +66,7 @@ describe('the ingestion schema', () => {
       constraint.columns.map(column => column.name).join(',') === 'source_id,external_id',
     )).toBe(true)
     expect(items.checks.map(check => check.name)).toContain('item_summary_length_check')
+    expect(items.checks.map(check => check.name)).toContain('item_text_length_check')
   })
 
   it('stores canonical Links and Citation provenance idempotently', () => {
@@ -282,6 +284,7 @@ describe('the ingestion schema', () => {
     const briefAdmissionMigration = join(root, 'drizzle', '0005_brief_admission.sql')
     const authMigration = join(root, 'drizzle', '0006_auth.sql')
     const todayReaderActionsMigration = join(root, 'drizzle', '0007_today_reader_actions.sql')
+    const retentionTieringMigration = join(root, 'drizzle', '0008_retention_and_production_corpus.sql')
     const migrationJournal = join(root, 'drizzle', 'meta', '_journal.json')
     const initialSnapshot = join(root, 'drizzle', 'meta', '0000_snapshot.json')
     const linkCitationSnapshot = join(root, 'drizzle', 'meta', '0001_snapshot.json')
@@ -291,6 +294,7 @@ describe('the ingestion schema', () => {
     const briefAdmissionSnapshot = join(root, 'drizzle', 'meta', '0005_snapshot.json')
     const authSnapshot = join(root, 'drizzle', 'meta', '0006_snapshot.json')
     const todayReaderActionsSnapshot = join(root, 'drizzle', 'meta', '0007_snapshot.json')
+    const retentionTieringSnapshot = join(root, 'drizzle', 'meta', '0008_snapshot.json')
     expect(existsSync(migration)).toBe(true)
     expect(existsSync(linkCitationMigration)).toBe(true)
     expect(existsSync(signalStrengthMigration)).toBe(true)
@@ -299,6 +303,7 @@ describe('the ingestion schema', () => {
     expect(existsSync(briefAdmissionMigration)).toBe(true)
     expect(existsSync(authMigration)).toBe(true)
     expect(existsSync(todayReaderActionsMigration)).toBe(true)
+    expect(existsSync(retentionTieringMigration)).toBe(true)
     expect(existsSync(initialSnapshot)).toBe(true)
     expect(existsSync(linkCitationSnapshot)).toBe(true)
     expect(existsSync(signalStrengthSnapshot)).toBe(true)
@@ -307,6 +312,7 @@ describe('the ingestion schema', () => {
     expect(existsSync(briefAdmissionSnapshot)).toBe(true)
     expect(existsSync(authSnapshot)).toBe(true)
     expect(existsSync(todayReaderActionsSnapshot)).toBe(true)
+    expect(existsSync(retentionTieringSnapshot)).toBe(true)
     const sql = readFileSync(migration, 'utf8')
     const linkCitationSql = readFileSync(linkCitationMigration, 'utf8')
     const signalStrengthSql = readFileSync(signalStrengthMigration, 'utf8')
@@ -315,6 +321,7 @@ describe('the ingestion schema', () => {
     const briefAdmissionSql = readFileSync(briefAdmissionMigration, 'utf8')
     const authSql = readFileSync(authMigration, 'utf8')
     const todayReaderActionsSql = readFileSync(todayReaderActionsMigration, 'utf8')
+    const retentionTieringSql = readFileSync(retentionTieringMigration, 'utf8')
     expect(sql).toContain('CREATE TABLE "publisher"')
     expect(sql).toContain('CREATE TABLE "source"')
     expect(sql).toContain('CREATE TABLE "item"')
@@ -355,6 +362,51 @@ describe('the ingestion schema', () => {
     expect(todayReaderActionsSql).toContain('CREATE TABLE "bookmark"')
     expect(todayReaderActionsSql).toContain('bookmark_user_id_signal_id_pk')
     expect(todayReaderActionsSql).toContain('bookmark_signal_id_idx')
+    expect(retentionTieringSql).toContain('ADD COLUMN "text" text')
+    expect(retentionTieringSql).toContain('item_text_length_check')
+    expect(retentionTieringSql).toContain('SET "text" = "summary"')
+    expect(retentionTieringSql).toContain('ON CONFLICT ("slug") DO UPDATE')
+    expect(retentionTieringSql).toContain('ON CONFLICT ("host") DO UPDATE')
+    expect(retentionTieringSql).toContain('ON CONFLICT ("endpoint_url") DO UPDATE')
+    expect(retentionTieringSql).not.toContain('sealed')
+    expect(retentionTieringSql).not.toContain('INSERT INTO "interest"')
+    const sourceRegister = JSON.parse(
+      readFileSync(join(root, 'docs', 'source-register.json'), 'utf8'),
+    ) as {
+      publishers: Array<{
+        id: string
+        hosts: string[]
+        sources: Array<{ transport: string, url?: string }>
+      }>
+    }
+    const rssUrls = sourceRegister.publishers.flatMap(publisher => publisher.sources)
+      .filter(source => source.transport === 'rss')
+      .map(source => source.url)
+      .filter((url): url is string => url !== undefined)
+    expect(rssUrls).toHaveLength(67)
+    for (const url of rssUrls)
+      expect(retentionTieringSql).toContain(`'${url.replaceAll('\'', '\'\'')}'`)
+    const rssPublishers = sourceRegister.publishers.filter(publisher =>
+      publisher.sources.some(source => source.transport === 'rss'),
+    )
+    for (const publisher of rssPublishers) {
+      for (const host of publisher.hosts) {
+        expect(retentionTieringSql).toContain(
+          `'${host.replaceAll('\'', '\'\'')}', '${publisher.id.replaceAll('\'', '\'\'')}'`,
+        )
+      }
+    }
+    for (const aggregatorUrl of [
+      'https://tldr.tech/api/rss/tech',
+      'https://javascriptweekly.com/rss',
+      'https://react.statuscode.com/rss',
+      'https://frontendfoc.us/rss',
+      'https://nodeweekly.com/rss',
+      'https://this-week-in-rust.org/rss.xml',
+      'https://pycoders.com/feed',
+    ]) {
+      expect(retentionTieringSql).toContain(`'${aggregatorUrl}', true`)
+    }
     const seededHash = /seed_hash text := '([^']+)'/.exec(authSql)?.[1]
     expect(seededHash).toBeDefined()
     if (seededHash === undefined)
@@ -378,6 +430,7 @@ describe('the ingestion schema', () => {
       '0005_brief_admission',
       '0006_auth',
       '0007_today_reader_actions',
+      '0008_retention_and_production_corpus',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

@@ -72,6 +72,7 @@ describe('the ingestion seam', () => {
       title: 'Zis ships',
       url: 'https://publisher.example/posts/zis',
       summary: 'A small, useful brief.',
+      text: 'A small, useful brief.',
       rawFeedDate: 'Mon, 01 Jan 2024 10:00:00 GMT',
       publishedAt: new Date('2024-01-01T10:00:00.000Z'),
     })
@@ -230,6 +231,32 @@ describe('the ingestion seam', () => {
       url: 'https://publisher.example/atom-item',
       publishedAt: new Date('2026-08-28T07:00:00.000Z'),
     })])
+  })
+
+  it('stores plain Item text separately from the permanent summary', async () => {
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => NOW,
+      responses: [
+        { url: 'https://publisher.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>separate-text</guid>
+            <title>Separate text fields</title>
+            <link>https://publisher.example/separate-text</link>
+            <description><![CDATA[<p>Permanent summary.</p>]]></description>
+            <content><![CDATA[<p>Full <em>body</em> text for matching.</p>]]></content>
+          </item></channel></rss>`,
+        },
+      ],
+    })
+
+    expect(graph.items[0]).toMatchObject({
+      summary: 'Permanent summary.',
+      text: 'Full body text for matching.',
+    })
   })
 
   it('uses byte-identical validators and treats 304 as success without touching newest_item_at', async () => {

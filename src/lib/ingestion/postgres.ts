@@ -26,7 +26,7 @@ import {
 import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
 import { publisherHostKey } from './canonicalize'
-import { ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
+import { RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
 
 const SIGNAL_WRITE_BATCH_SIZE = 1000
 
@@ -338,6 +338,7 @@ function sourceStatements(
           url: item.url,
           title: item.title,
           summary: item.summary,
+          text: item.text,
           rawFeedDate: item.rawFeedDate,
           publishedAt: item.publishedAt,
           fetchedAt: item.fetchedAt,
@@ -507,6 +508,15 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
   await commitStatements(database, statements)
 }
 
+async function commitRetention(database: Database, at: Date): Promise<void> {
+  const retainedSince = new Date(at.getTime() - RETENTION_WINDOW_MS)
+  await commitStatements(database, [
+    database.update(items).set({ text: null }).where(lt(items.createdAt, retainedSince)),
+    database.delete(sourceFetchLogs).where(lt(sourceFetchLogs.startedAt, retainedSince)),
+    database.delete(robotsCache).where(lte(robotsCache.expiresAt, at)),
+  ])
+}
+
 /** Run due RSS/Atom Sources and the reader stages through the same Neon-backed seam. */
 export async function runNeonIngestion(
   at: Date = new Date(),
@@ -551,5 +561,6 @@ export async function runNeonIngestion(
       dormantSourceIds.delete(source.id)
   }
   persisted.dormantSourceIds = [...dormantSourceIds]
+  await commitRetention(database, at)
   return persisted
 }

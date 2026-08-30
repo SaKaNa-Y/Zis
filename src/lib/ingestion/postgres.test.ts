@@ -1,6 +1,7 @@
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
+import { lt, lte } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import {
   briefEntries,
@@ -11,7 +12,9 @@ import {
   items,
   links,
   readerSignalMatches,
+  robotsCache,
   signals,
+  sourceFetchLogs,
   sources,
 } from '@/lib/db/schema'
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, EMBEDDING_VERSION } from '@/lib/embeddings/provider'
@@ -19,6 +22,7 @@ import { runNeonIngestion } from './postgres'
 
 function databaseReturning(...results: unknown[][]): Database {
   const queued = [...results]
+  const statement = { toSQL: () => ({ sql: 'retention', params: [] }) }
   return {
     select: () => {
       const result = Promise.resolve(queued.shift() ?? [])
@@ -29,14 +33,23 @@ function databaseReturning(...results: unknown[][]): Database {
         }),
       })
     },
+    update: () => ({
+      set: () => ({ where: () => statement }),
+    }),
+    delete: () => ({ where: () => statement }),
+    $client: {
+      query: (sql: string, params: unknown[]) => ({ params, sql }),
+      transaction: async () => {},
+    },
   } as unknown as Database
 }
 
 interface CapturedStatement {
-  kind: 'insert' | 'update'
+  kind: 'delete' | 'insert' | 'update'
   table: object
   values: unknown
   conflict?: unknown
+  where?: unknown
 }
 
 function capturingDatabase(...results: unknown[][]): {
@@ -50,8 +63,8 @@ function capturingDatabase(...results: unknown[][]): {
   const statements: CapturedStatement[] = []
   const transactions: unknown[][] = []
 
-  function capture(kind: CapturedStatement['kind'], table: object, values: unknown) {
-    const statementNumber = statements.push({ kind, table, values })
+  function capture(kind: CapturedStatement['kind'], table: object, values: unknown, where?: unknown) {
+    const statementNumber = statements.push({ kind, table, values, where })
     const query = {
       onConflictDoUpdate: (conflict: unknown) => {
         statements[statementNumber - 1]!.conflict = conflict
@@ -84,8 +97,11 @@ function capturingDatabase(...results: unknown[][]): {
     }),
     update: (table: object) => ({
       set: (values: unknown) => ({
-        where: () => capture('update', table, values),
+        where: (where: unknown) => capture('update', table, values, where),
       }),
+    }),
+    delete: (table: object) => ({
+      where: (where: unknown) => capture('delete', table, undefined, where),
     }),
     $client: {
       query: (sql: string, params: unknown[]) => ({ params, sql }),
@@ -368,7 +384,168 @@ describe('the production ingestion startup assertion', () => {
     expect(briefWrite?.values).toEqual(graph.briefs)
     const briefEntryWrite = statements.find(statement => statement.table === briefEntries)
     expect(briefEntryWrite?.values).toEqual(graph.briefEntries)
-    expect(transactions).toHaveLength(1)
+    expect(transactions).toHaveLength(2)
+  })
+
+  it('persists retention as the final stage without pruning the thirty-day boundary', async () => {
+    const at = new Date('2026-08-30T08:00:00.000Z')
+    const thirtyDaysAgo = new Date('2026-07-31T08:00:00.000Z')
+    const sourceId = '00000000-0000-4000-8000-000000000101'
+    const source = {
+      id: sourceId,
+      publisherId: '00000000-0000-4000-8000-000000000001',
+      transport: 'rss' as const,
+      endpointUrl: 'https://example.com/feed.xml',
+      isAggregator: false,
+      disabledAt: null,
+      disabledReason: null,
+      consecutiveFailures: 0,
+      retryAfterAt: null,
+      lastPolledAt: thirtyDaysAgo,
+      newestItemAt: thirtyDaysAgo,
+      createdAt: thirtyDaysAgo,
+    }
+    const link = {
+      id: '00000000-0000-8000-8000-000000000301',
+      url: 'https://example.com/releases/retention',
+      firstSeenAt: thirtyDaysAgo,
+      createdAt: thirtyDaysAgo,
+    }
+    const signal = {
+      id: link.id,
+      targetLinkId: link.id,
+      mergedIntoId: null,
+      strength: 0,
+      originPublisherId: null,
+      textBasis: null,
+      embeddingText: null,
+      embedding: null,
+      embeddingModel: null,
+      embeddingDimensions: null,
+      embeddingVersion: null,
+      embeddedAt: null,
+      createdAt: thirtyDaysAgo,
+    }
+    const itemRows = [
+      {
+        id: '00000000-0000-8000-8000-000000000201',
+        sourceId,
+        externalId: 'expired-text',
+        url: 'https://example.com/expired',
+        title: 'Expired text',
+        summary: 'Permanent summary',
+        text: 'Prune this full text',
+        rawFeedDate: null,
+        publishedAt: new Date(thirtyDaysAgo.getTime() - 1),
+        fetchedAt: new Date(thirtyDaysAgo.getTime() - 1),
+        issueHydratedAt: null,
+        createdAt: new Date(thirtyDaysAgo.getTime() - 1),
+        updatedAt: new Date(thirtyDaysAgo.getTime() - 1),
+      },
+      {
+        id: '00000000-0000-8000-8000-000000000202',
+        sourceId,
+        externalId: 'boundary-text',
+        url: 'https://example.com/boundary',
+        title: 'Boundary text',
+        summary: 'Permanent boundary summary',
+        text: 'Retain this full text',
+        rawFeedDate: null,
+        publishedAt: thirtyDaysAgo,
+        fetchedAt: thirtyDaysAgo,
+        issueHydratedAt: null,
+        createdAt: thirtyDaysAgo,
+        updatedAt: thirtyDaysAgo,
+      },
+    ]
+    const robotRows = [
+      {
+        host: 'expired.example',
+        verdict: 'allow',
+        directives: { matchedUserAgent: null, rules: [] },
+        status: 404,
+        contentType: null,
+        wafAction: null,
+        authoritative: true,
+        fetchedAt: thirtyDaysAgo,
+        expiresAt: at,
+      },
+      {
+        host: 'live.example',
+        verdict: 'allow',
+        directives: { matchedUserAgent: null, rules: [] },
+        status: 404,
+        contentType: null,
+        wafAction: null,
+        authoritative: true,
+        fetchedAt: thirtyDaysAgo,
+        expiresAt: new Date(at.getTime() + 1),
+      },
+    ]
+    const { database, statements, transactions } = capturingDatabase(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [source],
+      itemRows,
+      [],
+      robotRows,
+      [],
+      [link],
+      [signal],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+    )
+    const provider: EmbeddingProvider = {
+      model: EMBEDDING_MODEL,
+      dimensions: EMBEDDING_DIMENSIONS,
+      version: EMBEDDING_VERSION,
+      embed: async texts => texts.map(() => unitVector(0)),
+    }
+
+    const graph = await runNeonIngestion(
+      at,
+      database,
+      fixtureFetcher(() => {
+        throw new Error('no origin fetch expected')
+      }),
+      provider,
+    )
+
+    expect(graph.items.find(item => item.externalId === 'expired-text')).toMatchObject({
+      summary: 'Permanent summary',
+      text: null,
+      url: 'https://example.com/expired',
+    })
+    expect(graph.items.find(item => item.externalId === 'boundary-text')?.text)
+      .toBe('Retain this full text')
+    expect(graph.robotsCache.map(record => record.host)).toEqual(['live.example'])
+
+    const retentionStatements = statements.slice(-3)
+    expect(retentionStatements.map(statement => [statement.kind, statement.table, statement.values]))
+      .toEqual([
+        ['update', items, { text: null }],
+        ['delete', sourceFetchLogs, undefined],
+        ['delete', robotsCache, undefined],
+      ])
+    expect(retentionStatements[0]?.where).toEqual(lt(items.createdAt, thirtyDaysAgo))
+    expect(retentionStatements[1]?.where).toEqual(lt(sourceFetchLogs.startedAt, thirtyDaysAgo))
+    expect(retentionStatements[2]?.where).toEqual(lte(robotsCache.expiresAt, at))
+
+    const retentionStatementNumbers = retentionStatements.map(statement => statements.indexOf(statement) + 1)
+    expect(transactions).toHaveLength(2)
+    expect(transactions.at(-1)).toEqual(retentionStatementNumbers.map(statementNumber => ({
+      params: [],
+      sql: `statement-${statementNumber}`,
+    })))
   })
 
   it('fails the run before selecting due Sources when an RSS Item host has no owner', async () => {
@@ -560,10 +737,10 @@ describe('the production ingestion startup assertion', () => {
 
     expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'not_modified' })
     expect(graph.citations).toEqual([])
-    expect(statements.some(statement => statement.table === items)).toBe(false)
+    expect(statements.some(statement => statement.kind === 'insert' && statement.table === items)).toBe(false)
     expect(statements.some(statement => statement.table === links)).toBe(false)
     expect(statements.some(statement => statement.table === citations)).toBe(false)
-    expect(transactions).toHaveLength(1)
+    expect(transactions).toHaveLength(2)
   })
 
   it('commits pending Aggregator hydration even when the feed is not modified', async () => {
@@ -962,6 +1139,6 @@ describe('the production ingestion startup assertion', () => {
         originPublisherId: expect.anything(),
       },
     })
-    expect(transactions).toHaveLength(2)
+    expect(transactions).toHaveLength(3)
   })
 })

@@ -121,6 +121,8 @@ export const items = pgTable('item', {
   url: text('url'),
   title: text('title').notNull(),
   summary: text('summary'),
+  /** Bounded publisher plain text; stage 14 clears it after the retention window. */
+  text: text('text'),
   rawFeedDate: text('raw_feed_date'),
   publishedAt: timestampTz('published_at').notNull(),
   fetchedAt: timestampTz('fetched_at').notNull(),
@@ -133,6 +135,10 @@ export const items = pgTable('item', {
   check(
     'item_summary_length_check',
     sql`${table.summary} IS NULL OR length(${table.summary}) <= 1200`,
+  ),
+  check(
+    'item_text_length_check',
+    sql`${table.text} IS NULL OR length(${table.text}) <= 1200`,
   ),
 ])
 

@@ -14,6 +14,7 @@ import { canonicalizeLink, publisherHostKey } from './canonicalize'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
 const MAX_EMBEDDING_TEXT_CHARS = 1200
+export const RETENTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 type FeedParseErrorCode = 'too_large' | 'unsafe_xml' | 'invalid_xml'
 
@@ -35,6 +36,7 @@ interface ParsedFeedItem {
   persistedItemId?: string
   title: string
   summary?: string
+  text?: string
   rawFeedDate?: string
 }
 
@@ -169,18 +171,21 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   const guid = readField(item, 'guid', 'id')
   const link = item.atomLink ?? readField(item, 'link') ?? (item.guidCanBeLink ? guid : undefined)
   const rawSummary = readField(item, 'summary', 'description', 'content', 'encoded') ?? ''
+  const rawText = readField(item, 'content', 'encoded', 'description', 'summary') ?? ''
   const outboundUrls = new Map(item.outboundUrls)
   for (const field of CONTENT_FIELDS) {
     for (const outboundUrl of extractOutboundUrls(item.fields.get(field) ?? ''))
       retainLongestAnchor(outboundUrls, outboundUrl.rawUrl, outboundUrl.anchorText)
   }
   const summary = capEmbeddingText(plainText(rawSummary))
+  const text = capEmbeddingText(plainText(rawText))
   return {
     guid,
     link,
     outboundUrls: [...outboundUrls].map(([rawUrl, anchorText]) => ({ rawUrl, anchorText })),
     title,
     summary: summary === '' ? undefined : summary,
+    text: text === '' ? undefined : text,
     rawFeedDate: readField(item, 'published', 'pubdate', 'updated'),
   }
 }
@@ -367,6 +372,7 @@ export interface PersistedItem {
   url: string | null
   title: string
   summary: string | null
+  text: string | null
   rawFeedDate: string | null
   publishedAt: Date
   fetchedAt: Date
@@ -1402,14 +1408,14 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     .filter((item): item is PersistedItem => item !== undefined && !itemIsVehicle(graph, item))
     .map(item => [item.id, item])).values()]
     .sort((left, right) =>
-      (right.summary?.length ?? 0) - (left.summary?.length ?? 0)
+      (right.text?.length ?? right.summary?.length ?? 0) - (left.text?.length ?? left.summary?.length ?? 0)
       || left.id.localeCompare(right.id))
 
   const own = ownItems[0]
   if (own !== undefined) {
     return {
       basis: 'own',
-      text: capEmbeddingText(collapse(`${own.title}. ${own.summary ?? ''}`)),
+      text: capEmbeddingText(collapse(`${own.title}. ${own.text ?? own.summary ?? ''}`)),
     }
   }
 
@@ -1921,6 +1927,24 @@ function findPersistedItem(
   return legacy[0]
 }
 
+function pruneRetainedState(graph: PersistedGraph, at: Date): void {
+  const retainedSince = at.getTime() - RETENTION_WINDOW_MS
+  for (const item of graph.items) {
+    if (item.createdAt.getTime() < retainedSince)
+      item.text = null
+  }
+  graph.fetchLogs.splice(
+    0,
+    graph.fetchLogs.length,
+    ...graph.fetchLogs.filter(log => log.startedAt.getTime() >= retainedSince),
+  )
+  graph.robotsCache.splice(
+    0,
+    graph.robotsCache.length,
+    ...graph.robotsCache.filter(record => record.expiresAt.getTime() > at.getTime()),
+  )
+}
+
 async function ingestSource(
   graph: PersistedGraph,
   source: IngestionSource,
@@ -2018,6 +2042,7 @@ async function ingestSource(
           url: url ?? null,
           title: item.title,
           summary: item.summary ?? null,
+          text: item.text ?? null,
           rawFeedDate: item.rawFeedDate ?? null,
           publishedAt,
           fetchedAt,
@@ -2033,6 +2058,7 @@ async function ingestSource(
           url: url ?? null,
           title: item.title,
           summary: item.summary ?? null,
+          text: item.text ?? null,
           rawFeedDate: item.rawFeedDate ?? null,
           publishedAt,
           fetchedAt,
@@ -2133,7 +2159,8 @@ export async function runIngestion({
   updateStrength(graph)
   if (embeddingProvider !== undefined)
     await embedSignalsAndMatchInterests(graph, embeddingProvider, now())
-  cutDueBriefs(graph, wakeAt ?? now())
+  const dailyAt = wakeAt ?? now()
+  cutDueBriefs(graph, dailyAt)
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())
   const dormantBefore = new Date(now())
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)
@@ -2142,5 +2169,6 @@ export async function runIngestion({
       && source.newestItemAt !== null
       && source.newestItemAt < dormantBefore)
     .map(source => source.id)
+  pruneRetainedState(graph, dailyAt)
   return graph
 }

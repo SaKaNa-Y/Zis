@@ -198,6 +198,7 @@ function addSignal(graph: TestGraph, fixture: SignalFixture): string {
       url: index === 0 ? `https://${fixture.host}/stories/${fixture.key}` : `https://citer-${fixture.key}-${index}.example/items/1`,
       title: `Item ${fixture.key}-${index}`,
       summary: null,
+      text: null,
       rawFeedDate: null,
       publishedAt: seenAt,
       fetchedAt: seenAt,
@@ -264,6 +265,96 @@ async function runCut(corpus: TestGraph, wakeAt: Date = WAKE_AT): Promise<TestGr
 }
 
 describe('brief admission through the ingestion seam', () => {
+  it('prunes expiring state after cut and order without touching the permanent tier', async () => {
+    const corpus = emptyCorpus()
+    const signalId = addSignal(corpus, {
+      key: 9,
+      host: 'retention.example',
+      basis: 'own',
+      relevance: 0.82,
+      interestStatement: 'Durable systems',
+      contributorNames: ['Alpha', 'Beta'],
+    })
+    const retentionWindowMs = 30 * 24 * 60 * 60 * 1000
+    const expiredAt = new Date(WAKE_AT.getTime() - retentionWindowMs - 1)
+    const boundaryAt = new Date(WAKE_AT.getTime() - retentionWindowMs)
+    const expiredItem = corpus.items[0]!
+    const boundaryItem = corpus.items[1]!
+    expiredItem.summary = 'Permanent summary'
+    expiredItem.text = 'Expired publisher text'
+    expiredItem.createdAt = expiredAt
+    boundaryItem.text = 'Boundary publisher text'
+    boundaryItem.createdAt = boundaryAt
+    corpus.fetchLogs.push(
+      {
+        id: 1,
+        sourceId: expiredItem.sourceId,
+        startedAt: expiredAt,
+        durationMs: 1,
+        outcome: 'ok',
+        httpStatus: 200,
+        itemsSeen: 1,
+        itemsNew: 1,
+        bytes: 1,
+        errorMessage: null,
+      },
+      {
+        id: 2,
+        sourceId: boundaryItem.sourceId,
+        startedAt: boundaryAt,
+        durationMs: 1,
+        outcome: 'not_modified',
+        httpStatus: 304,
+        itemsSeen: 0,
+        itemsNew: 0,
+        bytes: 0,
+        errorMessage: null,
+      },
+    )
+    corpus.robotsCache.push(
+      {
+        host: 'expired-robots.example',
+        verdict: 'allow',
+        directives: { matchedUserAgent: null, rules: [] },
+        status: 404,
+        authoritative: true,
+        fetchedAt: expiredAt,
+        expiresAt: new Date(WAKE_AT),
+      },
+      {
+        host: 'live-robots.example',
+        verdict: 'allow',
+        directives: { matchedUserAgent: null, rules: [] },
+        status: 404,
+        authoritative: true,
+        fetchedAt: boundaryAt,
+        expiresAt: new Date(WAKE_AT.getTime() + 1),
+      },
+    )
+    const permanentEmbedding = [...corpus.signals.find(signal => signal.id === signalId)!.embedding!]
+
+    const graph = await runCut(corpus)
+
+    expect(graph.briefEntries).toEqual([expect.objectContaining({
+      signalId,
+      position: 1,
+      admittedBy: 'interest',
+    })])
+    expect(graph.items.find(item => item.id === expiredItem.id)).toMatchObject({
+      title: expiredItem.title,
+      url: expiredItem.url,
+      summary: 'Permanent summary',
+      text: null,
+    })
+    expect(graph.items.find(item => item.id === boundaryItem.id)?.text).toBe('Boundary publisher text')
+    expect(graph.signals.find(signal => signal.id === signalId)).toMatchObject({
+      embedding: permanentEmbedding,
+      embeddingText: 'Signal 9',
+    })
+    expect(graph.fetchLogs.map(log => log.id)).toEqual([2])
+    expect(graph.robotsCache.map(record => record.host)).toEqual(['live-robots.example'])
+  })
+
   it('cuts every admitted Signal into deterministic routes, positions, and frozen why-text', async () => {
     const corpus = emptyCorpus()
     const strongestInterest = addSignal(corpus, {

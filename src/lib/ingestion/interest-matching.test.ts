@@ -253,7 +253,8 @@ describe('signal Interest matching through the ingestion seam', () => {
           status: 200,
           body: `<rss><channel><item>
             <guid>own-item</guid><title>Precise own title</title><link>${ownUrl}</link>
-            <description><![CDATA[<p>The body begins.</p><p>${'Detailed context '.repeat(100)}</p>]]></description>
+            <description>Permanent summary.</description>
+            <content><![CDATA[<p>The body begins.</p><p>${'Detailed context '.repeat(100)}</p>]]></content>
           </item></channel></rss>`,
         },
         {
@@ -278,7 +279,10 @@ describe('signal Interest matching through the ingestion seam', () => {
     })
 
     expect(expectedOwnText).toHaveLength(1200)
-    expect(graph.items.find(item => item.url === ownUrl)?.summary).toHaveLength(1200)
+    expect(graph.items.find(item => item.url === ownUrl)).toMatchObject({
+      summary: 'Permanent summary.',
+      text: ownBody.slice(0, 1200),
+    })
     expect(signalFor(graph, ownUrl)).toMatchObject({
       textBasis: 'own',
       embeddingText: expectedOwnText,

@@ -57,6 +57,13 @@
       "when": 1788071668052,
       "tag": "0007_today_reader_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788082951690,
+      "tag": "0008_retention_and_production_corpus",
+      "breakpoints": true
     }
   ]
 }
