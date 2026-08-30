@@ -32,6 +32,7 @@ describe('today brief', () => {
   })
 
   it('renders one Entry in the ordinary rhythm with its external and internal destinations', () => {
+    const entryId = '00000000-0000-4000-8000-000000000075'
     const signalId = '00000000-0000-4000-8000-000000000076'
     const whyText = '2 Publishers converged · Alpha, Beta · origin: database.example · matched: "Database internals"'
     const html = renderToStaticMarkup(createElement(TodayBriefView, {
@@ -39,7 +40,7 @@ describe('today brief', () => {
       brief: {
         entries: [{
           admittedBy: 'interest',
-          entryId: signalId,
+          entryId,
           isBookmarked: false,
           isRead: false,
           originUrl: 'https://database.example/deep-storage',
@@ -62,7 +63,8 @@ describe('today brief', () => {
     expect(html).toContain('rel="noopener noreferrer"')
     expect(html).toContain('Inside the storage engine ↗')
     expect(html).toContain('A careful account of a storage engine trade-off, written in plain text.')
-    expect(html).toContain(`href="/signals/${signalId}"`)
+    expect(html.match(new RegExp(`href="/signals/${entryId}"`, 'g'))).toHaveLength(3)
+    expect(html).not.toContain(`href="/signals/${signalId}"`)
     expect(html).toContain(whyText.replaceAll('"', '&quot;'))
     expect(html.match(/<form/g)).toHaveLength(4)
     expect(html).toContain(`name="signalId" value="${signalId}"`)

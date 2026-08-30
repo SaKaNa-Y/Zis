@@ -166,6 +166,15 @@ describe('deny-by-default routing', () => {
     }
   })
 
+  it('keeps the Signal provenance page inside the authenticated route surface', async () => {
+    const routes = routeFiles(join(ROOT, 'src', 'app')).map(routePath)
+
+    expect(routes).toContain('/signals/fixture')
+    const response = await proxy(request('/signals/fixture', { headers: { accept: 'text/html' } }))
+    expect(response.status).toBe(307)
+    expect(getRedirectUrl(response)).toBe('https://zis.example/login')
+  })
+
   it('uses the Next.js 16 Proxy convention without a runtime override', () => {
     expect(config).not.toHaveProperty('runtime')
     expect(existsSync(join(ROOT, 'src', 'proxy.ts'))).toBe(true)

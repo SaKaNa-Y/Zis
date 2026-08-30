@@ -96,7 +96,7 @@ function WhyText({ entry }: { entry: TodayBriefEntry }) {
     <p className="break-words text-meta text-ink-faint">
       <a
         className="underline decoration-rule underline-offset-4 hover:text-ink"
-        href={`/signals/${entry.signalId}`}
+        href={`/signals/${entry.entryId}`}
       >
         {entry.whyText}
       </a>
@@ -128,7 +128,7 @@ function EntryActions({
           signalId={entry.signalId}
         />
         <span aria-hidden="true">·</span>
-        <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.signalId}`}>
+        <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.entryId}`}>
           Why this?
         </a>
       </div>
@@ -149,7 +149,7 @@ function EntryActions({
             label={entry.isRead ? 'Read' : 'Mark read'}
             signalId={entry.signalId}
           />
-          <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.signalId}`}>
+          <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.entryId}`}>
             Why this?
           </a>
         </div>
