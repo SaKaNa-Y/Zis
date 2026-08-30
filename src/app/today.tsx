@@ -36,6 +36,8 @@ const DESTINATIONS = [
   { href: '/settings', label: 'Settings' },
 ] as const
 
+const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
+
 function dateLabel(localDate: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
@@ -91,7 +93,7 @@ function EntryActionForm({
 
 function WhyText({ entry }: { entry: TodayBriefEntry }) {
   return (
-    <p className="break-words text-meta leading-relaxed text-ink-faint">
+    <p className="break-words text-meta text-ink-faint">
       <a
         className="underline decoration-rule underline-offset-4 hover:text-ink"
         href={`/signals/${entry.signalId}`}
@@ -159,12 +161,11 @@ function EntryActions({
 function BriefEntry({
   actionTargets,
   entry,
-  wire = false,
 }: {
   actionTargets: TodayBriefViewProps['actionTargets']
   entry: TodayBriefEntry
-  wire?: boolean
 }) {
+  const isConvergence = entry.admittedBy === 'convergence'
   const titleLink = (
     <a
       className="break-words decoration-accent underline-offset-4 hover:underline"
@@ -179,17 +180,17 @@ function BriefEntry({
 
   return (
     <article
-      className={`${wire ? 'mt-entry first-of-type:mt-6' : 'mt-entry first:mt-12'} xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8`}
+      className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID}`}
       id={`entry-${entry.position}`}
     >
       <div className="min-w-0 xl:col-start-2 xl:row-start-1">
-        {wire
+        {isConvergence
           ? <h3 className="text-body font-semibold tracking-[-0.012em] text-ink lg:text-body-lg">{titleLink}</h3>
           : <h2 className="text-title font-medium tracking-[-0.018em] text-ink lg:text-title-lg">{titleLink}</h2>}
         {entry.summary === null
           ? null
           : (
-              <p className={wire ? 'mt-2 break-words text-body text-ink-dim lg:text-body-lg' : 'mt-2 break-words text-body text-ink lg:text-body-lg'}>
+              <p className={isConvergence ? 'mt-2 break-words text-body text-ink-dim lg:text-body-lg' : 'mt-2 break-words text-body text-ink lg:text-body-lg'}>
                 {entry.summary}
               </p>
             )}
@@ -206,7 +207,7 @@ function BriefEntry({
 
 function DesktopRail() {
   return (
-    <aside className="hidden border-r border-rule px-8 py-12 lg:sticky lg:top-0 lg:block lg:h-screen">
+    <aside className="hidden border-r border-rule px-8 py-12 lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start">
       <p className="font-mono text-date font-semibold uppercase tracking-[0.22em] text-ink">
         Zis
       </p>
@@ -222,7 +223,7 @@ function DesktopRail() {
           </a>
         ))}
       </nav>
-      <p className="mt-12 max-w-[10rem] text-meta leading-relaxed text-ink-faint">
+      <p className="mt-12 max-w-[10rem] text-meta text-ink-faint">
         A private, bounded brief. It ends on purpose.
       </p>
     </aside>
@@ -264,7 +265,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
       <div className="min-w-0">
         <main className="min-w-0 px-5 py-10 sm:px-8 lg:px-12 lg:py-14 xl:px-16" id="today-brief">
           <div className="mx-auto max-w-measure lg:max-w-measure-lg xl:max-w-[54rem]">
-            <div className="xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8">
+            <div className={READING_GRID}>
               <header className="xl:col-start-2">
                 <p className="font-mono text-date tabular-nums uppercase tracking-[0.16em] text-ink-faint">
                   {dateLabel(brief.localDate)}
@@ -277,7 +278,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
 
             {brief.hasBrief && brief.entries.length === 0
               ? (
-                  <div className="xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8">
+                  <div className={READING_GRID}>
                     <div className="xl:col-start-2">
                       <EmptyBrief previousBriefDate={brief.previousBriefDate} />
                     </div>
@@ -286,7 +287,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
               : null}
             {!brief.hasBrief
               ? (
-                  <div className="mt-register xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8">
+                  <div className={`mt-register ${READING_GRID}`}>
                     <p className="text-body text-ink-dim xl:col-start-2">
                       Today&apos;s Brief has not been cut yet.
                     </p>
@@ -305,22 +306,22 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
             {convergenceEntries.length > 0
               ? (
                   <>
-                    <div className="xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8">
+                    <div className={READING_GRID}>
                       <hr className="mt-register border-0 border-t border-rule xl:col-start-2" />
                     </div>
                     <section aria-labelledby="convergence-heading" className="pt-6">
-                      <div className="xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8">
+                      <div className={READING_GRID}>
                         <h2 className="xl:col-start-2" id="convergence-heading">
                           <span className="block text-meta font-semibold uppercase tracking-[0.14em] text-ink">
                             You did not ask for this
                           </span>
-                          <span className="mt-2 block max-w-measure text-meta leading-relaxed text-ink-dim">
+                          <span className="mt-2 block max-w-measure text-meta text-ink-dim">
                             Enough independent Publishers converged on it that it arrives anyway.
                           </span>
                         </h2>
                       </div>
                       {convergenceEntries.map(entry => (
-                        <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} wire />
+                        <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} />
                       ))}
                     </section>
                   </>
