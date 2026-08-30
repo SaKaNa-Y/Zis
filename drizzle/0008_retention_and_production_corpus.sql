@@ -1,0 +1,270 @@
+ALTER TABLE "item" ADD COLUMN "text" text;--> statement-breakpoint
+ALTER TABLE "item" ADD CONSTRAINT "item_text_length_check" CHECK ("item"."text" IS NULL OR length("item"."text") <= 1200);--> statement-breakpoint
+ALTER TABLE "signal" ADD COLUMN "embedding_text_expires_at" timestamp with time zone;--> statement-breakpoint
+UPDATE "signal"
+SET "embedding_text_expires_at" = COALESCE(
+  (
+    SELECT min("item"."created_at")
+    FROM "citation"
+    INNER JOIN "item" ON "item"."id" = "citation"."item_id"
+    WHERE "citation"."link_id" = "signal"."target_link_id"
+      AND "citation"."kind" = 'self'
+  ),
+  "signal"."created_at"
+) + interval '30 days'
+WHERE "signal"."text_basis" = 'own'
+  AND "signal"."embedding_text" IS NOT NULL;--> statement-breakpoint
+ALTER TABLE "signal" DROP CONSTRAINT "signal_embedding_complete_check";--> statement-breakpoint
+ALTER TABLE "signal" ADD CONSTRAINT "signal_embedding_complete_check" CHECK (("signal"."embedding" IS NULL
+      AND "signal"."text_basis" IS NULL
+      AND "signal"."embedding_text" IS NULL
+      AND "signal"."embedding_text_expires_at" IS NULL
+      AND "signal"."embedding_model" IS NULL
+      AND "signal"."embedding_dimensions" IS NULL
+      AND "signal"."embedding_version" IS NULL
+      AND "signal"."embedded_at" IS NULL)
+      OR ("signal"."embedding" IS NOT NULL
+        AND "signal"."text_basis" IS NOT NULL
+        AND (("signal"."text_basis" = 'own'
+            AND ("signal"."embedding_text" IS NOT NULL OR "signal"."embedding_text_expires_at" IS NOT NULL))
+          OR ("signal"."text_basis" IN ('citing', 'slug')
+            AND "signal"."embedding_text" IS NOT NULL
+            AND "signal"."embedding_text_expires_at" IS NULL))
+        AND "signal"."embedding_model" IS NOT NULL
+        AND "signal"."embedding_dimensions" = 384
+        AND "signal"."embedding_version" IS NOT NULL
+        AND "signal"."embedded_at" IS NOT NULL));--> statement-breakpoint
+
+-- Best-effort recovery for recent legacy rows: the old summary was the only
+-- bounded publisher plain text retained before Item.text existed.
+UPDATE "item"
+SET "text" = "summary"
+WHERE "text" IS NULL
+  AND "summary" IS NOT NULL
+  AND "created_at" >= now() - interval '30 days';--> statement-breakpoint
+
+-- The settled slice-1 RSS/Atom corpus from docs/source-register.json.
+INSERT INTO "publisher" ("slug", "name")
+VALUES
+('simonwillison', 'Simon Willison'),
+('tldr', 'TLDR'),
+('cooperpress', 'Cooper Press'),
+('twir', 'This Week in Rust'),
+('jimnielsen', 'Jim Nielsen'),
+('pycoders', 'PyCoder''s Weekly'),
+('react', 'React'),
+('nextjs', 'Next.js'),
+('typescript', 'TypeScript'),
+('nodejs', 'Node.js'),
+('rust', 'Rust'),
+('go', 'Go'),
+('cloudflare', 'Cloudflare'),
+('github', 'GitHub'),
+('openai', 'OpenAI'),
+('deepmind', 'Google DeepMind'),
+('webkit', 'WebKit'),
+('chromedev', 'Chrome for Developers'),
+('svelte', 'Svelte'),
+('astro', 'Astro'),
+('deno', 'Deno'),
+('bun', 'Bun'),
+('arstechnica', 'Ars Technica'),
+('lwn', 'LWN'),
+('404media', '404 Media'),
+('thenewstack', 'The New Stack'),
+('bramus', 'Bramus'),
+('rachelandrew', 'Rachel Andrew'),
+('armin', 'Armin Ronacher'),
+('interconnects', 'Interconnects'),
+('latentspace', 'Latent Space'),
+('pragmaticengineer', 'Pragmatic Engineer'),
+('chriscoyier', 'Chris Coyier'),
+('juliaevans', 'Julia Evans'),
+('aws', 'AWS'),
+('huggingface', 'Hugging Face'),
+('vercel', 'Vercel'),
+('webtoolsweekly', 'Web Tools Weekly'),
+('consoledev', 'Console.dev'),
+('cssweekly', 'CSS Weekly'),
+('martinfowler', 'Martin Fowler'),
+('lethain', 'Will Larson'),
+('danluu', 'Dan Luu'),
+('jakearchibald', 'Jake Archibald'),
+('leaverou', 'Lea Verou'),
+('stefanjudis', 'Stefan Judis'),
+('nolanlawson', 'Nolan Lawson'),
+('joshwcomeau', 'Josh Comeau'),
+('danabramov', 'Dan Abramov'),
+('sophiebits', 'Sophie Alpert'),
+('baldur', 'Baldur Bjarnason'),
+('vuejs', 'Vue.js'),
+('nuxt', 'Nuxt'),
+('antfu', 'Anthony Fu'),
+('tailwind', 'Tailwind CSS'),
+('vite', 'Vite'),
+('importai', 'Import AI'),
+('raschka', 'Sebastian Raschka'),
+('googleresearch', 'Google Research'),
+('mistral', 'Mistral AI'),
+('ollama', 'Ollama')
+ON CONFLICT ("slug") DO UPDATE SET "name" = excluded."name";--> statement-breakpoint
+
+INSERT INTO "publisher_host" ("host", "publisher_id")
+SELECT registry."host", owner."id"
+FROM (VALUES
+('simonwillison.net', 'simonwillison'),
+('tldr.tech', 'tldr'),
+('javascriptweekly.com', 'cooperpress'),
+('react.statuscode.com', 'cooperpress'),
+('frontendfoc.us', 'cooperpress'),
+('nodeweekly.com', 'cooperpress'),
+('golangweekly.com', 'cooperpress'),
+('this-week-in-rust.org', 'twir'),
+('blog.jim-nielsen.com', 'jimnielsen'),
+('pycoders.com', 'pycoders'),
+('react.dev', 'react'),
+('nextjs.org', 'nextjs'),
+('devblogs.microsoft.com', 'typescript'),
+('typescriptlang.org', 'typescript'),
+('nodejs.org', 'nodejs'),
+('blog.rust-lang.org', 'rust'),
+('rust-lang.org', 'rust'),
+('go.dev', 'go'),
+('blog.cloudflare.com', 'cloudflare'),
+('cloudflare.com', 'cloudflare'),
+('github.blog', 'github'),
+('github.com', 'github'),
+('openai.com', 'openai'),
+('deepmind.google', 'deepmind'),
+('webkit.org', 'webkit'),
+('developer.chrome.com', 'chromedev'),
+('svelte.dev', 'svelte'),
+('astro.build', 'astro'),
+('deno.com', 'deno'),
+('deno.land', 'deno'),
+('bun.com', 'bun'),
+('bun.sh', 'bun'),
+('arstechnica.com', 'arstechnica'),
+('lwn.net', 'lwn'),
+('404media.co', '404media'),
+('thenewstack.io', 'thenewstack'),
+('bram.us', 'bramus'),
+('rachelandrew.co.uk', 'rachelandrew'),
+('lucumr.pocoo.org', 'armin'),
+('interconnects.ai', 'interconnects'),
+('latent.space', 'latentspace'),
+('blog.pragmaticengineer.com', 'pragmaticengineer'),
+('chriscoyier.net', 'chriscoyier'),
+('css-tricks.com', 'chriscoyier'),
+('jvns.ca', 'juliaevans'),
+('aws.amazon.com', 'aws'),
+('huggingface.co', 'huggingface'),
+('vercel.com', 'vercel'),
+('webtoolsweekly.com', 'webtoolsweekly'),
+('console.dev', 'consoledev'),
+('css-weekly.com', 'cssweekly'),
+('martinfowler.com', 'martinfowler'),
+('lethain.com', 'lethain'),
+('danluu.com', 'danluu'),
+('jakearchibald.com', 'jakearchibald'),
+('lea.verou.me', 'leaverou'),
+('stefanjudis.com', 'stefanjudis'),
+('nolanlawson.com', 'nolanlawson'),
+('joshwcomeau.com', 'joshwcomeau'),
+('overreacted.io', 'danabramov'),
+('sophiebits.com', 'sophiebits'),
+('baldurbjarnason.com', 'baldur'),
+('vuejs.org', 'vuejs'),
+('blog.vuejs.org', 'vuejs'),
+('nuxt.com', 'nuxt'),
+('antfu.me', 'antfu'),
+('tailwindcss.com', 'tailwind'),
+('vite.dev', 'vite'),
+('vitejs.dev', 'vite'),
+('importai.substack.com', 'importai'),
+('jack-clark.net', 'importai'),
+('magazine.sebastianraschka.com', 'raschka'),
+('sebastianraschka.com', 'raschka'),
+('research.google', 'googleresearch'),
+('mistral.ai', 'mistral'),
+('ollama.com', 'ollama')
+) AS registry("host", "publisher_slug")
+INNER JOIN "publisher" AS owner ON owner."slug" = registry."publisher_slug"
+ON CONFLICT ("host") DO UPDATE SET "publisher_id" = excluded."publisher_id";--> statement-breakpoint
+
+INSERT INTO "source" ("publisher_id", "transport", "endpoint_url", "is_aggregator")
+SELECT owner."id", 'rss'::"source_transport", registry."endpoint_url", registry."is_aggregator"
+FROM (VALUES
+('simonwillison', 'https://simonwillison.net/atom/everything/', false),
+('tldr', 'https://tldr.tech/api/rss/tech', true),
+('cooperpress', 'https://javascriptweekly.com/rss', true),
+('cooperpress', 'https://react.statuscode.com/rss', true),
+('cooperpress', 'https://frontendfoc.us/rss', true),
+('cooperpress', 'https://nodeweekly.com/rss', true),
+('cooperpress', 'https://golangweekly.com/rss', false),
+('twir', 'https://this-week-in-rust.org/rss.xml', true),
+('jimnielsen', 'https://blog.jim-nielsen.com/feed.xml', false),
+('pycoders', 'https://pycoders.com/feed', true),
+('react', 'https://react.dev/rss.xml', false),
+('nextjs', 'https://nextjs.org/feed.xml', false),
+('typescript', 'https://devblogs.microsoft.com/typescript/feed/', false),
+('nodejs', 'https://nodejs.org/en/feed/blog.xml', false),
+('rust', 'https://blog.rust-lang.org/feed.xml', false),
+('go', 'https://go.dev/blog/feed.atom', false),
+('cloudflare', 'https://blog.cloudflare.com/rss/', false),
+('github', 'https://github.blog/feed/', false),
+('github', 'https://github.blog/changelog/feed/', false),
+('openai', 'https://openai.com/news/rss.xml', false),
+('deepmind', 'https://deepmind.google/blog/rss.xml', false),
+('webkit', 'https://webkit.org/feed/atom/', false),
+('chromedev', 'https://developer.chrome.com/static/blog/feed.xml', false),
+('svelte', 'https://svelte.dev/blog/rss.xml', false),
+('astro', 'https://astro.build/rss.xml', false),
+('deno', 'https://deno.com/feed', false),
+('bun', 'https://bun.com/rss.xml', false),
+('arstechnica', 'https://feeds.arstechnica.com/arstechnica/index', false),
+('lwn', 'https://lwn.net/headlines/newrss', false),
+('404media', 'https://www.404media.co/rss/', false),
+('thenewstack', 'https://thenewstack.io/blog/feed/', false),
+('bramus', 'https://www.bram.us/feed/', false),
+('rachelandrew', 'https://rachelandrew.co.uk/feed/', false),
+('armin', 'https://lucumr.pocoo.org/feed.atom', false),
+('interconnects', 'https://www.interconnects.ai/feed', false),
+('latentspace', 'https://www.latent.space/feed', false),
+('pragmaticengineer', 'https://blog.pragmaticengineer.com/rss/', false),
+('chriscoyier', 'https://chriscoyier.net/feed/', false),
+('chriscoyier', 'https://css-tricks.com/feed/', false),
+('juliaevans', 'https://jvns.ca/atom.xml', false),
+('aws', 'https://aws.amazon.com/blogs/aws/feed/', false),
+('huggingface', 'https://huggingface.co/blog/feed.xml', false),
+('vercel', 'https://vercel.com/atom', false),
+('webtoolsweekly', 'https://webtoolsweekly.com/feed/', false),
+('consoledev', 'https://console.dev/rss.xml', false),
+('cssweekly', 'https://css-weekly.com/feed/', false),
+('martinfowler', 'https://martinfowler.com/feed.atom', false),
+('lethain', 'https://lethain.com/feeds/', false),
+('danluu', 'https://danluu.com/atom.xml', false),
+('jakearchibald', 'https://jakearchibald.com/posts.rss', false),
+('leaverou', 'https://lea.verou.me/feed.xml', false),
+('stefanjudis', 'https://www.stefanjudis.com/rss.xml', false),
+('nolanlawson', 'https://nolanlawson.com/feed/', false),
+('joshwcomeau', 'https://www.joshwcomeau.com/rss.xml', false),
+('danabramov', 'https://overreacted.io/rss.xml', false),
+('sophiebits', 'https://www.sophiebits.com/atom.xml', false),
+('baldur', 'https://www.baldurbjarnason.com/index.xml', false),
+('vuejs', 'https://blog.vuejs.org/feed.rss', false),
+('nuxt', 'https://nuxt.com/blog/rss.xml', false),
+('antfu', 'https://antfu.me/feed.xml', false),
+('tailwind', 'https://tailwindcss.com/feeds/feed.xml', false),
+('vite', 'https://vite.dev/blog.rss', false),
+('importai', 'https://importai.substack.com/feed', false),
+('raschka', 'https://magazine.sebastianraschka.com/feed', false),
+('googleresearch', 'https://research.google/blog/rss/', false),
+('mistral', 'https://mistral.ai/rss.xml', false),
+('ollama', 'https://ollama.com/blog/rss.xml', false)
+) AS registry("publisher_slug", "endpoint_url", "is_aggregator")
+INNER JOIN "publisher" AS owner ON owner."slug" = registry."publisher_slug"
+ON CONFLICT ("endpoint_url") DO UPDATE SET
+  "publisher_id" = excluded."publisher_id",
+  "transport" = excluded."transport",
+  "is_aggregator" = excluded."is_aggregator";

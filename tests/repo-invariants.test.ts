@@ -156,4 +156,52 @@ describe('the pipeline imports the shared modules rather than copying them', () 
     expect(neonWake).toBeGreaterThan(-1)
     expect(cacheWarm).toBeLessThan(neonWake)
   })
+
+  it('reports the complete stage order and the timed Neon wake through prune', () => {
+    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
+    const expectedStages = [
+      'stage 0 assertion',
+      'select due',
+      'fetch',
+      'normalize',
+      'hydrate',
+      'canonicalize',
+      'citation-worthiness',
+      'alias merge',
+      'strength',
+      'embed',
+      'match',
+      'admission',
+      'cut',
+      'order',
+      'prune',
+    ]
+
+    let previousStage = -1
+    for (const stage of expectedStages) {
+      const stageIndex = runner.indexOf(`'${stage}'`)
+      expect(stageIndex).toBeGreaterThan(previousStage)
+      previousStage = stageIndex
+    }
+
+    expect(runner).toMatch(/PIPELINE_STAGE_ORDER\.join\(' -> '\)/)
+    expect(runner).toMatch(/zis pipeline stage order: \$\{PIPELINE_STAGE_ORDER\.join\(' -> '\)\}/)
+    expect(runner).toContain('const NEON_WAKE_BUDGET_MS = 120_000')
+    expect(runner).toContain('const neonWakeStartedAt = Date.now()')
+    expect(runner).toContain('const neonWakeElapsedMs = Date.now() - neonWakeStartedAt')
+    expect(runner).toMatch(/zis pipeline Neon wake through prune: \$\{neonWakeElapsedMs\} ms/)
+    expect(runner).toMatch(/budget \$\{NEON_WAKE_BUDGET_MS\} ms/)
+    expect(runner).toContain('if (neonWakeElapsedMs > NEON_WAKE_BUDGET_MS)')
+    expect(runner).toContain('::warning title=Neon wake budget exceeded::')
+    expect(runner).toContain('from the first Neon query through completed prune')
+
+    const cacheWarm = runner.indexOf('await prepareTransformersModelCache(safeFetch)')
+    const timerStart = runner.indexOf('const neonWakeStartedAt = Date.now()')
+    const neonWake = runner.indexOf('await runNeonIngestion(')
+    const timerStop = runner.indexOf('const neonWakeElapsedMs = Date.now() - neonWakeStartedAt')
+
+    expect(cacheWarm).toBeLessThan(timerStart)
+    expect(timerStart).toBeLessThan(neonWake)
+    expect(neonWake).toBeLessThan(timerStop)
+  })
 })

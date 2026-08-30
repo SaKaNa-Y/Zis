@@ -22,6 +22,7 @@ type StoredVector = readonly number[] | Float32Array
 type ExpectedSignal = BaseGraph['signals'][number] & {
   textBasis: TextBasis | null
   embeddingText: string | null
+  embeddingTextExpiresAt: Date | null
   embedding: StoredVector | null
   embeddingModel: string | null
   embeddingDimensions: number | null
@@ -149,6 +150,7 @@ function seedSlugSignal(graph: ExpectedGraph, id: string, url: string): void {
     originPublisherId: null,
     textBasis: null,
     embeddingText: null,
+    embeddingTextExpiresAt: null,
     embedding: null,
     embeddingModel: null,
     embeddingDimensions: null,
@@ -253,7 +255,8 @@ describe('signal Interest matching through the ingestion seam', () => {
           status: 200,
           body: `<rss><channel><item>
             <guid>own-item</guid><title>Precise own title</title><link>${ownUrl}</link>
-            <description><![CDATA[<p>The body begins.</p><p>${'Detailed context '.repeat(100)}</p>]]></description>
+            <description>Permanent summary.</description>
+            <content><![CDATA[<p>The body begins.</p><p>${'Detailed context '.repeat(100)}</p>]]></content>
           </item></channel></rss>`,
         },
         {
@@ -278,10 +281,14 @@ describe('signal Interest matching through the ingestion seam', () => {
     })
 
     expect(expectedOwnText).toHaveLength(1200)
-    expect(graph.items.find(item => item.url === ownUrl)?.summary).toHaveLength(1200)
+    expect(graph.items.find(item => item.url === ownUrl)).toMatchObject({
+      summary: 'Permanent summary.',
+      text: ownBody.slice(0, 1200),
+    })
     expect(signalFor(graph, ownUrl)).toMatchObject({
       textBasis: 'own',
       embeddingText: expectedOwnText,
+      embeddingTextExpiresAt: new Date(NOW.getTime() + 30 * 24 * 60 * 60 * 1000),
       embeddingModel: EMBEDDING_MODEL,
       embeddingDimensions: EMBEDDING_DIMENSIONS,
       embeddingVersion: EMBEDDING_VERSION,
@@ -289,10 +296,12 @@ describe('signal Interest matching through the ingestion seam', () => {
     expect(signalFor(graph, citingUrl)).toMatchObject({
       textBasis: 'citing',
       embeddingText: longestAnchor,
+      embeddingTextExpiresAt: null,
     })
     expect(signalFor(graph, slugUrl)).toMatchObject({
       textBasis: 'slug',
       embeddingText: 'target example deep story alpha',
+      embeddingTextExpiresAt: null,
     })
     expect(graph.citations.filter(citation => citation.linkId === graph.links.find(link => link.url === citingUrl)?.id))
       .toEqual(expect.arrayContaining([
@@ -692,6 +701,7 @@ describe('signal Interest matching through the ingestion seam', () => {
     expect(profile.signals[0]).toMatchObject({
       textBasis: null,
       embeddingText: null,
+      embeddingTextExpiresAt: null,
       embedding: null,
       embeddedAt: null,
     })

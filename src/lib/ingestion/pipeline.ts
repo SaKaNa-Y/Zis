@@ -14,6 +14,7 @@ import { canonicalizeLink, publisherHostKey } from './canonicalize'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
 const MAX_EMBEDDING_TEXT_CHARS = 1200
+export const RETENTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 type FeedParseErrorCode = 'too_large' | 'unsafe_xml' | 'invalid_xml'
 
@@ -35,6 +36,7 @@ interface ParsedFeedItem {
   persistedItemId?: string
   title: string
   summary?: string
+  text?: string
   rawFeedDate?: string
 }
 
@@ -168,19 +170,22 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
 
   const guid = readField(item, 'guid', 'id')
   const link = item.atomLink ?? readField(item, 'link') ?? (item.guidCanBeLink ? guid : undefined)
-  const rawSummary = readField(item, 'summary', 'description', 'content', 'encoded') ?? ''
+  const rawSummary = readField(item, 'summary', 'description') ?? ''
+  const rawText = readField(item, 'content', 'encoded', 'description', 'summary') ?? ''
   const outboundUrls = new Map(item.outboundUrls)
   for (const field of CONTENT_FIELDS) {
     for (const outboundUrl of extractOutboundUrls(item.fields.get(field) ?? ''))
       retainLongestAnchor(outboundUrls, outboundUrl.rawUrl, outboundUrl.anchorText)
   }
   const summary = capEmbeddingText(plainText(rawSummary))
+  const text = capEmbeddingText(plainText(rawText))
   return {
     guid,
     link,
     outboundUrls: [...outboundUrls].map(([rawUrl, anchorText]) => ({ rawUrl, anchorText })),
     title,
     summary: summary === '' ? undefined : summary,
+    text: text === '' ? undefined : text,
     rawFeedDate: readField(item, 'published', 'pubdate', 'updated'),
   }
 }
@@ -367,6 +372,7 @@ export interface PersistedItem {
   url: string | null
   title: string
   summary: string | null
+  text: string | null
   rawFeedDate: string | null
   publishedAt: Date
   fetchedAt: Date
@@ -402,6 +408,7 @@ export interface PersistedSignal {
   originPublisherId: string | null
   textBasis: SignalTextBasis | null
   embeddingText: string | null
+  embeddingTextExpiresAt: Date | null
   embedding: number[] | null
   embeddingModel: string | null
   embeddingDimensions: number | null
@@ -1190,6 +1197,7 @@ function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSign
       originPublisherId: null,
       textBasis: null,
       embeddingText: null,
+      embeddingTextExpiresAt: null,
       embedding: null,
       embeddingModel: null,
       embeddingDimensions: null,
@@ -1321,6 +1329,7 @@ const VEHICLE_TRANSPORTS = new Set<IngestionTransport>(['hn_firebase', 'hn_algol
 interface TextBasisCandidate {
   basis: SignalTextBasis
   text: string
+  embeddingTextExpiresAt: Date | null
 }
 
 function itemIsVehicle(graph: PersistedGraph, item: PersistedItem): boolean {
@@ -1402,14 +1411,17 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     .filter((item): item is PersistedItem => item !== undefined && !itemIsVehicle(graph, item))
     .map(item => [item.id, item])).values()]
     .sort((left, right) =>
-      (right.summary?.length ?? 0) - (left.summary?.length ?? 0)
+      (right.text?.length ?? right.summary?.length ?? 0) - (left.text?.length ?? left.summary?.length ?? 0)
       || left.id.localeCompare(right.id))
 
   const own = ownItems[0]
   if (own !== undefined) {
     return {
       basis: 'own',
-      text: capEmbeddingText(collapse(`${own.title}. ${own.summary ?? ''}`)),
+      text: capEmbeddingText(collapse(`${own.title}. ${own.text ?? own.summary ?? ''}`)),
+      embeddingTextExpiresAt: typeof own.text === 'string'
+        ? new Date(own.createdAt.getTime() + RETENTION_WINDOW_MS)
+        : null,
     }
   }
 
@@ -1425,6 +1437,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     return {
       basis: 'citing',
       text: capEmbeddingText(anchor),
+      embeddingTextExpiresAt: null,
     }
   }
 
@@ -1442,13 +1455,14 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     return {
       basis: 'citing',
       text: capEmbeddingText(collapse(citingTitle)),
+      embeddingTextExpiresAt: null,
     }
   }
 
   const target = graph.links.find(link => link.id === root.targetLinkId)
   if (target === undefined)
     throw new Error(`Signal ${root.id} targets missing Link ${root.targetLinkId}`)
-  return { basis: 'slug', text: slugText(target.url) }
+  return { basis: 'slug', text: slugText(target.url), embeddingTextExpiresAt: null }
 }
 
 type NumericVector = readonly number[] | Float32Array
@@ -1534,6 +1548,7 @@ async function embedSignalsAndMatchInterests(
     if (signal.embedding === null) {
       const partialMetadata = signal.textBasis !== null
         || signal.embeddingText !== null
+        || signal.embeddingTextExpiresAt !== null
         || signal.embeddingModel !== null
         || signal.embeddingDimensions !== null
         || signal.embeddingVersion !== null
@@ -1545,8 +1560,14 @@ async function embedSignalsAndMatchInterests(
 
     assertStoredVector(signal.embedding, `Signal ${signal.id}`)
     assertEmbeddingIdentity(signal, `Signal ${signal.id}`)
-    if (signal.textBasis === null || signal.embeddingText === null || signal.embeddedAt === null)
+    if (signal.textBasis === null || signal.embeddedAt === null)
       throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+    if (signal.textBasis !== 'own' && signal.embeddingTextExpiresAt !== null)
+      throw new Error(`Signal ${signal.id} has an expiry on a permanent Text Basis`)
+    if (signal.embeddingText === null
+      && !(signal.textBasis === 'own' && signal.embeddingTextExpiresAt !== null)) {
+      throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+    }
     return TEXT_BASIS_ORDINAL[candidate.basis] > TEXT_BASIS_ORDINAL[signal.textBasis]
       ? [{ signal, candidate }]
       : []
@@ -1620,6 +1641,7 @@ async function embedSignalsAndMatchInterests(
     Object.assign(plan.signal, {
       textBasis: plan.candidate.basis,
       embeddingText: plan.candidate.text,
+      embeddingTextExpiresAt: plan.candidate.embeddingTextExpiresAt,
       embedding: signalVectors[index]!,
       embeddingModel: provider.model,
       embeddingDimensions: provider.dimensions,
@@ -1921,6 +1943,31 @@ function findPersistedItem(
   return legacy[0]
 }
 
+function pruneRetainedState(graph: PersistedGraph, at: Date): void {
+  const retainedSince = at.getTime() - RETENTION_WINDOW_MS
+  for (const item of graph.items) {
+    if (item.createdAt.getTime() < retainedSince)
+      item.text = null
+  }
+  for (const signal of graph.signals) {
+    if (signal.textBasis === 'own'
+      && signal.embeddingTextExpiresAt !== null
+      && signal.embeddingTextExpiresAt.getTime() < at.getTime()) {
+      signal.embeddingText = null
+    }
+  }
+  graph.fetchLogs.splice(
+    0,
+    graph.fetchLogs.length,
+    ...graph.fetchLogs.filter(log => log.startedAt.getTime() >= retainedSince),
+  )
+  graph.robotsCache.splice(
+    0,
+    graph.robotsCache.length,
+    ...graph.robotsCache.filter(record => record.expiresAt.getTime() > at.getTime()),
+  )
+}
+
 async function ingestSource(
   graph: PersistedGraph,
   source: IngestionSource,
@@ -2018,6 +2065,7 @@ async function ingestSource(
           url: url ?? null,
           title: item.title,
           summary: item.summary ?? null,
+          text: item.text ?? null,
           rawFeedDate: item.rawFeedDate ?? null,
           publishedAt,
           fetchedAt,
@@ -2033,6 +2081,7 @@ async function ingestSource(
           url: url ?? null,
           title: item.title,
           summary: item.summary ?? null,
+          text: item.text ?? null,
           rawFeedDate: item.rawFeedDate ?? null,
           publishedAt,
           fetchedAt,
@@ -2133,7 +2182,8 @@ export async function runIngestion({
   updateStrength(graph)
   if (embeddingProvider !== undefined)
     await embedSignalsAndMatchInterests(graph, embeddingProvider, now())
-  cutDueBriefs(graph, wakeAt ?? now())
+  const dailyAt = wakeAt ?? now()
+  cutDueBriefs(graph, dailyAt)
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())
   const dormantBefore = new Date(now())
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)
@@ -2142,5 +2192,6 @@ export async function runIngestion({
       && source.newestItemAt !== null
       && source.newestItemAt < dormantBefore)
     .map(source => source.id)
+  pruneRetainedState(graph, dailyAt)
   return graph
 }
