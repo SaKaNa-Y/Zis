@@ -63,6 +63,10 @@ describe('signal provenance', () => {
     expect(html).toContain('Origin · excluded from Strength')
     expect(html).not.toMatch(/>[^<]*(?:cosine|\bGAP\b|relevance|score)[^<]*</i)
     expect(html).not.toMatch(/class="[^"]*card/i)
+    expect(html).toContain('aria-label="Primary navigation"')
+    expect(html).toContain('aria-label="Footer navigation"')
+    for (const href of ['/', '/earlier', '/saved', '/interests', '/settings'])
+      expect(html).toContain(`href="${href}"`)
   })
 
   it('renders the stored Strength as distinct non-origin Publishers without dropping Citations', async () => {

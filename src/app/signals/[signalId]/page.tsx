@@ -14,9 +14,9 @@ export default async function SignalProvenancePage({
   params: Promise<{ signalId: string }>
 }) {
   const sessionPromise = verifySession()
-  const { signalId } = await params
+  const { signalId: entrySignalId } = await params
   const { userId } = await sessionPromise
-  const provenance = await readSignalProvenance(userId, signalId)
+  const provenance = await readSignalProvenance(userId, entrySignalId)
 
   if (provenance === null)
     notFound()
