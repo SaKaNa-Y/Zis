@@ -1236,6 +1236,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "embedding_text_expires_at": {
+          "name": "embedding_text_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "embedding": {
           "name": "embedding",
           "type": "halfvec(384)",
@@ -1346,7 +1352,7 @@
       "checkConstraints": {
         "signal_embedding_complete_check": {
           "name": "signal_embedding_complete_check",
-          "value": "(\"signal\".\"embedding\" IS NULL\n      AND \"signal\".\"text_basis\" IS NULL\n      AND \"signal\".\"embedding_text\" IS NULL\n      AND \"signal\".\"embedding_model\" IS NULL\n      AND \"signal\".\"embedding_dimensions\" IS NULL\n      AND \"signal\".\"embedding_version\" IS NULL\n      AND \"signal\".\"embedded_at\" IS NULL)\n      OR (\"signal\".\"embedding\" IS NOT NULL\n        AND \"signal\".\"text_basis\" IS NOT NULL\n        AND \"signal\".\"embedding_text\" IS NOT NULL\n        AND \"signal\".\"embedding_model\" IS NOT NULL\n        AND \"signal\".\"embedding_dimensions\" = 384\n        AND \"signal\".\"embedding_version\" IS NOT NULL\n        AND \"signal\".\"embedded_at\" IS NOT NULL)"
+          "value": "(\"signal\".\"embedding\" IS NULL\n      AND \"signal\".\"text_basis\" IS NULL\n      AND \"signal\".\"embedding_text\" IS NULL\n      AND \"signal\".\"embedding_text_expires_at\" IS NULL\n      AND \"signal\".\"embedding_model\" IS NULL\n      AND \"signal\".\"embedding_dimensions\" IS NULL\n      AND \"signal\".\"embedding_version\" IS NULL\n      AND \"signal\".\"embedded_at\" IS NULL)\n      OR (\"signal\".\"embedding\" IS NOT NULL\n        AND \"signal\".\"text_basis\" IS NOT NULL\n        AND ((\"signal\".\"text_basis\" = 'own'\n            AND (\"signal\".\"embedding_text\" IS NOT NULL OR \"signal\".\"embedding_text_expires_at\" IS NOT NULL))\n          OR (\"signal\".\"text_basis\" IN ('citing', 'slug')\n            AND \"signal\".\"embedding_text\" IS NOT NULL\n            AND \"signal\".\"embedding_text_expires_at\" IS NULL))\n        AND \"signal\".\"embedding_model\" IS NOT NULL\n        AND \"signal\".\"embedding_dimensions\" = 384\n        AND \"signal\".\"embedding_version\" IS NOT NULL\n        AND \"signal\".\"embedded_at\" IS NOT NULL)"
         },
         "signal_embedding_text_length_check": {
           "name": "signal_embedding_text_length_check",

@@ -160,8 +160,9 @@ export const signals = pgTable('signal', {
   strength: integer('strength').notNull().default(0),
   originPublisherId: uuid('origin_publisher_id').references(() => publishers.id),
   textBasis: signalTextBasis('text_basis'),
-  /** The exact bounded text passed to the embedding model. */
+  /** Exact bounded input, cleared when an own-body retention window expires. */
   embeddingText: text('embedding_text'),
+  embeddingTextExpiresAt: timestampTz('embedding_text_expires_at'),
   embedding: halfvec('embedding', { dimensions: 384 }),
   embeddingModel: text('embedding_model'),
   embeddingDimensions: integer('embedding_dimensions'),
@@ -176,13 +177,18 @@ export const signals = pgTable('signal', {
     sql`(${table.embedding} IS NULL
       AND ${table.textBasis} IS NULL
       AND ${table.embeddingText} IS NULL
+      AND ${table.embeddingTextExpiresAt} IS NULL
       AND ${table.embeddingModel} IS NULL
       AND ${table.embeddingDimensions} IS NULL
       AND ${table.embeddingVersion} IS NULL
       AND ${table.embeddedAt} IS NULL)
       OR (${table.embedding} IS NOT NULL
         AND ${table.textBasis} IS NOT NULL
-        AND ${table.embeddingText} IS NOT NULL
+        AND ((${table.textBasis} = 'own'
+            AND (${table.embeddingText} IS NOT NULL OR ${table.embeddingTextExpiresAt} IS NOT NULL))
+          OR (${table.textBasis} IN ('citing', 'slug')
+            AND ${table.embeddingText} IS NOT NULL
+            AND ${table.embeddingTextExpiresAt} IS NULL))
         AND ${table.embeddingModel} IS NOT NULL
         AND ${table.embeddingDimensions} = 384
         AND ${table.embeddingVersion} IS NOT NULL

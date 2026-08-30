@@ -112,6 +112,7 @@ describe('the ingestion schema', () => {
       'origin_publisher_id',
       'text_basis',
       'embedding_text',
+      'embedding_text_expires_at',
       'embedding',
       'embedding_model',
       'embedding_dimensions',
@@ -194,6 +195,7 @@ describe('the ingestion schema', () => {
   it('uses an explicit Text Basis and half-precision vectors for Signal embeddings', () => {
     expect(schema.signalTextBasis.enumValues).toEqual(['own', 'citing', 'slug'])
     const signals = getTableConfig(schema.signals)
+    expect(columnNames(schema.signals)).toContain('embedding_text_expires_at')
     expect(signals.columns.find(column => column.name === 'embedding')?.getSQLType())
       .toBe('halfvec(384)')
     expect(signals.checks.map(check => check.name)).toContain('signal_embedding_text_length_check')
@@ -363,8 +365,14 @@ describe('the ingestion schema', () => {
     expect(todayReaderActionsSql).toContain('bookmark_user_id_signal_id_pk')
     expect(todayReaderActionsSql).toContain('bookmark_signal_id_idx')
     expect(retentionTieringSql).toContain('ADD COLUMN "text" text')
+    expect(retentionTieringSql).toContain('ADD COLUMN "embedding_text_expires_at" timestamp with time zone')
     expect(retentionTieringSql).toContain('item_text_length_check')
     expect(retentionTieringSql).toContain('SET "text" = "summary"')
+    expect(retentionTieringSql).toContain('DROP CONSTRAINT "signal_embedding_complete_check"')
+    expect(retentionTieringSql).toContain('"signal"."text_basis" IN (\'citing\', \'slug\')')
+    expect(retentionTieringSql).toContain('"signal"."embedding_text_expires_at" IS NULL')
+    expect(retentionTieringSql).toContain('SET "embedding_text_expires_at" = COALESCE(')
+    expect(retentionTieringSql).toContain('"citation"."kind" = \'self\'')
     expect(retentionTieringSql).toContain('ON CONFLICT ("slug") DO UPDATE')
     expect(retentionTieringSql).toContain('ON CONFLICT ("host") DO UPDATE')
     expect(retentionTieringSql).toContain('ON CONFLICT ("endpoint_url") DO UPDATE')

@@ -1,5 +1,39 @@
 ALTER TABLE "item" ADD COLUMN "text" text;--> statement-breakpoint
-ALTER TABLE "item" ADD CONSTRAINT "item_text_length_check" CHECK ("item"."text" IS NULL OR length("item"."text") <= 1200);
+ALTER TABLE "item" ADD CONSTRAINT "item_text_length_check" CHECK ("item"."text" IS NULL OR length("item"."text") <= 1200);--> statement-breakpoint
+ALTER TABLE "signal" ADD COLUMN "embedding_text_expires_at" timestamp with time zone;--> statement-breakpoint
+UPDATE "signal"
+SET "embedding_text_expires_at" = COALESCE(
+  (
+    SELECT min("item"."created_at")
+    FROM "citation"
+    INNER JOIN "item" ON "item"."id" = "citation"."item_id"
+    WHERE "citation"."link_id" = "signal"."target_link_id"
+      AND "citation"."kind" = 'self'
+  ),
+  "signal"."created_at"
+) + interval '30 days'
+WHERE "signal"."text_basis" = 'own'
+  AND "signal"."embedding_text" IS NOT NULL;--> statement-breakpoint
+ALTER TABLE "signal" DROP CONSTRAINT "signal_embedding_complete_check";--> statement-breakpoint
+ALTER TABLE "signal" ADD CONSTRAINT "signal_embedding_complete_check" CHECK (("signal"."embedding" IS NULL
+      AND "signal"."text_basis" IS NULL
+      AND "signal"."embedding_text" IS NULL
+      AND "signal"."embedding_text_expires_at" IS NULL
+      AND "signal"."embedding_model" IS NULL
+      AND "signal"."embedding_dimensions" IS NULL
+      AND "signal"."embedding_version" IS NULL
+      AND "signal"."embedded_at" IS NULL)
+      OR ("signal"."embedding" IS NOT NULL
+        AND "signal"."text_basis" IS NOT NULL
+        AND (("signal"."text_basis" = 'own'
+            AND ("signal"."embedding_text" IS NOT NULL OR "signal"."embedding_text_expires_at" IS NOT NULL))
+          OR ("signal"."text_basis" IN ('citing', 'slug')
+            AND "signal"."embedding_text" IS NOT NULL
+            AND "signal"."embedding_text_expires_at" IS NULL))
+        AND "signal"."embedding_model" IS NOT NULL
+        AND "signal"."embedding_dimensions" = 384
+        AND "signal"."embedding_version" IS NOT NULL
+        AND "signal"."embedded_at" IS NOT NULL));--> statement-breakpoint
 
 -- Best-effort recovery for recent legacy rows: the old summary was the only
 -- bounded publisher plain text retained before Item.text existed.

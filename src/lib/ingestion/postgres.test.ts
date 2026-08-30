@@ -1,7 +1,7 @@
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
-import { lt, lte } from 'drizzle-orm'
+import { and, eq, isNotNull, lt, lte } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import {
   briefEntries,
@@ -173,6 +173,7 @@ describe('the production ingestion startup assertion', () => {
       originPublisherId: null,
       textBasis: null,
       embeddingText: null,
+      embeddingTextExpiresAt: null,
       embedding: null,
       embeddingModel: null,
       embeddingDimensions: null,
@@ -334,7 +335,9 @@ describe('the production ingestion startup assertion', () => {
       }),
     ])
 
-    const signalWrites = statements.filter(statement => statement.table === signals)
+    const signalWrites = statements.filter(statement =>
+      statement.kind === 'insert' && statement.table === signals,
+    )
     expect(signalWrites).toHaveLength(2)
     expect(signalWrites[1]?.values).toEqual([
       expect.objectContaining({
@@ -417,13 +420,14 @@ describe('the production ingestion startup assertion', () => {
       mergedIntoId: null,
       strength: 0,
       originPublisherId: null,
-      textBasis: null,
-      embeddingText: null,
-      embedding: null,
-      embeddingModel: null,
-      embeddingDimensions: null,
-      embeddingVersion: null,
-      embeddedAt: null,
+      textBasis: 'own' as const,
+      embeddingText: 'Prune this copied Item body',
+      embeddingTextExpiresAt: new Date(at.getTime() - 1),
+      embedding: unitVector(0),
+      embeddingModel: EMBEDDING_MODEL,
+      embeddingDimensions: EMBEDDING_DIMENSIONS,
+      embeddingVersion: EMBEDDING_VERSION,
+      embeddedAt: at,
       createdAt: thirtyDaysAgo,
     }
     const itemRows = [
@@ -527,18 +531,29 @@ describe('the production ingestion startup assertion', () => {
     })
     expect(graph.items.find(item => item.externalId === 'boundary-text')?.text)
       .toBe('Retain this full text')
+    expect(graph.signals.find(candidate => candidate.id === signal.id)).toMatchObject({
+      embedding: signal.embedding,
+      embeddingText: null,
+      embeddingTextExpiresAt: signal.embeddingTextExpiresAt,
+    })
     expect(graph.robotsCache.map(record => record.host)).toEqual(['live.example'])
 
-    const retentionStatements = statements.slice(-3)
+    const retentionStatements = statements.slice(-4)
     expect(retentionStatements.map(statement => [statement.kind, statement.table, statement.values]))
       .toEqual([
         ['update', items, { text: null }],
+        ['update', signals, { embeddingText: null }],
         ['delete', sourceFetchLogs, undefined],
         ['delete', robotsCache, undefined],
       ])
     expect(retentionStatements[0]?.where).toEqual(lt(items.createdAt, thirtyDaysAgo))
-    expect(retentionStatements[1]?.where).toEqual(lt(sourceFetchLogs.startedAt, thirtyDaysAgo))
-    expect(retentionStatements[2]?.where).toEqual(lte(robotsCache.expiresAt, at))
+    expect(retentionStatements[1]?.where).toEqual(and(
+      eq(signals.textBasis, 'own'),
+      isNotNull(signals.embeddingTextExpiresAt),
+      lt(signals.embeddingTextExpiresAt, at),
+    ))
+    expect(retentionStatements[2]?.where).toEqual(lt(sourceFetchLogs.startedAt, thirtyDaysAgo))
+    expect(retentionStatements[3]?.where).toEqual(lte(robotsCache.expiresAt, at))
 
     const retentionStatementNumbers = retentionStatements.map(statement => statements.indexOf(statement) + 1)
     expect(transactions).toHaveLength(2)
@@ -1106,7 +1121,8 @@ describe('the production ingestion startup assertion', () => {
     expect(statements.find(statement => statement.table === citations
       && (statement.values as { kind?: string }).kind === 'outbound')?.conflict)
       .toMatchObject({ set: { anchorText: 'the story', firstSeenAt: expect.anything() } })
-    const perSourceSignalWrites = statements.filter(statement => statement.table === signals
+    const perSourceSignalWrites = statements.filter(statement => statement.kind === 'insert'
+      && statement.table === signals
       && !Array.isArray(statement.values))
     expect(perSourceSignalWrites).not.toHaveLength(0)
     for (const statement of perSourceSignalWrites) {

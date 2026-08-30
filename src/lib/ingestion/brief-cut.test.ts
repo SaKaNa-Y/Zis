@@ -130,6 +130,7 @@ function addSignal(graph: TestGraph, fixture: SignalFixture): string {
     originPublisherId,
     textBasis: fixture.basis,
     embeddingText: `Signal ${fixture.key}`,
+    embeddingTextExpiresAt: null,
     embedding: vector,
     embeddingModel: EMBEDDING_MODEL,
     embeddingDimensions: EMBEDDING_DIMENSIONS,
@@ -245,6 +246,7 @@ function addMergedTombstone(graph: TestGraph, rootSignalId: string, key: number)
     originPublisherId: null,
     textBasis: null,
     embeddingText: null,
+    embeddingTextExpiresAt: null,
     embedding: null,
     embeddingModel: null,
     embeddingDimensions: null,
@@ -285,6 +287,8 @@ describe('brief admission through the ingestion seam', () => {
     expiredItem.createdAt = expiredAt
     boundaryItem.text = 'Boundary publisher text'
     boundaryItem.createdAt = boundaryAt
+    corpus.signals.find(signal => signal.id === signalId)!.embeddingTextExpiresAt
+      = new Date(WAKE_AT.getTime() - 1)
     corpus.fetchLogs.push(
       {
         id: 1,
@@ -349,7 +353,8 @@ describe('brief admission through the ingestion seam', () => {
     expect(graph.items.find(item => item.id === boundaryItem.id)?.text).toBe('Boundary publisher text')
     expect(graph.signals.find(signal => signal.id === signalId)).toMatchObject({
       embedding: permanentEmbedding,
-      embeddingText: 'Signal 9',
+      embeddingText: null,
+      embeddingTextExpiresAt: new Date(WAKE_AT.getTime() - 1),
     })
     expect(graph.fetchLogs.map(log => log.id)).toEqual([2])
     expect(graph.robotsCache.map(record => record.host)).toEqual(['live-robots.example'])

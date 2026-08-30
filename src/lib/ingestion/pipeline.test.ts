@@ -259,6 +259,31 @@ describe('the ingestion seam', () => {
     })
   })
 
+  it('does not copy a content-only body into the permanent summary tier', async () => {
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => NOW,
+      responses: [
+        { url: 'https://publisher.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          body: `<rss><channel><item>
+            <guid>content-only</guid>
+            <title>Content-only Item</title>
+            <link>https://publisher.example/content-only</link>
+            <content><![CDATA[<p>Temporary full body text.</p>]]></content>
+          </item></channel></rss>`,
+        },
+      ],
+    })
+
+    expect(graph.items[0]).toMatchObject({
+      summary: null,
+      text: 'Temporary full body text.',
+    })
+  })
+
   it('uses byte-identical validators and treats 304 as success without touching newest_item_at', async () => {
     const rawDate = 'Thu, 01 Jan 2026 00:00:00 GMT'
     const first = await runIngestion({

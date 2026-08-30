@@ -369,6 +369,7 @@ function sourceStatements(
         ...signal,
         textBasis: null,
         embeddingText: null,
+        embeddingTextExpiresAt: null,
         embedding: null,
         embeddingModel: null,
         embeddingDimensions: null,
@@ -453,6 +454,7 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
         originPublisherId: sql`excluded.origin_publisher_id`,
         textBasis: sql`excluded.text_basis`,
         embeddingText: sql`excluded.embedding_text`,
+        embeddingTextExpiresAt: sql`excluded.embedding_text_expires_at`,
         embedding: sql`excluded.embedding`,
         embeddingModel: sql`excluded.embedding_model`,
         embeddingDimensions: sql`excluded.embedding_dimensions`,
@@ -512,6 +514,11 @@ async function commitRetention(database: Database, at: Date): Promise<void> {
   const retainedSince = new Date(at.getTime() - RETENTION_WINDOW_MS)
   await commitStatements(database, [
     database.update(items).set({ text: null }).where(lt(items.createdAt, retainedSince)),
+    database.update(signalTable).set({ embeddingText: null }).where(and(
+      eq(signalTable.textBasis, 'own'),
+      isNotNull(signalTable.embeddingTextExpiresAt),
+      lt(signalTable.embeddingTextExpiresAt, at),
+    )),
     database.delete(sourceFetchLogs).where(lt(sourceFetchLogs.startedAt, retainedSince)),
     database.delete(robotsCache).where(lte(robotsCache.expiresAt, at)),
   ])

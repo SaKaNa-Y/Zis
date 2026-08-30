@@ -4,7 +4,7 @@
 
 **Goal:** Add the day-one retention tier, run pruning as the final pipeline stage, and produce auditable evidence for the first manual production Brief without adding scheduling or sealing.
 
-**Architecture:** Keep `runIngestion()` as the only behavioral seam. Feed normalization persists bounded plain Item text separately from the permanent summary; the seam clears expired text, fetch logs, and robots verdicts after cut/order, while the Neon adapter performs the corresponding SQL mutation in one final prune transaction. The existing `workflow_dispatch` runner remains the single production entry point and records elapsed time plus the resulting Brief facts.
+**Architecture:** Keep `runIngestion()` as the only behavioral seam. Feed normalization persists bounded plain Item text separately from the permanent summary; the seam clears expired Item text, derived copies in an own Signal's exact embedding input, fetch logs, and robots verdicts after cut/order while retaining the vector itself. The Neon adapter performs the corresponding SQL mutation in one final prune transaction. The existing `workflow_dispatch` runner remains the single production entry point and records elapsed time plus the resulting Brief facts.
 
 **Tech Stack:** TypeScript 5.9, Vitest 4, Drizzle ORM/PostgreSQL, Neon serverless, GitHub Actions, Next.js 16.
 
@@ -34,7 +34,7 @@ Expected: FAIL because `item.text` and migration `0008` do not exist.
 
 **Step 3: Write the failing ingestion tracer bullet**
 
-Through `runIngestion()`, ingest an Item whose summary and content differ. Assert that the permanent summary uses the feed summary, `text` uses the extracted body, both are plain text and bounded, and the Signal's `own` embedding input prefers `title + text`.
+Through `runIngestion()`, ingest an Item whose summary and content differ. Assert that the permanent summary uses the feed summary, `text` uses the extracted body, both are plain text and bounded, and the Signal's `own` embedding input prefers `title + text`. Add a content-only case proving body text is not copied into the permanent summary tier.
 
 **Step 4: Run the seam test to verify red**
 
@@ -50,7 +50,7 @@ Add nullable `text` to `PersistedItem` and the Drizzle schema. Extract summary a
 
 Run with a non-production placeholder URL: `pnpm db:generate -- --name retention_and_production_corpus`
 
-Expected: migration `0008` adds the nullable text column and its length check, best-effort backfills recent legacy text from the only retained plain-text source, and idempotently registers the settled RSS/Atom corpus. No private Interest, scheduler, or sealing state appears.
+Expected: migration `0008` adds the nullable text column and its length check, best-effort backfills recent legacy text from the only retained plain-text source, gives legacy own embedding inputs a conservative expiry, and idempotently registers the settled RSS/Atom corpus. No private Interest, scheduler, or sealing state appears.
 
 **Step 7: Run focused checks**
 
@@ -70,7 +70,8 @@ Expected: PASS.
 
 Seed `runIngestion()` with Items, `source_fetch_log` rows, and `robots_cache` rows on both sides of their boundaries. Assert that after the full seam returns:
 
-- Item text older than 30 days is null while title, URL, summary, and Signal embedding remain;
+- Item text older than 30 days is null while title, URL, summary, and the Signal vector remain;
+- an expired `own` `embeddingText` copy is null while its Text Basis and embedding metadata remain;
 - recent Item text remains;
 - fetch logs older than 30 days are absent while recent logs remain;
 - expired robots verdicts are absent while unexpired verdicts remain;
@@ -84,7 +85,7 @@ Expected: FAIL because the graph is not pruned.
 
 **Step 3: Implement the minimum final-stage mutation**
 
-Add one private `pruneRetainedState(graph, at)` call after `cutDueBriefs()`. Use a fixed 30-day duration based on stable `createdAt` for Item text (a repeated 200 must not extend retention) and `startedAt` for fetch logs; use each robots record's `expiresAt` for verdict expiry. Do not export a prune seam.
+Add one private `pruneRetainedState(graph, at)` call after `cutDueBriefs()`. Use a fixed 30-day duration based on stable `createdAt` for Item text (a repeated 200 must not extend retention), persist that same derived expiry when an own Text Basis copies the body, and use `startedAt` for fetch logs; use each robots record's `expiresAt` for verdict expiry. Do not export a prune seam.
 
 **Step 4: Run focused seam tests and typecheck**
 
@@ -102,7 +103,7 @@ Expected: PASS.
 
 **Step 1: Write the failing Neon adapter test**
 
-Invoke `runNeonIngestion()` through its existing public entry point and assert its last database transaction contains exactly the retention mutations: null old `item.text`, delete old `source_fetch_log`, and delete expired `robots_cache`. Assert the transaction happens after final Signal/Match/Brief persistence.
+Invoke `runNeonIngestion()` through its existing public entry point and assert its last database transaction contains exactly the retention mutations: null old `item.text`, null expired own `signal.embedding_text` copies, delete old `source_fetch_log`, and delete expired `robots_cache`. Assert the transaction happens after final Signal/Match/Brief persistence.
 
 **Step 2: Run the adapter test to verify red**
 

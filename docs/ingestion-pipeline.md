@@ -448,6 +448,13 @@ deliverable; the columns are fixed here so a host that is recorded but unused
 Tiered from day one: **full text ~30 days**, then title + canonical URL + summary
 + embedding retained indefinitely.
 
+`embedding` here means the vector and its model identity. An `own`
+`signal.embedding_text` is a derived copy of Item body text, so it expires on the
+same 30-day window while `text_basis`, the vector, and its model metadata remain.
+Feed `content` without an explicit `summary` or `description` is likewise body
+text, not a permanent summary. The migration gives legacy `own` inputs a
+conservative expiry from their self Item or Signal creation time.
+
 Pruning runs as stage 14, inside the daily wake. No separate schedule.
 
 **This window must not be shortened to buy Brief density.** It is irreversible

@@ -170,7 +170,7 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
 
   const guid = readField(item, 'guid', 'id')
   const link = item.atomLink ?? readField(item, 'link') ?? (item.guidCanBeLink ? guid : undefined)
-  const rawSummary = readField(item, 'summary', 'description', 'content', 'encoded') ?? ''
+  const rawSummary = readField(item, 'summary', 'description') ?? ''
   const rawText = readField(item, 'content', 'encoded', 'description', 'summary') ?? ''
   const outboundUrls = new Map(item.outboundUrls)
   for (const field of CONTENT_FIELDS) {
@@ -408,6 +408,7 @@ export interface PersistedSignal {
   originPublisherId: string | null
   textBasis: SignalTextBasis | null
   embeddingText: string | null
+  embeddingTextExpiresAt: Date | null
   embedding: number[] | null
   embeddingModel: string | null
   embeddingDimensions: number | null
@@ -1196,6 +1197,7 @@ function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSign
       originPublisherId: null,
       textBasis: null,
       embeddingText: null,
+      embeddingTextExpiresAt: null,
       embedding: null,
       embeddingModel: null,
       embeddingDimensions: null,
@@ -1327,6 +1329,7 @@ const VEHICLE_TRANSPORTS = new Set<IngestionTransport>(['hn_firebase', 'hn_algol
 interface TextBasisCandidate {
   basis: SignalTextBasis
   text: string
+  embeddingTextExpiresAt: Date | null
 }
 
 function itemIsVehicle(graph: PersistedGraph, item: PersistedItem): boolean {
@@ -1416,6 +1419,9 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     return {
       basis: 'own',
       text: capEmbeddingText(collapse(`${own.title}. ${own.text ?? own.summary ?? ''}`)),
+      embeddingTextExpiresAt: typeof own.text === 'string'
+        ? new Date(own.createdAt.getTime() + RETENTION_WINDOW_MS)
+        : null,
     }
   }
 
@@ -1431,6 +1437,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     return {
       basis: 'citing',
       text: capEmbeddingText(anchor),
+      embeddingTextExpiresAt: null,
     }
   }
 
@@ -1448,13 +1455,14 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     return {
       basis: 'citing',
       text: capEmbeddingText(collapse(citingTitle)),
+      embeddingTextExpiresAt: null,
     }
   }
 
   const target = graph.links.find(link => link.id === root.targetLinkId)
   if (target === undefined)
     throw new Error(`Signal ${root.id} targets missing Link ${root.targetLinkId}`)
-  return { basis: 'slug', text: slugText(target.url) }
+  return { basis: 'slug', text: slugText(target.url), embeddingTextExpiresAt: null }
 }
 
 type NumericVector = readonly number[] | Float32Array
@@ -1540,6 +1548,7 @@ async function embedSignalsAndMatchInterests(
     if (signal.embedding === null) {
       const partialMetadata = signal.textBasis !== null
         || signal.embeddingText !== null
+        || signal.embeddingTextExpiresAt !== null
         || signal.embeddingModel !== null
         || signal.embeddingDimensions !== null
         || signal.embeddingVersion !== null
@@ -1551,8 +1560,14 @@ async function embedSignalsAndMatchInterests(
 
     assertStoredVector(signal.embedding, `Signal ${signal.id}`)
     assertEmbeddingIdentity(signal, `Signal ${signal.id}`)
-    if (signal.textBasis === null || signal.embeddingText === null || signal.embeddedAt === null)
+    if (signal.textBasis === null || signal.embeddedAt === null)
       throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+    if (signal.textBasis !== 'own' && signal.embeddingTextExpiresAt !== null)
+      throw new Error(`Signal ${signal.id} has an expiry on a permanent Text Basis`)
+    if (signal.embeddingText === null
+      && !(signal.textBasis === 'own' && signal.embeddingTextExpiresAt !== null)) {
+      throw new Error(`Signal ${signal.id} has incomplete embedding state`)
+    }
     return TEXT_BASIS_ORDINAL[candidate.basis] > TEXT_BASIS_ORDINAL[signal.textBasis]
       ? [{ signal, candidate }]
       : []
@@ -1626,6 +1641,7 @@ async function embedSignalsAndMatchInterests(
     Object.assign(plan.signal, {
       textBasis: plan.candidate.basis,
       embeddingText: plan.candidate.text,
+      embeddingTextExpiresAt: plan.candidate.embeddingTextExpiresAt,
       embedding: signalVectors[index]!,
       embeddingModel: provider.model,
       embeddingDimensions: provider.dimensions,
@@ -1932,6 +1948,13 @@ function pruneRetainedState(graph: PersistedGraph, at: Date): void {
   for (const item of graph.items) {
     if (item.createdAt.getTime() < retainedSince)
       item.text = null
+  }
+  for (const signal of graph.signals) {
+    if (signal.textBasis === 'own'
+      && signal.embeddingTextExpiresAt !== null
+      && signal.embeddingTextExpiresAt.getTime() < at.getTime()) {
+      signal.embeddingText = null
+    }
   }
   graph.fetchLogs.splice(
     0,
