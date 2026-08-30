@@ -1,3 +1,5 @@
+import { DesktopDestinationRail, MobileDestinationFooter } from './destinations'
+
 export type TodayFormAction = (formData: FormData) => void | Promise<void>
 
 export interface TodayBriefEntry {
@@ -28,15 +30,11 @@ export interface TodayBriefViewProps {
   brief: TodayBriefModel
 }
 
-const DESTINATIONS = [
-  { href: '/', label: 'Today' },
-  { href: '/earlier', label: 'Earlier' },
-  { href: '/saved', label: 'Saved' },
-  { href: '/interests', label: 'Interests' },
-  { href: '/settings', label: 'Settings' },
-] as const
-
 const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
+
+function signalProvenanceHref(entrySignalId: string): string {
+  return `/signals/${entrySignalId}`
+}
 
 function dateLabel(localDate: string): string {
   return new Intl.DateTimeFormat('en-GB', {
@@ -96,7 +94,7 @@ function WhyText({ entry }: { entry: TodayBriefEntry }) {
     <p className="break-words text-meta text-ink-faint">
       <a
         className="underline decoration-rule underline-offset-4 hover:text-ink"
-        href={`/signals/${entry.signalId}`}
+        href={signalProvenanceHref(entry.entryId)}
       >
         {entry.whyText}
       </a>
@@ -128,7 +126,7 @@ function EntryActions({
           signalId={entry.signalId}
         />
         <span aria-hidden="true">·</span>
-        <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.signalId}`}>
+        <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={signalProvenanceHref(entry.entryId)}>
           Why this?
         </a>
       </div>
@@ -149,7 +147,7 @@ function EntryActions({
             label={entry.isRead ? 'Read' : 'Mark read'}
             signalId={entry.signalId}
           />
-          <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={`/signals/${entry.signalId}`}>
+          <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={signalProvenanceHref(entry.entryId)}>
             Why this?
           </a>
         </div>
@@ -205,50 +203,6 @@ function BriefEntry({
   )
 }
 
-function DesktopRail() {
-  return (
-    <aside className="hidden border-r border-rule px-8 py-12 lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start">
-      <p className="font-mono text-date font-semibold uppercase tracking-[0.22em] text-ink">
-        Zis
-      </p>
-      <nav aria-label="Primary navigation" className="mt-10 text-meta">
-        {DESTINATIONS.map(destination => (
-          <a
-            aria-current={destination.href === '/' ? 'page' : undefined}
-            className={destination.href === '/' ? 'block py-1.5 text-ink' : 'block py-1.5 text-ink-faint hover:text-ink'}
-            href={destination.href}
-            key={destination.href}
-          >
-            {destination.label}
-          </a>
-        ))}
-      </nav>
-      <p className="mt-12 max-w-[10rem] text-meta text-ink-faint">
-        A private, bounded brief. It ends on purpose.
-      </p>
-    </aside>
-  )
-}
-
-function MobileFooter() {
-  return (
-    <footer className="mx-5 border-t border-rule pb-10 pt-5 lg:hidden">
-      <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint">
-        {DESTINATIONS.map(destination => (
-          <a
-            aria-current={destination.href === '/' ? 'page' : undefined}
-            className={destination.href === '/' ? 'text-ink' : 'hover:text-ink'}
-            href={destination.href}
-            key={destination.href}
-          >
-            {destination.label}
-          </a>
-        ))}
-      </nav>
-    </footer>
-  )
-}
-
 export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
   const interestEntries = brief.entries.filter(entry => entry.admittedBy === 'interest')
   const convergenceEntries = brief.entries.filter(entry => entry.admittedBy === 'convergence')
@@ -261,7 +215,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
       >
         Skip to brief
       </a>
-      <DesktopRail />
+      <DesktopDestinationRail current="/" />
       <div className="min-w-0">
         <main className="min-w-0 px-5 py-10 sm:px-8 lg:px-12 lg:py-14 xl:px-16" id="today-brief">
           <div className="mx-auto max-w-measure lg:max-w-measure-lg xl:max-w-[54rem]">
@@ -329,7 +283,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
               : null}
           </div>
         </main>
-        <MobileFooter />
+        <MobileDestinationFooter current="/" />
       </div>
     </div>
   )
