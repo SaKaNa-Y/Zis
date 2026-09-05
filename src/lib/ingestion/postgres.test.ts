@@ -585,6 +585,40 @@ describe('the production ingestion startup assertion', () => {
       .toThrow('host ownership assertion failed')
   })
 
+  it('admits only the curated guest article from its registered author Source', async () => {
+    const database = databaseReturning(
+      [{ itemUrl: 'https://smashingmagazine.com/2022/05/you-dont-need-ui-framework', publisherId: 'josh', sourceId: 'josh-rss', transport: 'rss', endpointUrl: 'https://www.joshwcomeau.com/rss.xml' }],
+      [{ host: 'joshwcomeau.com', publisherId: 'josh' }],
+    )
+    await expect(runNeonIngestion(new Date('2026-09-05T14:00:00Z'), database))
+      .resolves
+      .toMatchObject({ sources: [] })
+  })
+
+  it('still rejects a broken Publisher mapping for an unaddressed Console review', async () => {
+    const database = databaseReturning(
+      [{ itemUrl: null, publisherId: 'console', sourceId: 'console-rss', transport: 'rss', endpointUrl: 'https://console.dev/rss.xml' }],
+      [{ host: 'console.dev', publisherId: 'somebody-else' }],
+    )
+    await expect(runNeonIngestion(new Date('2026-09-05T14:00:00Z'), database))
+      .rejects
+      .toThrow('host ownership assertion failed')
+  })
+
+  it.each([
+    ['https://smashingmagazine.com/another-article', 'https://www.joshwcomeau.com/rss.xml', 'josh'],
+    ['https://smashingmagazine.com/2022/05/you-dont-need-ui-framework', 'https://impostor.example/rss', 'josh'],
+    ['https://smashingmagazine.com/2022/05/you-dont-need-ui-framework', 'https://www.joshwcomeau.com/rss.xml', 'impostor'],
+  ])('rejects an unasserted guest address or Source: %s %s %s', async (itemUrl, endpointUrl, publisherId) => {
+    const database = databaseReturning(
+      [{ itemUrl, endpointUrl, publisherId, sourceId: 'source', transport: 'rss' }],
+      [{ host: 'joshwcomeau.com', publisherId: 'josh' }],
+    )
+    await expect(runNeonIngestion(new Date('2026-09-05T14:00:00Z'), database))
+      .rejects
+      .toThrow('host ownership assertion failed')
+  })
+
   it('fails when a Transport venue host is registered to a Publisher', async () => {
     const database = databaseReturning(
       [{

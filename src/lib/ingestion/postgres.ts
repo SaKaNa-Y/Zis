@@ -27,6 +27,7 @@ import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
 import { publisherHostKey } from './canonicalize'
 import { RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
+import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const SIGNAL_WRITE_BATCH_SIZE = 1000
 
@@ -64,6 +65,7 @@ async function assertHostOwnership(database: Database): Promise<void> {
       publisherId: sources.publisherId,
       sourceId: sources.id,
       transport: sources.transport,
+      endpointUrl: sources.endpointUrl,
     }).from(items).innerJoin(sources, eq(items.sourceId, sources.id)),
     database.select({
       host: publisherHosts.host,
@@ -73,8 +75,11 @@ async function assertHostOwnership(database: Database): Promise<void> {
   const ownerByHost = new Map(registeredHosts.map(row => [publisherHostKey(row.host), row.publisherId]))
 
   for (const row of publishedItems) {
-    if (row.itemUrl === null)
+    if (row.itemUrl === null) {
+      if (row.transport === 'rss' || row.transport === 'atom')
+        itemLinkIsOutbound(row.endpointUrl, row.publisherId, registeredHosts)
       continue
+    }
     let host: string
     try {
       host = publisherHostKey(new URL(row.itemUrl).hostname)
@@ -100,6 +105,10 @@ async function assertHostOwnership(database: Database): Promise<void> {
     }
     if (owner === row.publisherId)
       continue
+    if ((row.transport === 'rss' || row.transport === 'atom')
+      && guestPublicationOwner(row.itemUrl, registeredHosts, row.endpointUrl) === row.publisherId) {
+      continue
+    }
 
     throw new Error(
       `host ownership assertion failed: Source ${row.sourceId} Publisher ${row.publisherId} published on ${host}, owned by ${owner ?? 'nobody'}`,

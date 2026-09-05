@@ -925,7 +925,8 @@
       "sources": [
         {
           "transport": "rss",
-          "url": "https://console.dev/rss.xml"
+          "url": "https://console.dev/rss.xml",
+          "itemLinkRole": "outbound"
         }
       ]
     },
@@ -1080,6 +1081,9 @@
     {
       "id": "joshwcomeau",
       "name": "Josh Comeau",
+      "publications": [
+        "https://smashingmagazine.com/2022/05/you-dont-need-ui-framework"
+      ],
       "hosts": [
         "joshwcomeau.com"
       ],

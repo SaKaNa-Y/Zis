@@ -11,6 +11,7 @@ import {
 import { createRobotsGate } from '@/lib/robots'
 import { createSafeFetch, mediaType, SafeFetchError } from '@/lib/safe-fetch'
 import { canonicalizeLink, publisherHostKey } from './canonicalize'
+import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
 const MAX_EMBEDDING_TEXT_CHARS = 1200
@@ -30,6 +31,7 @@ class FeedParseError extends Error {
 
 interface ParsedFeedItem {
   guid?: string
+  guidPermalink?: string
   link?: string
   issueHydratedAt?: Date
   outboundUrls: ParsedOutboundUrl[]
@@ -181,6 +183,7 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   const text = capEmbeddingText(plainText(rawText))
   return {
     guid,
+    guidPermalink: item.guidCanBeLink ? guid : undefined,
     link,
     outboundUrls: [...outboundUrls].map(([rawUrl, anchorText]) => ({ rawUrl, anchorText })),
     title,
@@ -1186,6 +1189,10 @@ function ownerOfHost(graph: PersistedGraph, host: string): string | undefined {
   return graph.publisherHosts.find(record => publisherHostKey(record.host) === canonicalHost)?.publisherId
 }
 
+function ownerOfTarget(graph: PersistedGraph, url: string): string | undefined {
+  return guestPublicationOwner(url, graph.publisherHosts) ?? ownerOfHost(graph, new URL(url).hostname)
+}
+
 function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSignal {
   let signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
   if (signal === undefined) {
@@ -1293,7 +1300,7 @@ function updateStrength(graph: PersistedGraph): void {
     const target = graph.links.find(link => link.id === signal.targetLinkId)
     if (target === undefined)
       throw new Error(`Signal ${signal.id} targets missing Link ${signal.targetLinkId}`)
-    signal.originPublisherId = ownerOfHost(graph, new URL(target.url).hostname) ?? null
+    signal.originPublisherId = ownerOfTarget(graph, target.url) ?? null
   }
 
   const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
@@ -1871,7 +1878,7 @@ function recordCitation(
   if (kind === 'outbound') {
     if (isReferenceOnly(canonicalUrl))
       return
-    if (ownerOfHost(graph, new URL(canonicalUrl).hostname) === source.publisherId)
+    if (ownerOfTarget(graph, canonicalUrl) === source.publisherId)
       return
   }
 
@@ -2042,6 +2049,15 @@ async function ingestSource(
     }
 
     const parsed = parseFeed(response.bytes)
+    for (const item of parsed) {
+      const permalink = canonicalizeLink(item.guidPermalink)
+      const linked = canonicalizeLink(item.link)
+      if (permalink !== undefined
+        && ownerOfHost(graph, new URL(permalink).hostname) === source.publisherId
+        && (linked === undefined || ownerOfHost(graph, new URL(linked).hostname) !== source.publisherId)) {
+        item.link = item.guidPermalink
+      }
+    }
     const hydration = await hydrateIssuePages(graph, source, parsed, fetch, now)
     for (const hydratedCacheKey of hydration.touchedCacheKeys)
       touchedHttpCacheKeys.add(hydratedCacheKey)
@@ -2052,8 +2068,10 @@ async function ingestSource(
     let itemsNew = 0
     let newest: Date | null = null
     for (const item of parsed) {
-      const url = canonicalizeLink(item.link)
-      const externalId = itemExternalId(item, url)
+      const linkedUrl = canonicalizeLink(item.link)
+      const externalId = itemExternalId(item, linkedUrl)
+      const outbound = itemLinkIsOutbound(source.endpointUrl, source.publisherId, graph.publisherHosts)
+      const url = outbound ? undefined : linkedUrl
       const publishedAt = normalizedPublishedAt(item.rawFeedDate, fetchedAt)
       const existing = findPersistedItem(graph, source, item, externalId, url)
       let persistedItem: PersistedItem
@@ -2091,7 +2109,7 @@ async function ingestSource(
         persistedItem = existing
       }
       touchedItemIds.add(persistedItem.id)
-      recordCitation(graph, persistedItem, source, item.link, 'self', fetchedAt)
+      recordCitation(graph, persistedItem, source, item.link, outbound ? 'outbound' : 'self', fetchedAt, undefined, outbound ? item.title : undefined)
       for (const outboundUrl of item.outboundUrls) {
         recordCitation(
           graph,

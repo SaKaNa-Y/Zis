@@ -134,6 +134,13 @@ exist. It fails the **ingest run** — ADR-0008 makes the wake the unit of cost,
 wake that would silently mis-count Strength is worth losing. `clustering-model.md`
 §4 records the two silent registry failures this replaces.
 
+[ADR-0021](adr/0021-rss-publication-addresses-and-curated-guest-articles.md)
+distinguishes a curated RSS review's outbound link from the Item's own address,
+and permits exact guest-publication assertions in the existing source register.
+Stage 0 checks the guest address, Source, and Publisher together; it never grants
+the author ownership of the shared host. The same assertion suppresses the
+author's vote on that target. Ordinary unknown Item hosts still fail the run.
+
 ### Daily, inside the wake that crosses the cut hour
 
 | # | stage | notes |
