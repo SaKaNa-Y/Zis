@@ -12,10 +12,12 @@ Phase 1's first build ticket.
 
 ## 1. Visibility: public, and the flip is gated
 
-**The repository is public.** Not yet in fact — it is private today and the owner
-drives the flip when the work is mature enough to read, and will say when it is
-done. The ruling is recorded now because it is load-bearing on the compute budget
-and because publication is one-way ([ADR-0010](adr/0010-publication-is-one-way.md)).
+**The repository is public**, verified on 2026-09-05 after the owner changed its
+visibility. Publication is one-way
+([ADR-0010](adr/0010-publication-is-one-way.md)). The arithmetic below explains
+the original private-repository constraint; that Actions ceiling no longer
+applies to this public repository's standard runners. Production ingestion
+remains manual until the separate activation work in #92 is complete.
 
 The reason is arithmetic, not preference. GitHub bills Actions **per job, rounded
 up to the nearest whole minute**, and the free allowance on a private repository
@@ -50,14 +52,14 @@ What going public does **not** do:
   fourth ceiling, not the first. An extra cron is still never small.
 - **It does not expose secrets.** Actions secrets stay secret either way, and
   workflows triggered by fork pull requests never receive them.
-- **It does not expose the Interest Profile.** That lives in Neon and never
-  enters the repository — which is why the disclosure surface is the reasoning
-  trail, not the reader's data.
+- **The production Interest Profile stays in Neon.** Existing calibration
+  research includes 20 real technical Interests that the owner explicitly
+  approved for public retention on 2026-09-05. This is a bounded exception for
+  those research artifacts, not permission to export production Interests.
 
-**Pending correction to ADR-0008**: the flip invalidates one of that ADR's four
-stated ceilings (the private-repo Actions breach). Its conclusion is unaffected —
-Neon binds first — but the ceiling is live *today* and stops being live at the
-flip. Amend ADR-0008 then, not now.
+**Post-publication budget**: the private-repository Actions ceiling has been
+retired. ADR-0008's Neon wake-count and duration conclusion still applies;
+publication does not authorize another schedule or a larger compute.
 
 ---
 

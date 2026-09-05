@@ -40,6 +40,18 @@ weights into `node_modules`.
 
 ## Files
 
+### Public disclosure note (2026-09-05)
+
+The owner approved retaining the existing 20 real technical Interests and their
+derived research outputs publicly. This permission covers this research record;
+it does not permit exporting the production Interest Profile. See the
+[disclosure audit](../../../../docs/operations/2026-09-05-disclosure-audit.md).
+
+Expired Bloomberg `accessToken` query values were removed from `findings.json`
+on that date. Article addresses and measurement values are retained; historical
+commits still contain the expired values. Sanitize credential-bearing URLs before
+publishing new prototype outputs, even when they came from a public feed.
+
 | file | what |
 |---|---|
 | `interests.draft.md` | the handwritten Interest Profile — 18 statements. **Edit this, not a literal in a script** |

@@ -40,6 +40,10 @@ rule, and each one looks like a saving right up until the arithmetic is done.
 
 ## Consequences
 
+- The repository was verified public on 2026-09-05. The former private-repository
+  Actions-minute ceiling no longer applies to standard runners. This changes
+  neither the Neon wake budget below nor the requirement for one sequential
+  pipeline; enabling cadence remains separate operational work in #92.
 - Hourly polling costs ~21 CU-hours/month against a 100 CU-hour cap, leaving ~79
   for UI usage. 15-minute polling would cost ~84 and leave 16.
 - Any future proposal to poll more often, add a schedule, or lengthen a run is a

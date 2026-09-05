@@ -5,10 +5,9 @@ Status: accepted
 Settled by
 [Set up the repository and CI](https://github.com/SaKaNa-Y/Zis/issues/12).
 
-The repository is **public** ([`repo-and-ci.md` §1](../repo-and-ci.md)). It is
-private at the time of writing; the owner drives the flip when the work is mature
-enough to read. The ruling is recorded before the act because the act cannot be
-undone.
+The repository is **public** ([`repo-and-ci.md` §1](../repo-and-ci.md)), verified
+on 2026-09-05 after the owner changed its visibility. The original decision was
+recorded while the repository was private because the act cannot be undone.
 
 **Private → public is a click. Public → private retracts nothing.** Anything
 fetched, cloned, forked, cached, or indexed in the interval stays fetched. So the
@@ -43,11 +42,14 @@ might:
 - **Secrets.** Actions secrets stay secret, and workflows triggered by fork pull
   requests never receive them. Publication is a disclosure decision, not a
   security decision.
-- **The Interest Profile.** It lives in Neon and never enters the repository
-  ([ADR-0003](0003-interest-profile-is-a-set-of-statements.md)). This is worth
-  stating because it is the one piece of genuinely personal data in the system,
-  and the entity model already put it out of reach — by accident of good
-  modelling rather than by design for this decision.
+- **The production Interest Profile.** Its records live in Neon and must not be
+  copied into the repository, issues, or workflow logs. The earlier assertion
+  that no real Interest had entered Git was incorrect: the calibration prototype
+  contains 20 reader-authored technical Interests and derived research outputs.
+  On 2026-09-05 the owner explicitly approved retaining that existing research
+  material publicly. This exception does not authorize publishing future private
+  Interests or exporting the production profile. See the
+  [disclosure audit](../operations/2026-09-05-disclosure-audit.md).
 
 ## Why the repository is public at all
 
