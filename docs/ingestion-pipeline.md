@@ -180,6 +180,15 @@ The natural key (§5) makes re-running free, so a failed Source is retried next 
 with nothing to undo. All-or-nothing would let one flaky origin starve the corpus
 indefinitely.
 
+**Transport does not change those boundaries.** Small commits use Neon's HTTP
+transaction endpoint. A commit with more than 16 MiB of estimated query data is
+sent statement by statement on one scoped WebSocket connection, with a single
+`BEGIN`/`COMMIT` and rollback on failure. This conservative switch avoids the
+64 MiB HTTP envelope limit encountered in the
+[first production attempt](operations/2026-09-05-first-production-brief.md).
+SQL row batches still belong to the same transaction; they are not separate
+partial graph commits.
+
 ---
 
 ## 4. Cadence is uniform; deferral is per-Source
