@@ -205,9 +205,7 @@ function robotsStatement(database: Database, record: RobotsCacheRecord): Compile
 }
 
 async function commitStatements(database: Database, statements: CompiledQuery[]): Promise<void> {
-  const compiled = statements.map(statement => statement.toSQL())
-  const queries = compiled.map(query => database.$client.query(query.sql, query.params))
-  await database.$client.transaction(queries)
+  await database.commit(statements.map(statement => statement.toSQL()))
 }
 
 async function refreshRobotDisabledSources(database: Database, at: Date, fetcher: SafeFetch): Promise<void> {
@@ -481,15 +479,18 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
     const orderedMatches = [...graph.readerSignalMatches].sort((left, right) =>
       left.userId.localeCompare(right.userId) || left.signalId.localeCompare(right.signalId),
     )
-    statements.push(database.insert(readerSignalMatchTable).values(orderedMatches).onConflictDoUpdate({
-      target: [readerSignalMatchTable.userId, readerSignalMatchTable.signalId],
-      set: {
-        matchedInterestId: sql`excluded.matched_interest_id`,
-        relevance: sql`excluded.relevance`,
-        gap: sql`excluded.gap`,
-        matchedAt: sql`excluded.matched_at`,
-      },
-    }))
+    // A large corpus also exceeds Postgres's per-statement bind-parameter cap.
+    for (let offset = 0; offset < orderedMatches.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+      statements.push(database.insert(readerSignalMatchTable).values(orderedMatches.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)).onConflictDoUpdate({
+        target: [readerSignalMatchTable.userId, readerSignalMatchTable.signalId],
+        set: {
+          matchedInterestId: sql`excluded.matched_interest_id`,
+          relevance: sql`excluded.relevance`,
+          gap: sql`excluded.gap`,
+          matchedAt: sql`excluded.matched_at`,
+        },
+      }))
+    }
   }
   if (graph.briefs.length > 0) {
     const orderedBriefs = [...graph.briefs].sort((left, right) =>
@@ -503,9 +504,11 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
     const orderedEntries = [...graph.briefEntries].sort((left, right) =>
       left.briefId.localeCompare(right.briefId) || left.position - right.position,
     )
-    statements.push(database.insert(briefEntryTable).values(orderedEntries).onConflictDoNothing({
-      target: [briefEntryTable.userId, briefEntryTable.signalId],
-    }))
+    for (let offset = 0; offset < orderedEntries.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+      statements.push(database.insert(briefEntryTable).values(orderedEntries.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)).onConflictDoNothing({
+        target: [briefEntryTable.userId, briefEntryTable.signalId],
+      }))
+    }
   }
   await commitStatements(database, statements)
 }

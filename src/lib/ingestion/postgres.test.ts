@@ -24,6 +24,7 @@ function databaseReturning(...results: unknown[][]): Database {
   const queued = [...results]
   const statement = { toSQL: () => ({ sql: 'retention', params: [] }) }
   return {
+    commit: async () => {},
     select: () => {
       const result = Promise.resolve(queued.shift() ?? [])
       return Object.assign(result, {
@@ -80,6 +81,9 @@ function capturingDatabase(...results: unknown[][]): {
   }
 
   const database = {
+    commit: async (compiled: Array<{ sql: string, params: unknown[] }>) => {
+      transactions.push(compiled)
+    },
     select: (fields?: Record<string, unknown>) => {
       selections.push(fields === undefined ? null : Object.keys(fields))
       return {
