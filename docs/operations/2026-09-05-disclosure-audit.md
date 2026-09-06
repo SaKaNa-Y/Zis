@@ -78,6 +78,18 @@ repository`. The local scan is evidence for this review, not continuous coverage
 The workflow with database access is manual, has `contents: read`, and is not
 triggered by fork pull requests; CI has no configured application secrets.
 
+### Dependency alerts: separate from credential disclosure
+
+The push-time notice was verified against GitHub's Dependabot API and refreshed
+on September 6.
+Three alerts remain open: two high-severity `sharp` alerts covering inherited
+libvips vulnerabilities (patched version `0.35.0`), and one medium-severity
+`esbuild` development-server alert (patched version `0.25.0`). These are dependency
+vulnerabilities, not evidence of leaked credentials. Runtime reachability was not
+assessed in this disclosure audit; the audit does not claim the dependency tree
+is vulnerability-free. See the repository's
+[Dependabot alerts](https://github.com/SaKaNa-Y/Zis/security/dependabot).
+
 ## Limits
 
 No live Zis database credential, PAT, or session-signing secret was identified in
