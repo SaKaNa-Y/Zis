@@ -31,6 +31,8 @@ function databaseReturning(...results: unknown[][]): Database {
         from: () => Object.assign(result, {
           innerJoin: () => result,
           where: () => result,
+          orderBy: () => result,
+          limit: () => result,
         }),
       })
     },
@@ -92,6 +94,8 @@ function capturingDatabase(...results: unknown[][]): {
           return Object.assign(result, {
             innerJoin: () => result,
             where: () => result,
+            orderBy: () => result,
+            limit: () => result,
           })
         },
       }

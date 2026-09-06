@@ -141,6 +141,12 @@ Stage 0 checks the guest address, Source, and Publisher together; it never grant
 the author ownership of the shared host. The same assertion suppresses the
 author's vote on that target. Ordinary unknown Item hosts still fail the run.
 
+The stored Signal graph is read in pages of 1,000 rows ordered by primary key,
+using the last ID as the next cursor. This keeps each vector-bearing HTTP
+response below Neon's 64 MiB limit while retaining merged rows and cached vectors.
+The graph is still assembled in memory; this is a transport-size bound, not a
+reduction of the corpus or a new concurrent ingestion path.
+
 ### Daily, inside the wake that crosses the cut hour
 
 | # | stage | notes |

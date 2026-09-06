@@ -3,7 +3,7 @@ import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
 import type { SafeFetch } from '@/lib/safe-fetch'
-import { and, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { and, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db as defaultDatabase } from '@/lib/db'
 import {
   briefEntries as briefEntryTable,
@@ -30,6 +30,7 @@ import { RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from '
 import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const SIGNAL_WRITE_BATCH_SIZE = 1000
+const SIGNAL_READ_BATCH_SIZE = 1000
 
 interface CompiledQuery {
   toSQL: () => { sql: string, params: unknown[] }
@@ -116,6 +117,20 @@ async function assertHostOwnership(database: Database): Promise<void> {
   }
 }
 
+async function readSignals(database: Database): Promise<Array<typeof signalTable.$inferSelect>> {
+  // Stored vectors exceeded Neon's 64 MiB HTTP response limit in production.
+  // Bound each response, retaining every row through stable primary-key cursors.
+  const rows: Array<typeof signalTable.$inferSelect> = []
+  let afterId: string | undefined
+  while (true) {
+    const page = await database.select().from(signalTable).where(afterId === undefined ? undefined : gt(signalTable.id, afterId)).orderBy(signalTable.id).limit(SIGNAL_READ_BATCH_SIZE)
+    rows.push(...page)
+    if (page.length < SIGNAL_READ_BATCH_SIZE)
+      return rows
+    afterId = page.at(-1)!.id
+  }
+}
+
 async function initialGraph(
   database: Database,
   dueSources: IngestionSource[],
@@ -150,7 +165,7 @@ async function initialGraph(
     database.select().from(robotsCache),
     database.select().from(publisherHosts),
     database.select().from(linkTable),
-    database.select().from(signalTable),
+    readSignals(database),
     database.select().from(citationTable),
   ])
   const [userRows, interestRows, matchRows, publisherRows, briefRows, briefEntryRows, readStateRows] = includeReaderStages

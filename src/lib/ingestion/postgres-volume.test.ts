@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { Pool } from '@neondatabase/serverless'
 import { afterEach, expect, it, vi } from 'vitest'
 import { db } from '@/lib/db'
+import { signals as signalTable } from '@/lib/db/schema'
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, EMBEDDING_VERSION } from '@/lib/embeddings/provider'
 import { runNeonIngestion } from './postgres'
 
@@ -16,6 +17,7 @@ it.each([
   { name: 'commits a corpus larger than the Neon HTTP limit atomically', count: 6000, failWrite: false, withReader: false },
   { name: 'rolls back a large graph when a streamed statement fails', count: 6000, failWrite: true, withReader: false },
   { name: 'keeps a large reader match set below the Postgres parameter limit', count: 12000, failWrite: false, withReader: true },
+  { name: 'reads all persisted vectors when their response exceeds the Neon limit', count: 10000, failWrite: false, withReader: false },
 ])('$name', async ({ count, failWrite, withReader }) => {
   vi.stubEnv('DATABASE_URL', 'postgresql://test:test@localhost/test')
   const database = db()
@@ -72,7 +74,6 @@ it.each([
     [],
     [],
     links,
-    signals,
     [],
     withReader ? [user] : [],
     withReader ? [interest] : [],
@@ -82,9 +83,14 @@ it.each([
     [],
     [],
   ]
+  const select = database.select.bind(database)
   vi.spyOn(database, 'select').mockImplementation((() => {
-    const result = Promise.resolve(results.shift() ?? [])
-    return { from: () => Object.assign(result, { innerJoin: () => result, where: () => result }) }
+    return { from: (table: unknown) => {
+      if (table === signalTable)
+        return select().from(signalTable)
+      const result = Promise.resolve(results.shift() ?? [])
+      return Object.assign(result, { innerJoin: () => result, where: () => result })
+    } }
   }) as unknown as typeof database.select)
 
   const commands: string[] = []
@@ -102,6 +108,29 @@ it.each([
   vi.spyOn(Pool.prototype, 'connect').mockImplementation((async () => connection) as unknown as typeof Pool.prototype.connect)
   const end = vi.spyOn(Pool.prototype, 'end').mockResolvedValue()
   vi.spyOn(database.$client, 'query').mockImplementation(((query: string, params: unknown[]) => {
+    if (query.startsWith('select')) {
+      const limit = query.includes(' limit ') ? Number(params.at(-1)) : signals.length
+      const cursor = query.includes(' where ') ? String(params[0]) : ''
+      const rows = signals.filter(signal => signal.id > cursor).slice(0, limit).map(signal => [
+        signal.id,
+        signal.targetLinkId,
+        signal.mergedIntoId,
+        signal.strength,
+        signal.originPublisherId,
+        signal.textBasis,
+        signal.embeddingText,
+        signal.embeddingTextExpiresAt,
+        JSON.stringify(signal.embedding),
+        signal.embeddingModel,
+        signal.embeddingDimensions,
+        signal.embeddingVersion,
+        at.toISOString(),
+        at.toISOString(),
+      ])
+      if (Buffer.byteLength(JSON.stringify({ rows })) > 64 * 1024 * 1024)
+        throw new Error('HTTP response exceeds 67108864 bytes')
+      return Promise.resolve({ rows })
+    }
     const data = { query, params }
     return data
   }) as unknown as typeof database.$client.query)
