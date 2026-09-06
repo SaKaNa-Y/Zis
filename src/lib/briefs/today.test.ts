@@ -1,12 +1,41 @@
 import { PgDialect } from 'drizzle-orm/pg-core'
 import { describe, expect, it, vi } from 'vitest'
-import { createTodayBriefReader, todayBriefStatement } from './today'
+import { createDatedBriefReader, createTodayBriefReader, datedBriefStatement, earlierBriefsStatement, todayBriefStatement } from './today'
 
 vi.mock('server-only', () => ({}))
 
 const USER_ID = '00000000-0000-4000-8000-000000000076'
 
 describe('today brief read model', () => {
+  it('projects archive lead titles through the same reader-scoped Signal resolution', () => {
+    const query = new PgDialect().sqlToQuery(earlierBriefsStatement(USER_ID))
+    expect(query.params).toEqual([USER_ID, USER_ID])
+    expect(query.sql).toContain('b."user_id" = ')
+    expect(query.sql).toContain('b."local_date" < (now() AT TIME ZONE u."timezone")::date')
+    expect(query.sql).toContain('b."local_date" AS "local_date"')
+    expect(query.sql).toContain('brief_signal_walk AS')
+    expect(query.sql).toContain('ORDER BY brief_entry."position" NULLS LAST')
+    expect(query.sql).toContain('LIMIT 1')
+    expect(query.sql).toContain('lead_entry."title" AS "lead_title"')
+  })
+
+  it('selects a historical reader-local calendar date without shifting it through UTC', () => {
+    const query = new PgDialect().sqlToQuery(datedBriefStatement(USER_ID, '2026-09-05'))
+    expect(query.params).toEqual(['2026-09-05', USER_ID])
+    expect(query.sql).toContain('::date AS "local_date"')
+    expect(query.sql).not.toContain('AT TIME ZONE')
+    expect(query.sql).toContain('reader."local_date" = selected."local_date"')
+  })
+
+  it('rejects impossible or malformed historical dates before reading the database', async () => {
+    const query = vi.fn(async () => [])
+    const read = createDatedBriefReader(query)
+    for (const date of ['2026-02-30', '2026-13-01', '2026-9-5', 'not-a-date'])
+      await expect(read(USER_ID, date)).rejects.toThrow('valid calendar date')
+    await expect(read('another-reader', '2026-09-05')).rejects.toThrow('authenticated reader')
+    expect(query).not.toHaveBeenCalled()
+  })
+
   it('builds a bounded projection from the selected Brief instead of the whole Signal corpus', () => {
     const at = new Date('2026-08-30T08:00:00.000Z')
     const query = new PgDialect().sqlToQuery(todayBriefStatement(USER_ID, at))

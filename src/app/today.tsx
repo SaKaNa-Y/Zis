@@ -28,6 +28,7 @@ export interface TodayBriefViewProps {
     save: TodayFormAction
   }
   brief: TodayBriefModel
+  period?: 'today' | 'earlier'
 }
 
 const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
@@ -36,7 +37,7 @@ function signalProvenanceHref(entrySignalId: string): string {
   return `/signals/${entrySignalId}`
 }
 
-function dateLabel(localDate: string): string {
+export function dateLabel(localDate: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -46,15 +47,18 @@ function dateLabel(localDate: string): string {
   }).format(new Date(`${localDate}T12:00:00.000Z`))
 }
 
-function EmptyBrief({ previousBriefDate }: { previousBriefDate: string | null }) {
+function EmptyBrief({ previousBriefDate, period }: { previousBriefDate: string | null, period: 'today' | 'earlier' }) {
   return (
     <section className="mt-register" aria-label="Empty Brief">
       <p className="text-body text-ink-dim lg:text-body-lg">
-        Nothing cleared the bar today. Not a quiet corner of the internet — a quiet day. Zis would rather hand you an empty page than pad one.
+        Nothing cleared the bar
+        {' '}
+        {period === 'today' ? 'today' : 'on this day'}
+        . Not a quiet corner of the internet — a quiet day. Zis would rather hand you an empty page than pad one.
       </p>
       <nav aria-label="What to read next" className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint">
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={previousBriefDate === null ? '/earlier' : `/earlier/${previousBriefDate}`}>
-          Yesterday&apos;s Brief
+          {period === 'today' ? 'Yesterday\'s Brief' : 'Previous Brief'}
         </a>
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href="/interests">
           Your Interests
@@ -203,7 +207,7 @@ function BriefEntry({
   )
 }
 
-export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
+export function TodayBriefView({ actionTargets, brief, period = 'today' }: TodayBriefViewProps) {
   const interestEntries = brief.entries.filter(entry => entry.admittedBy === 'interest')
   const convergenceEntries = brief.entries.filter(entry => entry.admittedBy === 'convergence')
 
@@ -215,7 +219,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
       >
         Skip to brief
       </a>
-      <DesktopDestinationRail current="/" />
+      <DesktopDestinationRail current={period === 'today' ? '/' : '/earlier'} />
       <div className="min-w-0">
         <main className="min-w-0 px-5 py-10 sm:px-8 lg:px-12 lg:py-14 xl:px-16" id="today-brief">
           <div className="mx-auto max-w-measure lg:max-w-measure-lg xl:max-w-[54rem]">
@@ -234,7 +238,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
               ? (
                   <div className={READING_GRID}>
                     <div className="xl:col-start-2">
-                      <EmptyBrief previousBriefDate={brief.previousBriefDate} />
+                      <EmptyBrief period={period} previousBriefDate={brief.previousBriefDate} />
                     </div>
                   </div>
                 )
@@ -283,7 +287,7 @@ export function TodayBriefView({ actionTargets, brief }: TodayBriefViewProps) {
               : null}
           </div>
         </main>
-        <MobileDestinationFooter current="/" />
+        <MobileDestinationFooter current={period === 'today' ? '/' : '/earlier'} />
       </div>
     </div>
   )

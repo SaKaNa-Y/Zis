@@ -6,7 +6,7 @@ interface VerifiedReader {
 
 export interface ReaderSignalActionDependencies {
   markRead: (userId: string, signalId: string) => Promise<void>
-  revalidate: (path: string) => void
+  revalidate: (path: string, type?: 'page') => void
   save: (userId: string, signalId: string) => Promise<void>
   verifySession: () => Promise<VerifiedReader>
 }
@@ -29,6 +29,7 @@ export function createReaderSignalActions(dependencies: ReaderSignalActionDepend
       const { userId } = await dependencies.verifySession()
       await mutate(userId, signalId)
       dependencies.revalidate('/')
+      dependencies.revalidate('/earlier/[date]', 'page')
     }
   }
 

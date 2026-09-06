@@ -1,3 +1,4 @@
+import type { SQL } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 import { cache } from 'react'
 import { db } from '@/lib/db'
@@ -142,12 +143,40 @@ export function createTodayBriefReader(queryRows: TodayBriefRowsQuery) {
 }
 
 export function todayBriefStatement(userId: string, at: Date) {
+  return briefStatement(userId, sql`(${at.toISOString()}::timestamptz AT TIME ZONE reader_user."timezone")::date`)
+}
+
+export function isBriefDate(value: string): boolean {
+  if (!LOCAL_DATE.test(value) || value < '0001-01-01')
+    return false
+  const date = new Date(`${value}T12:00:00.000Z`)
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value
+}
+
+export function datedBriefStatement(userId: string, localDate: string) {
+  return briefStatement(userId, sql`${localDate}::date`)
+}
+
+export function createDatedBriefReader(queryRows: (userId: string, localDate: string) => Promise<readonly TodayBriefRow[]>) {
+  return async (userId: string, localDate: string): Promise<TodayBrief> => {
+    if (!UUID.test(userId))
+      throw new Error('Brief requires an authenticated reader id')
+    if (!isBriefDate(localDate))
+      throw new Error('Brief requires a valid calendar date')
+    const brief = briefFrom(await queryRows(userId, localDate))
+    if (brief.localDate !== localDate)
+      throw new Error('Brief projection returned a different calendar date')
+    return brief
+  }
+}
+
+function briefStatement(userId: string, localDate: SQL) {
   return sql`
     WITH RECURSIVE
     reader AS (
       SELECT
         reader_user."id",
-        (${at.toISOString()}::timestamptz AT TIME ZONE reader_user."timezone")::date AS "local_date"
+        ${localDate} AS "local_date"
       FROM "user" AS reader_user
       WHERE reader_user."id" = ${userId}::uuid
     ),
@@ -320,3 +349,30 @@ const readTodayBriefAt = createTodayBriefReader(queryTodayBriefRows)
 
 export const readTodayBrief = cache(async (userId: string): Promise<TodayBrief> =>
   readTodayBriefAt(userId, new Date()))
+
+export const readDatedBrief = cache(createDatedBriefReader(async (userId, localDate) => {
+  const result = await db().execute<TodayBriefRow>(datedBriefStatement(userId, localDate))
+  return result.rows
+}))
+
+export function earlierBriefsStatement(userId: string) {
+  return sql`
+    SELECT b."local_date"::text AS "local_date", lead_entry."title" AS "lead_title"
+    FROM "brief" b
+    INNER JOIN "user" u ON u."id" = b."user_id"
+    LEFT JOIN LATERAL (
+      ${briefStatement(userId, sql`b."local_date"`)}
+      LIMIT 1
+    ) AS lead_entry ON TRUE
+    WHERE b."user_id" = ${userId}::uuid
+      AND b."local_date" < (now() AT TIME ZONE u."timezone")::date
+    ORDER BY b."local_date" DESC
+  `
+}
+
+export const readEarlierBriefs = cache(async (userId: string) => {
+  if (!UUID.test(userId))
+    throw new Error('Brief history requires an authenticated reader id')
+  const result = await db().execute<{ local_date: string, lead_title: string | null }>(earlierBriefsStatement(userId))
+  return result.rows
+})

@@ -30,7 +30,9 @@ describe('today reader actions', () => {
     expect(verifySession).toHaveBeenCalledTimes(2)
     expect(bookmarks).toEqual(new Set([`${READER_ID}:${SIGNAL_ID}`]))
     expect(revalidate).toHaveBeenNthCalledWith(1, '/')
-    expect(revalidate).toHaveBeenNthCalledWith(2, '/')
+    expect(revalidate).toHaveBeenNthCalledWith(2, '/earlier/[date]', 'page')
+    expect(revalidate).toHaveBeenNthCalledWith(3, '/')
+    expect(revalidate).toHaveBeenNthCalledWith(4, '/earlier/[date]', 'page')
   })
 
   it('marks Read State with the authenticated reader and rejects malformed input before mutation', async () => {
@@ -56,6 +58,6 @@ describe('today reader actions', () => {
     await expect(actions.markRead(invalid)).rejects.toThrow('valid Signal id')
     expect(markRead).toHaveBeenCalledTimes(1)
     expect(verifySession).toHaveBeenCalledTimes(1)
-    expect(revalidate).toHaveBeenCalledTimes(1)
+    expect(revalidate).toHaveBeenCalledTimes(2)
   })
 })
