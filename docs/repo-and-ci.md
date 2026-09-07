@@ -5,8 +5,8 @@ material — read it before scaffolding the app, adding a workflow, or introduci
 an environment variable. The *why* behind each rule is in #12's resolution
 comment; this document is what you check against.
 
-Nothing here is built yet. This document is the decision set; the scaffolding is
-Phase 1's first build ticket.
+The application and production ingestion are implemented; the current operating
+cadence and its remaining verification are recorded below.
 
 ---
 
@@ -16,8 +16,9 @@ Phase 1's first build ticket.
 visibility. Publication is one-way
 ([ADR-0010](adr/0010-publication-is-one-way.md)). The arithmetic below explains
 the original private-repository constraint; that Actions ceiling no longer
-applies to this public repository's standard runners. Production ingestion
-remains manual until the separate activation work in #92 is complete.
+applies to this public repository's standard runners. The owner approved daily
+production ingestion at 06:17 Asia/Shanghai on 2026-09-07, with manual retries retained. Hourly activation remains deferred to
+#92 until incremental reads meet the network-transfer budget.
 
 The reason is arithmetic, not preference. GitHub bills Actions **per job, rounded
 up to the nearest whole minute**, and the free allowance on a private repository
@@ -47,9 +48,10 @@ minutes are bought.** The flip is never rushed to hit a schedule.
 
 What going public does **not** do:
 
-- **It does not reopen the cadence.** ADR-0008 says the wake is the unit of
-  compute cost and Neon's 21-of-100 CU-hours is what binds. Actions was the
-  fourth ceiling, not the first. An extra cron is still never small.
+- **It does not authorize a faster cadence.** ADR-0008 still prices compute by
+  wake, and its September 7 amendment adds the observed network-transfer
+  constraint. The current daily cadence is an explicit owner decision, not a
+  consequence of public visibility. A second cron remains disallowed.
 - **It does not expose secrets.** Actions secrets stay secret either way, and
   workflows triggered by fork pull requests never receive them.
 - **The production Interest Profile stays in Neon.** Existing calibration

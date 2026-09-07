@@ -15,6 +15,7 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const workflowsDirectory = join(root, '.github', 'workflows')
 
 interface Workflow {
+  concurrency?: { 'group'?: string, 'cancel-in-progress'?: boolean }
   on?: Record<string, unknown>
   jobs?: Record<string, { steps?: { name?: string, uses?: string, run?: string, with?: Record<string, unknown>, env?: Record<string, string> }[] }>
 }
@@ -60,21 +61,18 @@ describe('the runtime is pinned in three places', () => {
   })
 })
 
-describe('no workflow is scheduled', () => {
-  it('has no schedule trigger anywhere', () => {
-    // ADR-0010 makes publication one-way and the cron is gated behind the public
-    // flip. A `schedule:` that arrives before that gate spends the budget the
-    // gate exists to protect.
-    for (const { file, workflow } of readWorkflows()) {
-      const triggers = Object.keys(workflow.on ?? {})
-      expect(triggers, file).not.toHaveLength(0)
-      expect(triggers, file).not.toContain('schedule')
-    }
+describe('one production wake serves ingestion and the daily Brief', () => {
+  it('schedules only Ingest at 06:17 Asia/Shanghai while the full graph is read', () => {
+    const scheduled = readWorkflows().filter(({ workflow }) => workflow.on?.schedule !== undefined)
+    expect(scheduled.map(({ file }) => file)).toEqual(['ingest.yml'])
+    expect(scheduled[0]?.workflow.on?.schedule).toEqual([{ cron: '17 22 * * *' }])
   })
 
-  it('keeps ingestion manual and migrations out of the runner', () => {
+  it('preserves manual retries, one sequential job, and non-cancelling concurrency without migrations', () => {
     const ingest = parse(readFileSync(join(workflowsDirectory, 'ingest.yml'), 'utf8')) as Workflow
-    expect(Object.keys(ingest.on ?? {})).toEqual(['workflow_dispatch'])
+    expect(Object.keys(ingest.on ?? {}).sort()).toEqual(['schedule', 'workflow_dispatch'])
+    expect(Object.keys(ingest.jobs ?? {})).toEqual(['ingest'])
+    expect(ingest.concurrency).toEqual({ 'group': 'ingest-production', 'cancel-in-progress': false })
 
     const steps = Object.values(ingest.jobs ?? {}).flatMap(job => job.steps ?? [])
     expect(steps.map(step => step.run)).toContain('pnpm exec tsx scripts/pipeline/run.ts')

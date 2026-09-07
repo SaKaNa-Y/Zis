@@ -6,10 +6,10 @@ fetches, and the clustering spec on `prototype/clustering-spike` before touching
 canonicalization — this document specifies *when* stages run and *what state they
 keep*, and defers the canonicalization rules themselves to that spec.
 
-The binding constraint is **compute, not storage**, and the unit of compute is the
-**Neon wake** rather than the query — see
-[ADR-0008](./adr/0008-the-neon-wake-is-the-unit-of-compute-cost.md), which every
-number here follows from.
+Compute is priced by the **Neon wake** rather than the query, while network
+transfer independently constrains the current full-corpus reader. See
+[ADR-0008](./adr/0008-the-neon-wake-is-the-unit-of-compute-cost.md) and its
+September 7 amendment; both budgets govern activation.
 
 ---
 
@@ -30,9 +30,10 @@ Recorded because each one was load-bearing in the design that preceded it.
    schedules."** The first is right, but not for the stated reason. They are one
    run because separate schedules mean separate wakes.
 
-A fourth constraint the ticket did not consider: this repo is **private**, so
-GitHub Actions is capped at **2,000 free minutes/month**, not unlimited. A
-15-minute cron is 2,880 runs/month and breaches that on job count alone.
+The original ticket also omitted the then-private repository's **2,000 free
+Actions minutes/month**: a 15-minute cron would exceed that on job count alone.
+The owner made the repository public on September 5; standard-runner minutes no
+longer impose that ceiling. Neon's compute and transfer constraints remain.
 
 ---
 
@@ -63,20 +64,24 @@ Consequences:
 
 ## 2. Schedule
 
-**One cron. One wake. Hourly.**
+**One cron. One wake. Currently daily at 06:17 Asia/Shanghai.** The owner chose
+this temporary cadence on 2026-09-07 because the current full-corpus reader cannot
+justify hourly transfer within Neon's free network allowance. See
+[ADR-0008's amendment](adr/0008-the-neon-wake-is-the-unit-of-compute-cost.md#september-7-amendment-daily-until-transfer-is-incremental).
+Hourly remains the intended coverage target after #92's incremental-read work.
 
 ```yaml
 # .github/workflows/ingest.yml
 on:
   schedule:
-    - cron: '17 * * * *'   # hourly, deliberately off the hour
+    - cron: '17 22 * * *'  # 06:17 Asia/Shanghai; GitHub cron is UTC
   workflow_dispatch:        # manual trigger, and the entry point for --backfill
 ```
 
 Offset to `:17` rather than `:00` because every naive scheduler on the internet
 fires on the hour, and origin politeness is a hard rule here (#2), not a nicety.
 
-**Why hourly and not 15 minutes.** Nothing in Zis renders faster than daily: one
+**Why the intended target is hourly rather than 15 minutes.** Nothing in Zis renders faster than daily: one
 Brief per local day, sealed once cut. A Signal needs two independent Publishers to
 converge before it can be admitted at all, which takes longer than an hour by
 definition. 15-minute polling buys no product property and breaches both free
@@ -86,10 +91,11 @@ its front page churns several times a day — but it churns on a scale of hours,
 minutes, and a story that appears and vanishes inside one hour was never going to
 be co-cited.
 
-**Why not daily.** A single daily poll loses most of HN and TLDR, whose feed
-windows are shorter than a day.
+**The cost of the temporary daily cadence.** A single daily poll can miss Items
+from Sources whose feed windows are shorter than a day. The owner accepts that
+coverage tradeoff while transfer is corrected; an empty Brief remains valid.
 
-**The daily Brief cut is not a second schedule.** The hourly run checks whether
+**The daily Brief cut is not a second schedule.** The ingestion run checks whether
 the reader's local cut hour has been crossed since the last cut and, if so, runs
 the daily stages in the same wake. The `(user_id, local_date)` uniqueness guard
 from `ranking-model.md` §7 makes that idempotent and safely retryable. A second
@@ -516,6 +522,13 @@ out to be the same variable (ADR-0008): a ~10-minute globally-serial run bills a
 
 ## 11. The CU-hour estimate
 
+The table below is the **original hourly target**, not the currently enabled
+cadence. The September 7 daily decision uses about 1.02 CU-hours per 31 runs at
+the observed 175-second warm runtime plus the five-minute tail. Its principal
+row-JSON payload is about 3.18 GB per 31 reads, not a measured egress bill.
+Network transfer, UI use, corpus growth, and delayed usage metrics must also be
+checked in #92; the compute calculation alone cannot authorize hourly reads.
+
 | | value |
 |---|---|
 | Cadence | hourly, one cron, one wake — 24/day |
@@ -524,7 +537,7 @@ out to be the same variable (ADR-0008): a ~10-minute globally-serial run bills a
 | Per month | 84 h → **21 CU-hours** at a pinned 0.25 CU |
 | Neon free cap | 100 CU-hours/project/month |
 | Headroom for UI | ~79 CU-hours ≈ 316 h of 0.25-CU compute |
-| GitHub Actions | 720 runs/month ≈ 720–1,440 min against 2,000 free (private repo) |
+| GitHub Actions | Standard runners are free for the now-public repository; the former private minute ceiling is retired |
 | Storage | 0.5 GB cap; ~82 MB/yr of embeddings plus a 30-day text window |
 
 Two provisioning requirements this arithmetic depends on:

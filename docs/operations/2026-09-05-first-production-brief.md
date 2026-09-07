@@ -10,7 +10,10 @@ Authenticated Today renders that empty Brief; its repaired Yesterday link render
 the September 5 Brief with all 79 entries. The repository's public visibility is
 an owner-approved exception to the original private-repository precondition.
 The 120-second budget is exceeded, with observations recorded below; hourly
-activation remains deferred to #92.
+activation remains deferred to #92. A [September 7 follow-up](2026-09-07-freshness-and-daily-cadence.md)
+found that cold-fetch discovery timestamps had admitted outdated material in the
+first 79 entries. The successful run proves execution and rendering, not freshness;
+the publication-time correction and owner-approved daily cadence are recorded there.
 
 ## Preconditions verified
 

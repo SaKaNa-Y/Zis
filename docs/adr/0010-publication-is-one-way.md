@@ -61,12 +61,12 @@ the cap entirely if a run reaches 2m01s**. The run budget stops being a
 performance target and becomes a billing cliff one second wide. Public
 repositories get standard runners free and unlimited.
 
-**This does not reopen the cadence.** ADR-0008 stands: the wake is the unit of
-compute cost, Neon's 21-of-100 CU-hours is what binds first, and Actions minutes
-were the fourth ceiling. An extra cron is still never small. What the flip
-changes is that **one of ADR-0008's four stated ceilings stops existing** — a
-correction to be applied to that ADR at the flip, not before, because the ceiling
-is live until then.
+**Publication does not authorize a faster cadence.** The original compute
+calculation still prices each wake, but ADR-0008's September 7 amendment records
+network transfer as another binding activation constraint and the owner's
+separate choice of temporary daily ingestion. The public flip retired the
+private Actions-minute ceiling; it did not waive Neon's budgets or authorize a
+second cron.
 
 ## The gate
 

@@ -1,10 +1,7 @@
 name: CI
 
-# There is deliberately no `schedule:` trigger anywhere in this repository. The
-# hourly pipeline cron is gated behind the repository going public — Actions
-# bills per job rounded up to the whole minute, and 730 runs a month does not fit
-# a private repo's 2,000 (docs/repo-and-ci.md §1). `tests/repo-invariants.test.ts`
-# asserts the absence.
+# CI has no schedule. Only Ingest owns the owner-approved production wake;
+# tests/repo-invariants.test.ts prevents a second cron or pipeline job.
 on:
   push:
     branches: [main]

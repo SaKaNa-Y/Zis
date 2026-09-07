@@ -1,8 +1,11 @@
 name: Ingest
 
-# Deliberately manual for slice 1. The public flip is the gate for any cadence.
+# Temporary daily cadence: 06:17 Asia/Shanghai (22:17 UTC on the prior day).
+# Hourly ingestion awaits the network-transfer work in #92.
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '17 22 * * *'
 
 concurrency:
   group: ingest-production
