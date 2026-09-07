@@ -267,6 +267,78 @@ async function runCut(corpus: TestGraph, wakeAt: Date = WAKE_AT): Promise<TestGr
 }
 
 describe('brief admission through the ingestion seam', () => {
+  it('does not admit years-old publication evidence first discovered during a cold fetch', async () => {
+    const corpus = emptyCorpus()
+    const signalId = addSignal(corpus, {
+      key: 90,
+      host: 'old-release.example',
+      basis: 'own',
+      relevance: 0.9,
+      interestStatement: 'Developer tool releases',
+      contributorNames: ['Alpha', 'Beta', 'Gamma'],
+    })
+    for (const item of corpus.items) {
+      item.rawFeedDate = '2022-05-01T00:00:00Z'
+      item.publishedAt = new Date('2022-05-01T00:00:00Z')
+      item.fetchedAt = new Date('2026-08-28T00:00:00Z')
+    }
+    const result = await runCut(corpus)
+    expect(result.briefEntries.filter(entry => entry.signalId === signalId)).toEqual([])
+    expect(result.items).toHaveLength(4)
+    expect(result.citations).toHaveLength(4)
+    expect(result.signals.find(signal => signal.id === signalId)?.strength).toBe(3)
+  })
+
+  it.each([
+    { ageMs: 7 * 24 * 60 * 60 * 1000, admitted: true },
+    { ageMs: 7 * 24 * 60 * 60 * 1000 + 1, admitted: false },
+  ])('applies the publication age boundary inclusively at $ageMs ms', async ({ ageMs, admitted }) => {
+    const corpus = emptyCorpus()
+    const signalId = addSignal(corpus, {
+      key: 91,
+      host: 'boundary.example',
+      basis: 'own',
+      relevance: 0.9,
+      interestStatement: 'Boundary evidence',
+      contributorNames: ['Alpha', 'Beta'],
+    })
+    for (const item of corpus.items)
+      item.publishedAt = new Date(WAKE_AT.getTime() - ageMs)
+    const firstDiscovery = corpus.citations[0]!.firstSeenAt
+    const result = await runCut(corpus)
+    expect(result.briefEntries.some(entry => entry.signalId === signalId)).toBe(admitted)
+    expect(result.citations[0]!.firstSeenAt).toEqual(firstDiscovery)
+  })
+
+  it('orders convergence by publication evidence rather than the order of cold discovery', async () => {
+    const corpus = emptyCorpus()
+    const older = addSignal(corpus, {
+      key: 92,
+      host: 'older.example',
+      basis: 'slug',
+      relevance: 0,
+      interestStatement: 'Unmatched',
+      contributorNames: ['Alpha', 'Beta', 'Gamma'],
+    })
+    const newer = addSignal(corpus, {
+      key: 93,
+      host: 'newer.example',
+      basis: 'slug',
+      relevance: 0,
+      interestStatement: 'Unmatched',
+      contributorNames: ['Delta', 'Epsilon', 'Zeta'],
+    })
+    setCitationTimeline(corpus, older, new Date('2026-08-28T12:00:00Z'))
+    setCitationTimeline(corpus, newer, new Date('2026-08-28T06:00:00Z'))
+    for (const citation of corpus.citations) {
+      const item = corpus.items.find(item => item.id === citation.itemId)!
+      item.publishedAt = new Date(citation.linkId === older ? '2026-08-24T00:00:00Z' : '2026-08-27T00:00:00Z')
+    }
+    const result = await runCut(corpus)
+    expect(result.briefEntries.map(entry => entry.signalId)).toEqual([newer, older])
+    expect(result.briefEntries.every(entry => entry.admittedBy === 'convergence')).toBe(true)
+  })
+
   it('prunes expiring state after cut and order without touching the permanent tier', async () => {
     const corpus = emptyCorpus()
     const signalId = addSignal(corpus, {

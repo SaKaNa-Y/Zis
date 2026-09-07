@@ -1773,6 +1773,7 @@ function whyText(
 }
 
 function cutDueBriefs(graph: PersistedGraph, at: Date): void {
+  const publicationTimes = new Map(graph.items.map(item => [item.id, item.publishedAt.getTime()]))
   const liveSignals = graph.signals.filter(signal => signal.mergedIntoId === null)
   for (const user of [...graph.users].sort((left, right) => left.id.localeCompare(right.id))) {
     const clock = localClock(at, user)
@@ -1790,8 +1791,15 @@ function cutDueBriefs(graph: PersistedGraph, at: Date): void {
       const citations = memberCitations(graph, signal)
       if (citations.length === 0)
         continue
-      const firstSeenAt = Math.min(...citations.map(citation => citation.firstSeenAt.getTime()))
-      if (at.getTime() - firstSeenAt > MAX_SIGNAL_AGE_MS)
+      // Discovery is provenance; a cold fetch must not make old publications new.
+      const citationTimes = citations.map((citation) => {
+        const publishedAt = publicationTimes.get(citation.itemId)
+        if (publishedAt === undefined)
+          throw new Error(`Citation ${citation.id} belongs to missing Item ${citation.itemId}`)
+        return Math.min(citation.firstSeenAt.getTime(), publishedAt)
+      })
+      const firstCitationAt = Math.min(...citationTimes)
+      if (at.getTime() - firstCitationAt > MAX_SIGNAL_AGE_MS)
         continue
       if (graph.briefEntries.some(entry =>
         entry.userId === user.id && resolvesToSignal(graph, entry.signalId, signal.id),
@@ -1818,8 +1826,8 @@ function cutDueBriefs(graph: PersistedGraph, at: Date): void {
       if (matched && match.matchedInterestId === null)
         throw new Error(`Matched Signal ${signal.id} has no argmax Interest`)
 
-      const lastSeenAt = Math.max(...citations.map(citation => citation.firstSeenAt.getTime()))
-      const freshnessMs = Math.max(0, at.getTime() - lastSeenAt)
+      const lastCitationAt = Math.max(...citationTimes)
+      const freshnessMs = Math.max(0, at.getTime() - lastCitationAt)
       candidates.push({
         signal,
         match,

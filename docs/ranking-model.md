@@ -42,6 +42,17 @@ Computed for a reader `u` and a Signal `s` at cut time `t`.
 | `T+[basis]` | positive relevance bar, **one value per `text_basis` rung** — `own` **0.70**, `citing` **0.67**, `slug` **uncalibrated** (§4) |
 | `GAP(s,u)` | `REL+(s,u) − ` the **second**-highest `cos(vec(s), vec(i))`. How far the named Interest beat the runner-up. **Computed and stored; it gates nothing and is never rendered** (§6, ADR-0012 as withdrawn by **ADR-0018**) |
 
+For ranking, a Citation's evidence time is
+`min(citation.first_seen_at, item.published_at)`. `first_citation_at` and
+`last_citation_at` are the minimum and maximum of these evidence times across
+all member Links, including merged Signal aliases. `first_seen_at` remains the
+actual discovery timestamp for provenance. Using discovery alone would admit an
+old feed archive as today's news on the first fetch, violating E2. The Item's
+normalized publication date already clamps future feed dates and falls back to
+fetch time for missing or invalid dates; unknown publication dates therefore
+remain a limitation, not a reason to guess from a URL. Existing Brief Entries
+remain the historical record and are not rewritten by this correction.
+
 **`T_gap` is gone.** It was a floor on `GAP` at a provisional 0.038, and
 **ADR-0018** dropped it: a gap cannot see a confident wrong answer, so the
 mechanism ADR-0012 claimed for it does not exist. `GAP` itself survives as a stored
