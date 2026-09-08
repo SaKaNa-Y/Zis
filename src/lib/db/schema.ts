@@ -127,11 +127,13 @@ export const items = pgTable('item', {
   publishedAt: timestampTz('published_at').notNull(),
   fetchedAt: timestampTz('fetched_at').notNull(),
   issueHydratedAt: timestampTz('issue_hydrated_at'),
+  ingestionInputHash: text('ingestion_input_hash'),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
   updatedAt: timestampTz('updated_at').notNull().defaultNow(),
 }, table => [
   unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
   index('item_published_at_idx').on(table.publishedAt),
+  index('item_updated_at_idx').on(table.updatedAt),
   check(
     'item_summary_length_check',
     sql`${table.summary} IS NULL OR length(${table.summary}) <= 1200`,
@@ -284,6 +286,13 @@ export const readerSignalMatches = pgTable('reader_signal_match', {
     sql`${table.gap} IS NULL OR ${table.gap} BETWEEN 0 AND 2`,
   ),
 ])
+
+/** Start-time cursor of the last atomically committed graph computation. */
+export const ingestionCheckpoints = pgTable('ingestion_checkpoint', {
+  id: smallint('id').primaryKey(),
+  processedThrough: timestampTz('processed_through').notNull(),
+  configurationHash: text('configuration_hash').notNull(),
+}, table => [check('ingestion_checkpoint_singleton_check', sql`${table.id} = 1`)])
 
 /** The exact Profile whose matches were atomically committed by ingestion. */
 export const readerMatchProfiles = pgTable('reader_match_profile', {

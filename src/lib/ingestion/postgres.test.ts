@@ -24,6 +24,7 @@ function databaseReturning(...results: unknown[][]): Database {
   const queued = [...results]
   const statement = { toSQL: () => ({ sql: 'retention', params: [] }) }
   return {
+    execute: async () => ({ rows: [] }),
     commit: async () => {},
     select: () => {
       const result = Promise.resolve(queued.shift() ?? [])
@@ -83,6 +84,7 @@ function capturingDatabase(...results: unknown[][]): {
   }
 
   const database = {
+    execute: async () => ({ rows: [] }),
     commit: async (compiled: Array<{ sql: string, params: unknown[] }>) => {
       transactions.push(compiled)
     },
@@ -554,9 +556,10 @@ describe('the production ingestion startup assertion', () => {
         ['delete', sourceFetchLogs, undefined],
         ['delete', robotsCache, undefined],
       ])
-    expect(retentionStatements[0]?.where).toEqual(lt(items.createdAt, thirtyDaysAgo))
+    expect(retentionStatements[0]?.where).toEqual(and(isNotNull(items.text), lt(items.createdAt, thirtyDaysAgo)))
     expect(retentionStatements[1]?.where).toEqual(and(
       eq(signals.textBasis, 'own'),
+      isNotNull(signals.embeddingText),
       isNotNull(signals.embeddingTextExpiresAt),
       lt(signals.embeddingTextExpiresAt, at),
     ))

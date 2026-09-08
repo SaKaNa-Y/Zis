@@ -18,15 +18,20 @@ export interface DatabaseStatement {
 
 function build() {
   const connectionString = databaseUrl()
+  const writes = { committedStatements: 0, affectedRows: 0, compiledWriteBytes: 0, websocketCommits: 0 }
   const http = neon(connectionString)
   return Object.assign(drizzle(http, { schema }), {
+    writeMetrics: () => ({ ...writes }),
     async commit(statements: DatabaseStatement[]): Promise<void> {
       // Neon's HTTP envelope is limited to 64 MiB. Leave room for the driver's
       // parameter encoding and avoid allocating the entire envelope to size it.
       const bytes = statements.reduce((total, statement) =>
         total + Buffer.byteLength(JSON.stringify(statement)), 0)
       if (bytes <= 16 * 1024 * 1024) {
-        await http.transaction(statements.map(statement => http.query(statement.sql, statement.params)))
+        const results = await http.transaction(statements.map(statement => http.query(statement.sql, statement.params)), { fullResults: true })
+        writes.affectedRows += results.reduce((total, result) => total + (result.rowCount ?? 0), 0)
+        writes.committedStatements += statements.length
+        writes.compiledWriteBytes += bytes
         return
       }
 
@@ -38,9 +43,16 @@ function build() {
         let failed = true
         try {
           await connection.query('BEGIN')
-          for (const statement of statements)
-            await connection.query(statement.sql, statement.params)
+          let affectedRows = 0
+          for (const statement of statements) {
+            const result = await connection.query(statement.sql, statement.params)
+            affectedRows += result.rowCount ?? 0
+          }
           await connection.query('COMMIT')
+          writes.affectedRows += affectedRows
+          writes.committedStatements += statements.length
+          writes.compiledWriteBytes += bytes
+          writes.websocketCommits++
           failed = false
         }
         catch (error) {

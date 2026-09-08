@@ -66,7 +66,10 @@ async function main(argv: string[]): Promise<void> {
     (metrics) => {
       // Counts only: never log reader statements, vectors, or query parameters.
       // Decoded graph JSON is a planning measure, not Neon's billed egress.
-      process.stdout.write(`zis pipeline decoded read payload: ${metrics.initialGraphJsonBytes + metrics.signalVectorJsonBytes} JSON bytes; stored Signal vectors read: ${metrics.signalVectorsRead}; matches recomputed: ${metrics.matchesRecomputed}; reused: ${metrics.matchesReused} (not billed network transfer)\n`)
+      process.stdout.write(`zis pipeline decoded read payload: ${metrics.initialGraphJsonBytes + metrics.scopedGraphJsonBytes + metrics.signalVectorJsonBytes} JSON bytes; stored Signal vectors read: ${metrics.signalVectorsRead}; matches recomputed: ${metrics.matchesRecomputed}; reused in loaded scope: ${metrics.matchesReused} (not billed network transfer)\n`)
+      if (metrics.affectedRows !== undefined) {
+        process.stdout.write(`zis pipeline committed SQL statements: ${metrics.committedStatements}; affected rows: ${metrics.affectedRows}; compiled write JSON: ${metrics.compiledWriteBytes} bytes; WebSocket commits: ${metrics.websocketCommits}\n`)
+      }
     },
   )
   const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
@@ -81,7 +84,7 @@ async function main(argv: string[]): Promise<void> {
   }
 
   process.stdout.write(
-    `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.items.length} persisted Item(s)\n`,
+    `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.corpusCounts?.items ?? graph.items.length} persisted Item(s)\n`,
   )
   for (const sourceId of graph.dormantSourceIds) {
     process.stdout.write(

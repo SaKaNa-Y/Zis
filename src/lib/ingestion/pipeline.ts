@@ -382,6 +382,10 @@ export interface PersistedItem {
   issueHydratedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  /** Revision of normalized feed input, including outbound addresses. */
+  ingestionInputHash?: string | null
+  /** Complete outbound-existence evidence when only some Citations are loaded. */
+  hasOutboundCitation?: boolean
 }
 
 export interface PublisherHost {
@@ -541,7 +545,14 @@ export interface PersistedGraph {
   httpCache: HttpCacheRecord[]
   robotsCache: RobotsCacheRecord[]
   dormantSourceIds: string[]
+  /** Complete alias claims for the loaded components, supplied by the scoped reader. */
+  releaseTagAliases?: Array<{ aliasLinkId: string, targetLinkIds: string[] }>
+  corpusCounts?: { items: number, signals: number, citations: number, links: number }
 }
+
+export interface SourceItemLookup { externalId: string, hasGuid: boolean, inputHash: string, requestUrl?: string }
+
+class GraphReadError extends Error {}
 
 export interface CannedTransportResponse {
   url: string
@@ -570,6 +581,9 @@ interface RunIngestionCommon {
   initialGraph?: PersistedGraph
   embeddingProvider?: EmbeddingProvider
   loadSignalEmbeddings?: (ids: readonly string[]) => Promise<ReadonlyMap<string, number[]>>
+  loadSourceState?: (source: IngestionSource, lookups?: readonly SourceItemLookup[]) => Promise<void>
+  loadCitationTargets?: (urls: readonly string[]) => Promise<void>
+  onSourcesComplete?: (graph: PersistedGraph) => Promise<void>
   onSourceCommitted?: (
     source: IngestionSource,
     graph: PersistedGraph,
@@ -840,7 +854,7 @@ function cacheHeaders(cache: HttpCacheRecord | undefined): Record<string, string
   return headers
 }
 
-function httpCacheKey(url: string): string {
+export function httpCacheKey(url: string): string {
   try {
     const canonical = new URL(url)
     canonical.hash = ''
@@ -1074,6 +1088,7 @@ function applyHydrationToPersistedItems(
     if (persistedItem === undefined)
       throw new Error(`hydrated issue has no persisted Item for Source ${source.id}`)
     persistedItem.issueHydratedAt ??= item.issueHydratedAt
+    persistedItem.updatedAt = item.issueHydratedAt
     touchedItemIds.add(persistedItem.id)
     for (const outboundUrl of item.outboundUrls) {
       recordCitation(
@@ -1251,6 +1266,8 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
   const targetLinkIdsByAliasLinkId = new Map<string, Set<string>>()
 
   for (const item of graph.items) {
+    if (graph.releaseTagAliases !== undefined)
+      break
     if (item.url === null)
       continue
     const source = graph.sources.find(candidate => candidate.id === item.sourceId)
@@ -1275,6 +1292,8 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
     targetLinkIdsByAliasLinkId.set(aliasLinkIds[0]!, targets)
   }
 
+  for (const claim of graph.releaseTagAliases ?? [])
+    targetLinkIdsByAliasLinkId.set(claim.aliasLinkId, new Set(claim.targetLinkIds))
   const aliases = [...targetLinkIdsByAliasLinkId.entries()].sort(([leftId], [rightId]) => {
     const leftUrl = linkById.get(leftId)?.url ?? leftId
     const rightUrl = linkById.get(rightId)?.url ?? rightId
@@ -1354,7 +1373,7 @@ function itemIsVehicle(graph: PersistedGraph, item: PersistedItem): boolean {
   const source = graph.sources.find(candidate => candidate.id === item.sourceId)
   return source !== undefined
     && VEHICLE_TRANSPORTS.has(source.transport)
-    && graph.citations.some(citation => citation.itemId === item.id && citation.kind === 'outbound')
+    && (item.hasOutboundCitation ?? graph.citations.some(citation => citation.itemId === item.id && citation.kind === 'outbound'))
 }
 
 function memberCitations(graph: PersistedGraph, root: PersistedSignal): PersistedCitation[] {
@@ -1718,7 +1737,7 @@ async function embedSignalsAndMatchInterests(
   graph.readerMatchProfiles = profiles
 }
 
-const MAX_SIGNAL_AGE_MS = 7 * 24 * 60 * 60 * 1000
+export const MAX_SIGNAL_AGE_MS = 7 * 24 * 60 * 60 * 1000
 const CONVERGENCE_HALF_LIFE_MS = 36 * 60 * 60 * 1000
 
 interface LocalClock {
@@ -2032,11 +2051,20 @@ function pruneRetainedState(graph: PersistedGraph, at: Date): void {
   )
 }
 
+function citationTargets(parsed: ParsedFeedItem[]): string[] {
+  return [...new Set(parsed.flatMap(item => [
+    canonicalizeLink(item.link),
+    ...item.outboundUrls.map(link => canonicalizeLink(link.rawUrl, link.baseUrl ?? item.link)),
+  ]).filter((url): url is string => url !== undefined))]
+}
+
 async function ingestSource(
   graph: PersistedGraph,
   source: IngestionSource,
   fetch: ReturnType<typeof createCannedSafeFetch>,
   now: () => Date,
+  loadSourceState: RunIngestionCommon['loadSourceState'],
+  loadCitationTargets: RunIngestionCommon['loadCitationTargets'],
 ): Promise<{
   touchedHttpCacheKeys: ReadonlySet<string>
   touchedItemIds: ReadonlySet<string>
@@ -2076,8 +2104,13 @@ async function ingestSource(
         )
         return result
       }
+      await loadSourceState?.(source).catch((error) => {
+        throw new GraphReadError('Could not load pending Source state', { cause: error })
+      })
       const pendingHydration = pendingIssueHydrationItems(graph, source)
       const hydration = await hydrateIssuePages(graph, source, pendingHydration, fetch, now)
+      await loadCitationTargets?.(citationTargets(pendingHydration.filter(item => item.issueHydratedAt !== undefined)))
+        .catch((error) => { throw new GraphReadError('Could not resolve hydrated Citation targets', { cause: error }) })
       for (const hydratedCacheKey of hydration.touchedCacheKeys)
         touchedHttpCacheKeys.add(hydratedCacheKey)
       applyHydrationToPersistedItems(graph, source, pendingHydration, touchedItemIds)
@@ -2115,7 +2148,17 @@ async function ingestSource(
         item.link = item.guidPermalink
       }
     }
+    const inputHashes = new Map(parsed.map(item => [item, createHash('sha256').update(JSON.stringify(item)).digest('hex')]))
+    await loadSourceState?.(source, parsed.map((item) => {
+      const url = canonicalizeLink(item.link)
+      return { externalId: itemExternalId(item, url), hasGuid: Boolean(item.guid?.trim()), inputHash: inputHashes.get(item)!, requestUrl: item.link }
+    })).catch((error) => { throw new GraphReadError('Could not load existing Source state', { cause: error }) })
     const hydration = await hydrateIssuePages(graph, source, parsed, fetch, now)
+    await loadCitationTargets?.(citationTargets(parsed.filter((item) => {
+      const url = canonicalizeLink(item.link)
+      const existing = findPersistedItem(graph, source, item, itemExternalId(item, url), url)
+      return existing?.ingestionInputHash !== inputHashes.get(item) || item.issueHydratedAt !== undefined
+    }))).catch((error) => { throw new GraphReadError('Could not resolve Citation targets', { cause: error }) })
     for (const hydratedCacheKey of hydration.touchedCacheKeys)
       touchedHttpCacheKeys.add(hydratedCacheKey)
     putHttpCache(graph, cacheKey, response, fetchedAt)
@@ -2131,6 +2174,13 @@ async function ingestSource(
       const url = outbound ? undefined : linkedUrl
       const publishedAt = normalizedPublishedAt(item.rawFeedDate, fetchedAt)
       const existing = findPersistedItem(graph, source, item, externalId, url)
+      const ingestionInputHash = inputHashes.get(item)!
+      if (existing?.ingestionInputHash === ingestionInputHash && item.issueHydratedAt === undefined) {
+        existing.fetchedAt = fetchedAt
+        touchedItemIds.add(existing.id)
+        newest = laterDate(newest, existing.publishedAt)
+        continue
+      }
       let persistedItem: PersistedItem
       if (existing === undefined) {
         persistedItem = {
@@ -2147,6 +2197,7 @@ async function ingestSource(
           issueHydratedAt: item.issueHydratedAt ?? null,
           createdAt: fetchedAt,
           updatedAt: fetchedAt,
+          ingestionInputHash,
         }
         graph.items.push(persistedItem)
         itemsNew++
@@ -2162,6 +2213,7 @@ async function ingestSource(
           fetchedAt,
           issueHydratedAt: existing.issueHydratedAt ?? item.issueHydratedAt ?? null,
           updatedAt: fetchedAt,
+          ingestionInputHash,
         })
         persistedItem = existing
       }
@@ -2192,6 +2244,8 @@ async function ingestSource(
     })
   }
   catch (error) {
+    if (error instanceof GraphReadError)
+      throw error
     touchedHttpCacheKeys.clear()
     touchedItemIds.clear()
     const outcome = failureOutcome(error)
@@ -2217,6 +2271,9 @@ export async function runIngestion({
   initialGraph,
   embeddingProvider,
   loadSignalEmbeddings,
+  loadSourceState,
+  loadCitationTargets,
+  onSourcesComplete,
   onSourceCommitted,
 }: RunIngestionInput): Promise<PersistedGraph> {
   const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
@@ -2248,12 +2305,13 @@ export async function runIngestion({
       if (queue === undefined)
         return
       for (const source of queue) {
-        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now)
+        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets)
         await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
       }
     }
   }
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
+  await onSourcesComplete?.(graph)
   mergeReleaseTagAliases(graph)
   updateStrength(graph)
   if (embeddingProvider !== undefined)

@@ -541,6 +541,8 @@ describe('the Link and Citation graph through the ingestion seam', () => {
     })
     legacyGraph.links = []
     legacyGraph.citations = []
+    // Legacy rows predate the input revision used to reuse complete provenance.
+    legacyGraph.items[0]!.ingestionInputHash = null
 
     const graph = await runIngestion({
       sources: [source],
@@ -580,6 +582,7 @@ describe('the Link and Citation graph through the ingestion seam', () => {
     const legacyItemId = legacyItem.id
     legacyItem.externalId = legacyUrl
     legacyItem.url = legacyUrl
+    legacyItem.ingestionInputHash = null
     legacyGraph.links = []
     legacyGraph.citations = []
     legacyGraph.httpCache = []

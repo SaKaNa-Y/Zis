@@ -4,13 +4,15 @@ import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { Buffer } from 'node:buffer'
-import { and, eq, getTableColumns, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { createHash } from 'node:crypto'
+import { and, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db as defaultDatabase } from '@/lib/db'
 import {
   briefEntries as briefEntryTable,
   briefs as briefTable,
   citations as citationTable,
   httpCache,
+  ingestionCheckpoints,
   interests as interestTable,
   items,
   links as linkTable,
@@ -27,8 +29,10 @@ import {
 } from '@/lib/db/schema'
 import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
+import register from '../../../docs/source-register.json'
 import { publisherHostKey } from './canonicalize'
-import { RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
+import { loadCitationTargets, loadReaderScope, loadSourceState, readSignalMetadata as readSignals, recentBriefDate } from './graph-reader'
+import { httpCacheKey, RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
 import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const SIGNAL_WRITE_BATCH_SIZE = 1000
@@ -40,10 +44,15 @@ interface CompiledQuery {
 
 export interface IngestionReadMetrics {
   initialGraphJsonBytes: number
+  scopedGraphJsonBytes: number
   signalVectorsRead: number
   signalVectorJsonBytes: number
   matchesRecomputed: number
   matchesReused: number
+  affectedRows?: number
+  committedStatements?: number
+  compiledWriteBytes?: number
+  websocketCommits?: number
 }
 
 function asIngestionSource(row: typeof sources.$inferSelect): IngestionSource {
@@ -127,25 +136,6 @@ async function assertHostOwnership(database: Database): Promise<void> {
   }
 }
 
-async function readSignals(database: Database): Promise<PersistedSignal[]> {
-  // Stored vectors exceeded Neon's 64 MiB HTTP response limit in production.
-  // Bound each response, retaining every row through stable primary-key cursors.
-  const rows: PersistedSignal[] = []
-  let afterId: string | undefined
-  while (true) {
-    const page = await database.select({
-      ...getTableColumns(signalTable),
-      // A persisted handle is not a missing vector. Match invalidation below
-      // decides which vectors actually have to cross the Neon HTTP boundary.
-      embedding: sql<PersistedSignal['embedding']>`CASE WHEN ${signalTable.embedding} IS NULL THEN NULL ELSE '{"stored":true}'::jsonb END`,
-    }).from(signalTable).where(afterId === undefined ? undefined : gt(signalTable.id, afterId)).orderBy(signalTable.id).limit(SIGNAL_READ_BATCH_SIZE)
-    rows.push(...page)
-    if (page.length < SIGNAL_READ_BATCH_SIZE)
-      return rows
-    afterId = page.at(-1)!.id
-  }
-}
-
 async function readSignalEmbeddings(database: Database, ids: readonly string[]): Promise<ReadonlyMap<string, number[]>> {
   const vectors = new Map<string, number[]>()
   for (let offset = 0; offset < ids.length; offset += SIGNAL_READ_BATCH_SIZE) {
@@ -165,6 +155,8 @@ async function initialGraph(
   database: Database,
   dueSources: IngestionSource[],
   includeReaderStages: boolean,
+  scoped = false,
+  at = new Date(),
 ): Promise<PersistedGraph> {
   if (dueSources.length === 0 && !includeReaderStages) {
     return {
@@ -190,13 +182,13 @@ async function initialGraph(
 
   const [sourceRows, itemRows, cacheRows, robotsRows, hostRows, linkRows, signalRows, citationRows] = await Promise.all([
     database.select().from(sources),
-    database.select().from(items),
-    database.select().from(httpCache),
+    scoped ? [] : database.select().from(items),
+    database.select().from(httpCache).where(scoped ? inArray(httpCache.url, dueSources.map(source => httpCacheKey(source.endpointUrl))) : undefined),
     database.select().from(robotsCache),
     database.select().from(publisherHosts),
-    database.select().from(linkTable),
-    readSignals(database),
-    database.select().from(citationTable),
+    scoped ? [] : database.select().from(linkTable),
+    scoped ? [] : readSignals(database),
+    scoped ? [] : database.select().from(citationTable),
   ])
   const [userRows, interestRows, matchRows, publisherRows, briefRows, briefEntryRows, readStateRows] = includeReaderStages
     ? await Promise.all([
@@ -207,11 +199,11 @@ async function initialGraph(
           createdAt: userTable.createdAt,
         }).from(userTable),
         database.select().from(interestTable),
-        database.select().from(readerSignalMatchTable),
+        scoped ? [] : database.select().from(readerSignalMatchTable),
         database.select().from(publisherTable),
-        database.select().from(briefTable),
-        database.select().from(briefEntryTable),
-        database.select().from(readStateTable),
+        database.select().from(briefTable).where(scoped ? gte(briefTable.localDate, recentBriefDate(at)) : undefined),
+        scoped ? [] : database.select().from(briefEntryTable),
+        scoped ? [] : database.select().from(readStateTable),
       ])
     : [[], [], [], [], [], [], []]
   return {
@@ -381,7 +373,7 @@ function sourceStatements(
 
   const contentItems = graph.items.filter(candidate =>
     candidate.sourceId === source.id
-    && (latestLog.outcome === 'ok' || touchedItemIds.has(candidate.id)),
+    && touchedItemIds.has(candidate.id),
   )
   if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
     for (const item of contentItems) {
@@ -396,6 +388,7 @@ function sourceStatements(
           publishedAt: item.publishedAt,
           fetchedAt: item.fetchedAt,
           issueHydratedAt: item.issueHydratedAt,
+          ingestionInputHash: item.ingestionInputHash,
           updatedAt: item.updatedAt,
         },
       }))
@@ -405,7 +398,7 @@ function sourceStatements(
   if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
     const sourceCitations = graph.citations.filter(candidate =>
       candidate.sourceId === source.id
-      && (latestLog.outcome === 'ok' || touchedItemIds.has(candidate.itemId)),
+      && touchedItemIds.has(candidate.itemId),
     )
     const citedLinkIds = new Set(sourceCitations.map(citation => citation.linkId))
     for (const link of graph.links.filter(candidate => citedLinkIds.has(candidate.id))) {
@@ -495,7 +488,7 @@ function signalSnapshot(signal: PersistedSignal): string {
   return JSON.stringify({ ...signal, embedding: signal.embedding === null ? null : true })
 }
 
-async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, before: ReturnType<typeof finalGraphSnapshot>): Promise<void> {
+async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, before: ReturnType<typeof finalGraphSnapshot>, checkpoint?: typeof ingestionCheckpoints.$inferInsert): Promise<void> {
   const graph = {
     signals: finalGraph.signals.filter(row => before.signals.get(row.id) !== signalSnapshot(row)),
     interests: finalGraph.interests.filter(row => before.interests.get(row.id) !== JSON.stringify(row)),
@@ -509,7 +502,8 @@ async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, 
     && graph.readerSignalMatches.length === 0
     && graph.briefs.length === 0
     && graph.briefEntries.length === 0
-    && graph.readerMatchProfiles.length === 0) {
+    && graph.readerMatchProfiles.length === 0
+    && checkpoint === undefined) {
     return
   }
   const ordered = graph.signals.flatMap(signal => signal.embedding === null || !('stored' in signal.embedding)
@@ -611,15 +605,22 @@ async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, 
       }))
     }
   }
+  if (checkpoint !== undefined) {
+    statements.push(database.insert(ingestionCheckpoints).values(checkpoint).onConflictDoUpdate({
+      target: ingestionCheckpoints.id,
+      set: { processedThrough: checkpoint.processedThrough, configurationHash: checkpoint.configurationHash },
+    }))
+  }
   await commitStatements(database, statements)
 }
 
 async function commitRetention(database: Database, at: Date): Promise<void> {
   const retainedSince = new Date(at.getTime() - RETENTION_WINDOW_MS)
   await commitStatements(database, [
-    database.update(items).set({ text: null }).where(lt(items.createdAt, retainedSince)),
+    database.update(items).set({ text: null }).where(and(isNotNull(items.text), lt(items.createdAt, retainedSince))),
     database.update(signalTable).set({ embeddingText: null }).where(and(
       eq(signalTable.textBasis, 'own'),
+      isNotNull(signalTable.embeddingText),
       isNotNull(signalTable.embeddingTextExpiresAt),
       lt(signalTable.embeddingTextExpiresAt, at),
     )),
@@ -628,7 +629,11 @@ async function commitRetention(database: Database, at: Date): Promise<void> {
   ])
 }
 
-/** Run due RSS/Atom Sources and the reader stages through the same Neon-backed seam. */
+/**
+ * Run Sources and reader stages through the same Neon-backed seam. With a valid
+ * checkpoint, arrays describe the loaded working set; corpusCounts reports the
+ * persisted corpus size without downloading its records.
+ */
 export async function runNeonIngestion(
   at: Date = new Date(),
   database: Database = defaultDatabase(),
@@ -636,6 +641,7 @@ export async function runNeonIngestion(
   embeddingProvider?: EmbeddingProvider,
   reportReads?: (metrics: IngestionReadMetrics) => void,
 ): Promise<PersistedGraph> {
+  const writesBefore = database.writeMetrics?.()
   await assertHostOwnership(database)
   await refreshRobotDisabledSources(database, at, fetcher)
   const dormantBefore = new Date(at)
@@ -653,10 +659,26 @@ export async function runNeonIngestion(
     )),
   ])
   const dueSources = rows.map(asIngestionSource)
-  const graph = await initialGraph(database, dueSources, embeddingProvider !== undefined)
-  const before = finalGraphSnapshot(graph)
+  const checkpoint = embeddingProvider === undefined ? undefined : (await database.execute<{ processed_through: string, configuration_hash: string }>(sql`SELECT processed_through, configuration_hash FROM ingestion_checkpoint WHERE id = 1`)).rows[0]
+  let graph = await initialGraph(database, dueSources, embeddingProvider !== undefined, checkpoint !== undefined, at)
+  const configurationHash = createHash('sha256').update(JSON.stringify([
+    'incremental-graph-v1',
+    register,
+    embeddingProvider === undefined ? null : [embeddingProvider.model, embeddingProvider.dimensions, embeddingProvider.version],
+    graph.sources.map(row => [row.id, row.publisherId, row.transport, row.endpointUrl, row.isAggregator]).sort(),
+    graph.publisherHosts.map(row => [row.host, row.publisherId]).sort(),
+    graph.users.map(row => [row.id, row.timezone, row.cutHour]).sort(),
+    graph.interests.map(row => [row.id, row.userId, row.statement]).sort(),
+  ])).digest('hex')
+  const incremental = checkpoint !== undefined
+    && checkpoint.configuration_hash === configurationHash
+    && new Date(checkpoint.processed_through).getTime() <= at.getTime()
+  if (checkpoint !== undefined && !incremental)
+    graph = await initialGraph(database, dueSources, true)
+  let before = finalGraphSnapshot(graph)
   const metrics: IngestionReadMetrics = {
     initialGraphJsonBytes: Buffer.byteLength(JSON.stringify(graph)),
+    scopedGraphJsonBytes: 0,
     signalVectorsRead: 0,
     signalVectorJsonBytes: 0,
     matchesRecomputed: 0,
@@ -669,6 +691,22 @@ export async function runNeonIngestion(
     wakeAt: at,
     initialGraph: graph,
     embeddingProvider,
+    loadSourceState: incremental
+      ? async (source, lookups) => {
+        metrics.scopedGraphJsonBytes += await loadSourceState(database, graph, source, lookups)
+      }
+      : undefined,
+    loadCitationTargets: incremental
+      ? async (urls) => {
+        metrics.scopedGraphJsonBytes += await loadCitationTargets(database, graph, urls)
+      }
+      : undefined,
+    onSourcesComplete: incremental
+      ? async () => {
+        metrics.scopedGraphJsonBytes += await loadReaderScope(database, graph, new Date(checkpoint.processed_through), at)
+        before = finalGraphSnapshot(graph)
+      }
+      : undefined,
     loadSignalEmbeddings: async (ids) => {
       const vectors = await readSignalEmbeddings(database, ids)
       metrics.signalVectorsRead += vectors.size
@@ -678,7 +716,19 @@ export async function runNeonIngestion(
     onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
       commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
   })
-  await commitFinalGraph(database, persisted, before)
+  await commitFinalGraph(database, persisted, before, embeddingProvider === undefined
+    ? undefined
+    : {
+        id: 1,
+        processedThrough: at,
+        configurationHash,
+      })
+  if (incremental) {
+    const counts = await database.execute<{ items: number, signals: number, citations: number, links: number }>(sql`SELECT
+      (SELECT count(*)::int FROM item) AS items, (SELECT count(*)::int FROM signal) AS signals,
+      (SELECT count(*)::int FROM citation) AS citations, (SELECT count(*)::int FROM link) AS links`)
+    persisted.corpusCounts = counts.rows[0]
+  }
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))
   for (const source of persisted.sources) {
     if (source.disabledAt === null && source.newestItemAt !== null && source.newestItemAt < dormantBefore)
@@ -690,6 +740,13 @@ export async function runNeonIngestion(
   await commitRetention(database, at)
   metrics.matchesReused = persisted.readerSignalMatches.filter(row => before.matches.get(`${row.userId}\0${row.signalId}`) === JSON.stringify(row)).length
   metrics.matchesRecomputed = persisted.readerSignalMatches.length - metrics.matchesReused
+  if (writesBefore !== undefined) {
+    const after = database.writeMetrics()
+    metrics.affectedRows = after.affectedRows - writesBefore.affectedRows
+    metrics.committedStatements = after.committedStatements - writesBefore.committedStatements
+    metrics.compiledWriteBytes = after.compiledWriteBytes - writesBefore.compiledWriteBytes
+    metrics.websocketCommits = after.websocketCommits - writesBefore.websocketCommits
+  }
   reportReads?.(metrics)
   return persisted
 }

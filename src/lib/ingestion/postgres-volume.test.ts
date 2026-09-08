@@ -117,6 +117,8 @@ it.each([
   let metadataBytesRead = 0
   const writeQueries: string[] = []
   vi.spyOn(database.$client, 'query').mockImplementation(((query: string, params: unknown[]) => {
+    if (query.includes('FROM ingestion_checkpoint'))
+      return Promise.resolve({ rows: [] })
     if (query.startsWith('select')) {
       if (!query.includes('CASE WHEN')) {
         const rows = signals.filter(signal => params.includes(signal.id)).map(signal => [signal.id, JSON.stringify(vector)])
@@ -196,7 +198,7 @@ it.each([
     writeQueries.length = 0
     await run()
     expect(vectorRowsRead).toBe(0)
-    expect(writeQueries.some(query => query.startsWith('insert'))).toBe(false)
+    expect(writeQueries.some(query => query.startsWith('insert') && !query.includes('ingestion_checkpoint'))).toBe(false)
     expect(commands).toEqual([])
     return
   }
