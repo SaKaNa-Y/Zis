@@ -5,6 +5,7 @@ import type {
   ReservedCredential,
 } from './credentials'
 import { Pool } from '@neondatabase/serverless'
+import { hash } from '@node-rs/argon2'
 import { databaseUrl } from '@/lib/env'
 import 'server-only'
 
@@ -16,6 +17,13 @@ export interface CredentialTransactionClient {
     text: string,
     values?: unknown[],
   ) => Promise<{ rows: Record<string, unknown>[] }>
+}
+
+export class CredentialActionError extends Error {}
+
+interface PassphraseReplacement {
+  identity: CredentialIdentity
+  newPassphrase: string
 }
 
 function credentialFrom(row: Record<string, unknown> | undefined): ReservedCredential | null {
@@ -53,6 +61,7 @@ export async function runCredentialAttemptTransaction(
   client: CredentialTransactionClient,
   passphrase: string,
   verifyHash: HashVerifier,
+  replacement?: PassphraseReplacement,
 ): Promise<CredentialIdentity | null> {
   await client.query('BEGIN')
 
@@ -70,6 +79,9 @@ export async function runCredentialAttemptTransaction(
       await client.query('COMMIT')
       return null
     }
+
+    if (replacement && (credential.userId !== replacement.identity.userId || credential.sessionVersion !== replacement.identity.sessionVersion))
+      throw new CredentialActionError('Your session has expired. Sign in again.')
 
     let matches = false
     try {
@@ -104,7 +116,11 @@ export async function runCredentialAttemptTransaction(
       return null
     }
 
-    const completed = await client.query(`
+    const newHash = replacement
+      ? await hash(replacement.newPassphrase, { algorithm: 2, memoryCost: 65_536, timeCost: 3, parallelism: 1, outputLen: 32 })
+      : undefined
+    const completed = newHash === undefined
+      ? await client.query(`
       UPDATE "user"
       SET "failed_attempts" = 0, "locked_until" = NULL
       WHERE "id" = $1::uuid
@@ -112,6 +128,13 @@ export async function runCredentialAttemptTransaction(
         AND "session_version" = $3
       RETURNING "id", "session_version"
     `, [credential.userId, credential.passphraseHash, credential.sessionVersion])
+      : await client.query(`
+      UPDATE "user"
+      SET "passphrase_hash" = $4, "session_version" = "session_version" + 1,
+          "failed_attempts" = 0, "locked_until" = NULL
+      WHERE "id" = $1::uuid AND "passphrase_hash" = $2 AND "session_version" = $3
+      RETURNING "id", "session_version"
+    `, [credential.userId, credential.passphraseHash, credential.sessionVersion, newHash])
     const identity = identityFrom(completed.rows[0])
     await client.query('COMMIT')
     return identity
@@ -127,21 +150,18 @@ export async function runCredentialAttemptTransaction(
   }
 }
 
-async function authenticate(
-  passphrase: string,
-  verifyHash: HashVerifier,
-): Promise<CredentialIdentity | null> {
+export async function withCredentialClient<T>(operation: (client: CredentialTransactionClient) => Promise<T>): Promise<T> {
   const pool = new Pool({ connectionString: databaseUrl() })
 
   try {
     const client = await pool.connect()
     try {
-      return await runCredentialAttemptTransaction({
+      return await operation({
         query: async (text, values) => {
           const result = await client.query(text, values)
           return { rows: result.rows as Record<string, unknown>[] }
         },
-      }, passphrase, verifyHash)
+      })
     }
     finally {
       client.release()
@@ -152,4 +172,6 @@ async function authenticate(
   }
 }
 
-export const postgresCredentialStore: CredentialStore = { authenticate }
+export const postgresCredentialStore: CredentialStore = {
+  authenticate: (passphrase, verifyHash) => withCredentialClient(client => runCredentialAttemptTransaction(client, passphrase, verifyHash)),
+}

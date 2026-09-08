@@ -53,6 +53,19 @@
   --accent: oklch(72% 0.13 42);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:where(:not(.light):not(.dark)) {
+    color-scheme: dark;
+    --paper: oklch(18% 0.016 65);
+    --paper-sunk: oklch(22% 0.017 65);
+    --ink: oklch(91% 0.018 82);
+    --ink-dim: oklch(74% 0.021 82);
+    --ink-faint: oklch(59% 0.02 82);
+    --rule: oklch(35% 0.024 65);
+    --accent: oklch(72% 0.13 42);
+  }
+}
+
 @media (prefers-contrast: more) {
   :root {
     --ink-dim: var(--ink);

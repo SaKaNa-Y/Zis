@@ -300,6 +300,42 @@ route. That is a password-manager habit, not a Zis feature.
 
 ---
 
+### 6.3 Authenticated account actions
+
+Agreed and confirmed before implementation during
+[#95](https://github.com/SaKaNa-Y/Zis/issues/95).
+
+Changing the passphrase requires a valid session and proof of the current
+passphrase. The reader enters the new passphrase twice; both fields allow password
+manager filling and pasting, and must match. The new secret remains generated and
+stored by the reader's password manager, as required by §6.1.
+
+The new passphrase must contain 32–1024 UTF-8 bytes: the lower bound matches the
+existing local generation helper, and the upper bound keeps the result usable by
+login. Do not require character-class combinations or treat length as proof of
+randomness. Confirmation and size errors are input validation failures, not failed
+proofs of the current passphrase.
+
+Current-passphrase verification shares login's account-wide failure counter and
+lockout (§5). Five consecutive failed proofs lock verification for 15 minutes,
+whether submitted through login or Settings. A lock does not invalidate existing
+sessions: reading and sign out everywhere remain available. Settings must explain
+when verification is temporarily unavailable rather than imply that an update
+succeeded.
+
+A successful change invalidates every existing session, including the current
+browser's, and returns the reader to login to authenticate with the new passphrase.
+This is authenticated credential replacement, not an additional recovery path.
+Replacing the hash and incrementing `session_version` must be one atomic change,
+so a partial failure cannot leave old sessions valid with a new credential.
+
+Sign out everywhere requires a valid session and explicit confirmation, but no
+passphrase re-entry. It invalidates the current session as well as those on other
+devices. Keeping revocation available without another credential proof lets an
+authenticated reader revoke access promptly.
+
+---
+
 ## 7. Required tests
 
 The URL validator's test suite is the most important code in the project after

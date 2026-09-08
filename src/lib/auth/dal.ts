@@ -8,6 +8,7 @@ import 'server-only'
 
 export interface VerifiedSession {
   userId: string
+  sessionVersion: number
 }
 
 export interface VerifySessionDependencies {
@@ -29,7 +30,7 @@ export function createVerifySession(
     if (storedVersion === null || storedVersion !== session.sessionVersion)
       return dependencies.unauthorized()
 
-    return { userId: session.userId }
+    return { userId: session.userId, sessionVersion: session.sessionVersion }
   }
 }
 

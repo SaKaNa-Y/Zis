@@ -64,7 +64,7 @@ afterEach(() => {
 
 describe('deny-by-default routing', () => {
   it('redirects unauthenticated page navigation to the sole public route', async () => {
-    for (const pathname of ['/', '/future', '/login-admin']) {
+    for (const pathname of ['/', '/settings', '/future', '/login-admin']) {
       const response = await proxy(request(pathname, { headers: { accept: 'text/html' } }))
 
       expect(response.status, pathname).toBe(307)

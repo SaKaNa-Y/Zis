@@ -5,6 +5,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
+import { DAILY_INGESTION_CRON, generationTime } from '../src/lib/settings/timing'
 
 /**
  * The repository-shaped decisions from `docs/repo-and-ci.md`, asserted rather
@@ -66,6 +67,8 @@ describe('one production wake serves ingestion and the daily Brief', () => {
     const scheduled = readWorkflows().filter(({ workflow }) => workflow.on?.schedule !== undefined)
     expect(scheduled.map(({ file }) => file)).toEqual(['ingest.yml'])
     expect(scheduled[0]?.workflow.on?.schedule).toEqual([{ cron: '17 22 * * *' }])
+    expect(scheduled[0]?.workflow.on?.schedule).toEqual([{ cron: DAILY_INGESTION_CRON }])
+    expect(generationTime()).toBe('06:17')
   })
 
   it('preserves manual retries, one sequential job, and non-cancelling concurrency without migrations', () => {

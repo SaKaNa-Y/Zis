@@ -243,12 +243,30 @@ reopen #5 and needs its own ticket, not a rail entry.
 ## 8. Settings — and the theme lives in a per-device cookie
 
 Settings exists so that **appearance, cut time, and account actions stop being
-loose chrome** on the reading surface. It holds: appearance (light / dark / match
-system), the cut hour with the stored timezone, how much (§9 of the ranking model
-is the real gate; this is a named size, never a number field, because #14 requires
-the ceiling to stay out of the interface and a free number input is how the bound
-dies), and account (change passphrase, sign out everywhere — which bumps
-`session_version`).
+loose chrome** on the reading surface. The first implementation scope, agreed
+during [#95](https://github.com/SaKaNa-Y/Zis/issues/95), is appearance, read-only
+timing information, and account actions. The owner confirmed the decisions below
+before implementation.
+
+Timing shows the stored timezone and cut hour alongside the daily generation
+arrangement. Neither value is editable in this scope. A cut hour is a condition
+checked during ingestion, not a scheduler: changing it would not create another
+run or promise delivery at that hour. Timing copy must reflect the daily scheduling
+decision in [#92](https://github.com/SaKaNa-Y/Zis/issues/92), and acknowledge that
+completion can be delayed.
+
+Lead with the daily generation arrangement in plain language. Put the stored
+timezone, cut hour, and explanation of the cut condition in an expandable
+read-only detail. The schedule shown must track the actual scheduling
+configuration; it is not an exact delivery promise.
+
+The old named-size control (Shorter / Standard / Longer) is removed from this
+scope. Admission has no fixed number of places; see `CONTEXT.md` and
+[`ranking-model.md` §9](ranking-model.md). Settings must not expose an entry quota
+or a threshold control to implement that obsolete wording.
+
+Account offers change passphrase and sign out everywhere. The agreed verification
+and session behavior is recorded in [`security-model.md` §6.3](security-model.md#63-authenticated-account-actions).
 
 **There is no Layout section** — #23 removed the empty one this document used to
 describe (§0). Appearance is the *only* presentation control in Settings, and
@@ -257,9 +275,19 @@ ADR-0009 is why it is the only one.
 **The theme preference is a per-device cookie, not a `User` column.** One reader
 on a phone at night and a desktop at noon wants two answers, and a row forces one;
 the cookie also keeps a presentation preference out of the personal-layer schema.
-Cost: clearing cookies loses it, which is a shrug. The mechanism is #15's — a
-class rendered on `<html>` by the server from the cookie, toggled by a Server
-Action, **zero flash by construction**, no `next-themes`.
+The preference belongs to the current browser; another browser on the same device
+does not share it. Signing out, including after changing the passphrase, retains
+the preference for the login page and the next session. Clearing the cookie
+restores the default, **match system**.
+Selecting light, dark, or match system applies and saves immediately, with an
+explicit failure message if saving fails. Match system follows OS appearance
+changes without another selection.
+
+The server renders the saved appearance mode on `<html>` from the cookie; a
+Server Action persists changes. System mode must resolve through the browser's
+system preference, including on the first visit: the cookie alone cannot tell the
+server which OS appearance is active. Preserve the zero-flash requirement without
+`next-themes`.
 
 ## 9. Typography — the real work, and there is no plugin
 

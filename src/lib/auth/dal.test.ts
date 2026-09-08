@@ -20,7 +20,7 @@ function refuse(): never {
 }
 
 describe('the authenticated data-access boundary', () => {
-  it('returns only the user identity when the signed and stored versions agree', async () => {
+  it('returns the verified identity and version when the signed and stored versions agree', async () => {
     process.env.SESSION_SECRET = TEST_SECRET
     vi.useFakeTimers()
     vi.setSystemTime(NOW)
@@ -34,7 +34,7 @@ describe('the authenticated data-access boundary', () => {
       unauthorized: refuse,
     })
 
-    await expect(verifySession()).resolves.toEqual({ userId: USER_ID })
+    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4 })
   })
 
   it('invalidates a live token as soon as the stored session version is bumped', async () => {
@@ -52,7 +52,7 @@ describe('the authenticated data-access boundary', () => {
       unauthorized: refuse,
     })
 
-    await expect(verifySession()).resolves.toEqual({ userId: USER_ID })
+    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4 })
     storedVersion = 5
     await expect(verifySession()).rejects.toThrow('redirect:/login')
   })
