@@ -74,3 +74,52 @@ budget will be appended after rollout. The first scheduled run completed at
 08:29:33 Asia/Shanghai on September 8; a complete first-24-hour observation cannot
 be claimed earlier than September 9, plus the usage-metric delay. Keep #92 open
 until its operational acceptance criteria have evidence.
+
+## Pre-deployment checks and review
+
+At approximately **15:29 Asia/Shanghai**, the Zis project dashboard reported
+month-to-date compute **1.28/100 CU-hours**, network transfer **0.45/5 GB**, storage
+**0.1/0.5 GB**, and history **0.08 GB**. Production and preview were both idle at
+0.25 CU. The dashboard explicitly allows an hour of metric delay and does not
+refresh inactive projects. Compared with the earlier 0.33 GB reading, the 0.12 GB
+increase includes the previous vector-stage validation and operator/UI activity;
+it is not an isolated measurement of the new graph reader.
+
+Before migration 0010, all ten production migration hashes and journal timestamps
+matched the checkout. Read-only counts were 5,419 Items, 15,835 Signals/Links,
+18,163 Citations, four Briefs, 83 Brief Entries, and four September 8 entries.
+Private temporary digests were captured for the sealed Brief records so migration
+and validation runs can be compared without exporting their contents.
+
+Independent Standards review found no documented violation. Its two duplication
+findings were fixed by sharing the existing HTTP cache-key function and Signal-age
+constant; the reviewer confirmed both resolved. Spec review found no code defects
+or scope creep, retaining the three pending operational requirements: production
+measurement, first-24-hour usage, and monthly budget qualification. After those
+small review changes, 20 focused tests plus TypeScript and ESLint passed.
+
+## Budget worksheet for operational acceptance
+
+These are conservative planning allocations, not a claim of measured usage or
+authorization to change cadence. Keep the daily schedule until real counters
+qualify it. Before proposing hourly, substitute 730 runs/month for 31 and obtain
+the owner's separate decision.
+
+| Resource | Proposed monthly envelope | Evidence required |
+| --- | --- | --- |
+| Network, ingestion | 1 GB | At most 32.26 MB per daily run, including control queries and write responses, from delayed Neon counters |
+| Network, UI and preview | 1 GB | Observe authenticated UI/preview activity; do not assume cache estimates equal transfer |
+| Network, growth and maintenance | 1 GB | Allow new retained provenance, migration warmups, and retries |
+| Network, unallocated margin | 2 GB | Subtract existing monthly consumption before evaluating the remaining month |
+| Compute, ingestion | 2 CU-hours | At fixed 0.25 CU, 31 wakes of 120 seconds plus the 300-second idle tail estimate 0.904 CU-hours; verify actual wake duration |
+| Compute, UI and preview | 10 CU-hours | Includes extra wakes; a UI request can extend an existing wake or create another |
+| Compute, unallocated margin | 88 CU-hours | Shared 100-CU-hour project pool, including preview |
+| Storage | Plan below 0.4 GB; retain 0.1 GB margin | Project current live storage plus measured daily growth across the month; provenance is permanent, so no finite projection proves indefinite capacity |
+
+At the 15:29 reading, remaining monthly transfer is approximately 4.55 GB and
+compute approximately 98.72 CU-hours. UI and growth allowances are explicit
+assumptions; the 24-hour observation must say whether they are supported. If the
+plan is exceeded, record the deficit and retain daily cadence rather than reducing
+Admission, provenance, or retention. Public-repository standard Actions runners
+remove the private-repository minute ceiling, but actual run/CI time still belongs
+in the observation record.
