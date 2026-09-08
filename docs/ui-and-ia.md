@@ -61,6 +61,37 @@ none, and a nav bar pinned to the bottom of a page whose thesis is *you can fini
 this* is a permanent invitation to leave. On phone the destinations live in the
 footer, reached having finished.
 
+### Saved — retrieval scope
+
+The first implementation's scope is being specified in
+[#94](https://github.com/SaKaNa-Y/Zis/issues/94). The reader has settled these
+decisions:
+
+- Saved primarily helps the reader find an original again: title, origin, and
+  saved date orient the list, with links to the original and Signal provenance.
+- The first version supports browsing all Bookmarks and removing them. Search
+  and filters are outside this issue's scope.
+- The fixed default order is most recently saved first.
+- When bookmarked Signals merge, Saved shows one entry using the most recent
+  saved timestamp among those Bookmarks for both display and ordering.
+- Saved uses pages of 20 Bookmarks, with previous and next navigation.
+- Removal takes effect immediately and offers Undo.
+- Only Saved offers removal in this first version. Today and historical Briefs
+  retain their existing Save behavior. Removal clears the reader's Bookmark
+  across the merged Signal identity; it changes neither Read State nor sealed
+  Brief contents or ordering.
+- Each removal retains an Undo action for the current page visit, without a
+  timer. Pagination, reload, or leaving the page ends that opportunity. Undo
+  restores the previous saved timestamp and its corresponding sort position.
+- Titles and origins reflect the current Signal, consistent with Today; Saved
+  does not introduce a snapshot of content at the time of bookmarking.
+- The provenance link uses the reader's most recent related Brief Entry and
+  clearly identifies the date of that entry's historical explanation. It must
+  remain reachable when the bookmarked Signal has merged; a resolved Signal ID
+  alone is not sufficient for the existing provenance route's ownership check.
+
+The reader confirmed this scope for implementation on September 8, 2026.
+
 ## 2. The two Admission routes render as a section break
 
 `admitted_by` is stored precisely so this could stay open

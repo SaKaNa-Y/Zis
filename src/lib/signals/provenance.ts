@@ -19,6 +19,8 @@ export interface SignalProvenancePublisher {
 
 export interface SignalProvenance {
   admittedBy: 'interest' | 'convergence'
+  briefDate: string
+  whyText: string
   entryId: string
   originUrl: string
   publishers: SignalProvenancePublisher[]
@@ -31,6 +33,8 @@ export interface SignalProvenance {
 export interface SignalProvenanceRow {
   [key: string]: unknown
   admitted_by: string | null
+  brief_date: string | null
+  why_text: string | null
   citation_first_seen_at: Date | string | null
   citation_id: string | null
   entry_signal_id: string | null
@@ -86,6 +90,8 @@ function timestamp(value: Date | string | null): string {
 
 function sameProjection(left: SignalProvenanceRow, right: SignalProvenanceRow): boolean {
   return left.admitted_by === right.admitted_by
+    && left.brief_date === right.brief_date
+    && left.why_text === right.why_text
     && left.entry_signal_id === right.entry_signal_id
     && left.origin_publisher_id === right.origin_publisher_id
     && left.origin_publisher_name === right.origin_publisher_name
@@ -217,6 +223,8 @@ function provenanceFrom(
 
   return {
     admittedBy: first.admitted_by,
+    briefDate: nonempty(first.brief_date, 'Brief date'),
+    whyText: nonempty(first.why_text, 'frozen explanation'),
     entryId: first.entry_signal_id,
     originUrl,
     publishers: orderedPublishers.map(({ firstSeenAt: _, ...publisher }) => publisher),
@@ -243,8 +251,11 @@ export function signalProvenanceStatement(userId: string, entrySignalId: string)
     selected_entry AS (
       SELECT
         entry."signal_id" AS "entry_signal_id",
-        entry."admitted_by"
+        entry."admitted_by",
+        entry."why_text",
+        brief."local_date" AS "brief_date"
       FROM "brief_entry" AS entry
+      JOIN "brief" AS brief ON brief."id" = entry."brief_id" AND brief."user_id" = entry."user_id"
       WHERE entry."user_id" = ${userId}::uuid
         AND entry."signal_id" = ${entrySignalId}::uuid
     ),
@@ -301,6 +312,8 @@ export function signalProvenanceStatement(userId: string, entrySignalId: string)
     SELECT
       selected_entry."entry_signal_id"::text AS "entry_signal_id",
       selected_entry."admitted_by"::text AS "admitted_by",
+      selected_entry."brief_date"::text AS "brief_date",
+      selected_entry."why_text",
       root_signal."id"::text AS "signal_id",
       root_signal."strength",
       root_signal."origin_publisher_id"::text AS "origin_publisher_id",

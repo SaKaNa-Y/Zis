@@ -134,6 +134,18 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
                 )}
           </header>
 
+          <section aria-label="Historical explanation" className="mt-register max-w-measure-lg">
+            <h2 className="text-meta font-semibold text-ink-dim">
+              Why this appeared in the Brief of
+              {' '}
+              <Link href={`/earlier/${provenance.briefDate}`} className="underline underline-offset-4">
+                <time dateTime={provenance.briefDate}>{provenance.briefDate}</time>
+              </Link>
+            </h2>
+            <p className="mt-2 break-words text-body text-ink-dim">{provenance.whyText}</p>
+            <p className="mt-2 text-meta text-ink-faint">This explanation is frozen. The Citation record below reflects the current Signal.</p>
+          </section>
+
           <dl className="mt-register grid max-w-measure gap-y-5 text-body sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-6">
             <dt className="font-mono text-meta uppercase tracking-[0.12em] text-ink-faint">Admission</dt>
             <dd className="m-0 text-ink">{admissionLabel(provenance.admittedBy)}</dd>

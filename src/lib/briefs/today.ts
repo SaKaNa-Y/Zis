@@ -170,7 +170,7 @@ export function createDatedBriefReader(queryRows: (userId: string, localDate: st
   }
 }
 
-function briefStatement(userId: string, localDate: SQL) {
+export function briefStatement(userId: string, localDate: SQL) {
   return sql`
     WITH RECURSIVE
     reader AS (

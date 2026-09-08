@@ -11,6 +11,8 @@ describe('signal provenance', () => {
     const html = renderToStaticMarkup(createElement(SignalProvenanceView, {
       provenance: {
         admittedBy: 'interest',
+        briefDate: '2026-08-30',
+        whyText: 'matched database internals',
         entryId: '00000000-0000-4000-8000-000000000771',
         originUrl: 'https://origin.example/release',
         publishers: [
@@ -55,6 +57,8 @@ describe('signal provenance', () => {
     expect(html).toContain('target="_blank"')
     expect(html).toContain('rel="noopener noreferrer"')
     expect(html).toContain('Interest match')
+    expect(html).toContain('matched database internals')
+    expect(html).toContain('2026-08-30')
     expect(html).toContain('Strength 1')
     expect(html).toContain('1 distinct Publisher, with the origin excluded')
     expect(html.match(/data-citation-id=/g)).toHaveLength(2)
@@ -75,6 +79,8 @@ describe('signal provenance', () => {
     const signalId = '00000000-0000-4000-8000-000000000782'
     const base = {
       admitted_by: 'convergence',
+      brief_date: '2026-08-30',
+      why_text: 'no Interest matched',
       entry_signal_id: entryId,
       origin_publisher_id: '00000000-0000-4000-8000-000000000789',
       origin_publisher_name: 'Origin Publisher',
@@ -144,6 +150,8 @@ describe('signal provenance', () => {
     const entryId = '00000000-0000-4000-8000-000000000791'
     const readProvenance = createSignalProvenanceReader(async () => [{
       admitted_by: 'interest',
+      brief_date: '2026-08-30',
+      why_text: 'matched database internals',
       citation_first_seen_at: '2026-08-30T01:00:00.000Z',
       citation_id: '00000000-0000-4000-8000-000000000792',
       entry_signal_id: entryId,

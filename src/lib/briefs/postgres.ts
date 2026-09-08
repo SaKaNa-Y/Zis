@@ -12,7 +12,7 @@ export type SignalMutationExecutor = (
   statement: SQL,
 ) => Promise<{ rows: readonly SignalMutationRow[] }>
 
-function ownedSignalWalk(userId: string, requestedSignalId: string) {
+export function ownedSignalGraph(userId: string) {
   return sql`
     WITH RECURSIVE owned_signal_walk AS (
       SELECT
@@ -64,7 +64,13 @@ function ownedSignalWalk(userId: string, requestedSignalId: string) {
     authorized_member AS (
       SELECT DISTINCT "root_id", "member_id"
       FROM authorized_member_walk
-    ),
+    )
+  `
+}
+
+export function ownedSignalWalk(userId: string, requestedSignalId: string) {
+  return sql`
+    ${ownedSignalGraph(userId)},
     authorized_signal AS (
       SELECT DISTINCT authorized_member."root_id" AS "signal_id"
       FROM authorized_member

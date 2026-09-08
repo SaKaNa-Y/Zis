@@ -30,6 +30,7 @@ export function createReaderSignalActions(dependencies: ReaderSignalActionDepend
       await mutate(userId, signalId)
       dependencies.revalidate('/')
       dependencies.revalidate('/earlier/[date]', 'page')
+      dependencies.revalidate('/saved')
     }
   }
 

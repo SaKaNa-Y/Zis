@@ -32,6 +32,8 @@ describe('signal provenance read model', () => {
   it('fails instead of rendering arithmetic that disagrees with stored Strength', async () => {
     const readProvenance = createSignalProvenanceReader(async () => [{
       admitted_by: 'interest',
+      brief_date: '2026-08-30',
+      why_text: 'matched database internals',
       citation_first_seen_at: '2026-08-30T01:00:00.000Z',
       citation_id: '00000000-0000-4000-8000-000000000772',
       entry_signal_id: ENTRY_ID,
