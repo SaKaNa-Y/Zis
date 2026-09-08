@@ -27,6 +27,7 @@ import {
   sources,
   users as userTable,
 } from '@/lib/db/schema'
+import { guardInterestProfiles } from '@/lib/interests/concurrency'
 import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
 import register from '../../../docs/source-register.json'
@@ -611,7 +612,10 @@ async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, 
       set: { processedThrough: checkpoint.processedThrough, configurationHash: checkpoint.configurationHash },
     }))
   }
-  await commitStatements(database, statements)
+  await database.commit([
+    ...guardInterestProfiles(finalGraph.interests, finalGraph.users.map(user => user.id)),
+    ...statements.map(statement => statement.toSQL()),
+  ])
 }
 
 async function commitRetention(database: Database, at: Date): Promise<void> {

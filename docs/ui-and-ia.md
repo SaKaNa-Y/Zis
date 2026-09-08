@@ -169,6 +169,19 @@ is where **Tag** search lives (§7).
 remove, a live `font-mono tabular-nums` character count against ~200, sized for
 the ~10–20 statements ADR-0003 describes. Twenty textareas is a page, not a panel.
 
+The editor saves the Profile atomically: 1–20 statements, each 1–200 Unicode
+code points after trimming surrounding whitespace. Blank statements and repeated
+record IDs are rejected on the server, as are IDs outside the authenticated
+reader's Profile. Existing IDs stay stable when edited. An empty stored Profile
+opens with one blank textarea and asks the reader to add their first Interest;
+saving an empty Profile is forbidden. Add a replacement before removing the last
+Interest, so the next cut cannot fail for lack of a Profile (ADR-0003).
+
+The Save button persists all additions, edits, and removals together. A failed
+save retains the draft. The next ingestion refreshes changed embeddings and
+matches. If an edit races that ingestion's final commit, the stale computation
+rolls back and the next wake retries against the saved Profile.
+
 **Edits land on tomorrow, and the interface says so.** Today's Brief is sealed
 (#14), so an edit *cannot* change it; an interface that implied otherwise would
 teach the reader that the seal is soft.
