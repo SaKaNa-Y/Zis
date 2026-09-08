@@ -146,7 +146,7 @@ two completion gaps: full-corpus metadata reads remain, and actual deployed
 usage/runtime, the full 24-hour observation, and monthly budget qualification
 are still pending. These are open #92 acceptance requirements.
 
-The changes are prepared locally; production still runs `4ea0ca3`. The verified
+At the preparation checkpoint, production still ran `4ea0ca3`. The verified
 Neon production branch is `br-wild-scene-b3gzsh9b` in project `Zis`
 (`summer-hat-29072279`). Its sole manual-snapshot slot is occupied by
 **production at 2026-09-02 13:59:35 UTC (manual)**. No snapshot was deleted,
@@ -160,11 +160,13 @@ choose a different approved backup/migration procedure.
 - [x] Observe and record the first genuine scheduled run, cache result, timing,
   and warnings.
 - [x] Verify the saved local date and authenticated rendering.
-- [ ] Approve the backup step, apply migration 0009 through the normal migration
-  runner to the intended databases, and deploy the reviewed code.
-- [ ] Observe an initial checkpoint fill and an unchanged follow-up run. Confirm
-  vector-read and write reductions, pipeline time, unchanged saved Briefs, and
-  refreshed Neon usage. Neither manual run substitutes for scheduled evidence.
+- [x] Approve the backup step, apply migration 0009 through the normal migration
+  runner to the approved production database, and deploy the reviewed code.
+- [x] Observe an initial checkpoint fill and a follow-up with no new Items;
+  confirm vector-read reduction, pipeline time, and unchanged saved Briefs.
+  Neither manual run substitutes for scheduled evidence.
+- [ ] Measure actual transferred bytes and write reduction with refreshed Neon
+  usage; decoded JSON payload and cache counters are narrower measurements.
 - [ ] Complete first-24-hour compute/storage/network/Actions verification with
   delayed metrics accounted for.
 - [ ] Make remaining graph reads incremental and qualify actual monthly usage,
@@ -180,3 +182,61 @@ explicitly selected continuing #92 rather than switching implementation:
 [Settings #95](https://github.com/SaKaNa-Y/Zis/issues/95).
 The Interests issue is prioritized because it blocks self-service Profile edits.
 Those routes are not repaired by the ingestion optimization.
+
+## Approved production rollout
+
+The owner explicitly approved replacing the old snapshot, migrating production,
+and deploying. The September 2 snapshot was deleted and replaced by
+**production at 2026-09-08 06:18:15 UTC (manual)**, with no expiry, in the same
+verified Zis production branch. The replacement appeared with a Restore action
+before migration. An actual restore was not performed.
+
+The normal `drizzle-kit migrate` runner applied migration 0009 successfully.
+All nine existing migration hashes and journal timestamps were checked against
+the checkout before execution. Afterwards the database had ten migration
+records, an empty `reader_match_profile`, and its three expected constraints.
+The migration preserved 5,417 Items, 15,832 Signals, 18,159 Citations, 15,832
+Links, four Briefs, and 83 Brief Entries. Brief and entry row digests also
+matched before and after; no private row values or credentials were logged.
+Only production was migrated; preview was outside this approval.
+
+Implementation commit `1d37ccab2faea1a99c791517826edb75b26c0b23` was pushed to
+`main`. [CI run 34194318539](https://github.com/SaKaNa-Y/Zis/actions/runs/34194318539)
+passed typecheck, lint, repository checks, and all 402 tests in 35 files.
+Vercel reported a successful **Production** deployment for that commit.
+Authenticated Today remained available with its original four entries.
+
+The first manual validation,
+[run 34194318795](https://github.com/SaKaNa-Y/Zis/actions/runs/34194318795),
+succeeded with the pinned model cache restored. It initialized one reader
+checkpoint, read 15,807 stored Signal vectors, recomputed 15,809 matches, and
+reused none. The decoded read payload was **103,936,849 JSON bytes**; Neon wake
+through prune took **143,352 ms**, still above the 120,000 ms target. It ended
+with 5,419 Items and 15,809 live Signals/matches. Read-only validation confirmed
+all four saved Briefs and 83 entries unchanged and no cross-reader Interest
+matches. The two previously observed Dormant Source warnings remained.
+
+The follow-up manual validation,
+[run 34194592820](https://github.com/SaKaNa-Y/Zis/actions/runs/34194592820),
+succeeded on the same implementation commit. It read and rematched **2 stored
+vectors**, the new vectors requiring their halfvec round trip, and reused
+**15,807 matches**. Its decoded read payload was **28,551,229 JSON bytes**,
+72.53% below the initial checkpoint fill. Neon wake through prune took
+**93,242 ms**, below the 120,000 ms target for this run. It reported 60 Source
+outcomes and the same 5,419 Items. Source due/backoff state differed from the
+initial run's 67 outcomes, so the runtime difference is not an isolated measure
+of the optimization. The payload counters exclude other queries and are not
+billed network transfer.
+
+Final read-only validation found one checkpoint, 15,809 live Signals and reader
+matches, no cross-reader Interest matches, and identical saved Brief/entry
+digests: four Briefs and 83 entries, with four in September 8's Brief. Both
+manual runs restored the pinned model cache and retained the two Dormant Source
+warnings. Actual write-volume and billed-egress reductions, full-metadata
+incremental reads, and the complete first-24-hour/monthly-budget observations
+remain open in #92. The sole daily 06:17 Asia/Shanghai cron is unchanged.
+
+At 14:29 China time after both runs, the dashboard still showed 0.33/5 GB
+network, 0.1/0.5 GB storage, 0.05 GB history, and the inconsistent 0/100 CU-hour
+display, alongside the one-hour metric-delay notice. These unchanged readings
+do not measure the just-completed runs; billed egress remains unverified.
