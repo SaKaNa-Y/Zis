@@ -69,8 +69,8 @@ delay and unrelated UI/operator traffic. The existing Neon transport is retained
   the Webpack production build passed. The local default Turbopack limitation is
   recorded in the preceding rollout; this verification used `--webpack`.
 
-Production migration, run measurements, delayed usage evidence, and the monthly
-budget will be appended after rollout. The first scheduled run completed at
+Production rollout evidence is recorded below; delayed usage evidence and final
+budget qualification remain pending. The first scheduled run completed at
 08:29:33 Asia/Shanghai on September 8; a complete first-24-hour observation cannot
 be claimed earlier than September 9, plus the usage-metric delay. Keep #92 open
 until its operational acceptance criteria have evidence.
@@ -123,3 +123,70 @@ plan is exceeded, record the deficit and retain daily cadence rather than reduci
 Admission, provenance, or retention. Public-repository standard Actions runners
 remove the private-repository minute ceiling, but actual run/CI time still belongs
 in the observation record.
+
+## Production rollout — 20:13 Asia/Shanghai onward
+
+Following explicit owner approval, replaced the previous manual snapshot with
+**production at 2026-09-08 12:13:18 UTC (manual)**, with no expiry, on Zis production
+branch `br-wild-scene-b3gzsh9b`. The new snapshot was visible with its Restore
+action before migration. No restore drill was performed.
+
+Applied 0010 using `drizzle-kit migrate`. All ten preceding migration hashes and
+timestamps matched, and production now has eleven migration records, the cursor
+index, and an initially empty ingestion checkpoint. The migration preserved all
+corpus counts and sealed Brief/entry digests. Preview was not migrated. An initial
+attempt could not launch the cleaned-up temporary Node path; no migration ran in
+that attempt. The successful invocation used the installed Node 22.23.2 runtime.
+
+Implementation `a84ebbf` and the budget/review record `59a0e6b` were pushed to main.
+[CI 34225192440](https://github.com/SaKaNa-Y/Zis/actions/runs/34225192440) passed,
+including all **409 tests across 37 files**. Vercel reported a successful Production
+deployment for `59a0e6b`, and an authenticated refresh of Today still displayed
+the four September 8 entries.
+
+The initial manual [run 34225193201](https://github.com/SaKaNa-Y/Zis/actions/runs/34225193201)
+succeeded and restored the pinned model cache. It bootstrapped the new checkpoint:
+**28,682,581 decoded JSON bytes**, zero stored vectors read, 19 matches recomputed,
+15,809 reused, **25,020 committed statements / 18,305 affected rows**, and
+20,176,104 compiled write JSON bytes with zero WebSocket commits. Wake through
+prune was **102,570 ms**, below the 120,000 ms target. It reported 67 Source
+outcomes and 5,420 persisted Items; the two existing Dormant warnings remain.
+Neither decoded nor compiled JSON bytes are billed egress.
+
+At approximately 20:18 Asia/Shanghai, the project dashboard still displayed
+1.28 CU-hours, 0.45 GB network transfer, 0.1 GB storage, and 0.08 GB history. This
+delayed reading does not measure the new validation runs' consumption. The full
+24-hour observation and actual-egress monthly qualification remain open.
+
+The overlapping follow-up [run 34225557084](https://github.com/SaKaNa-Y/Zis/actions/runs/34225557084)
+also succeeded: **17,251,180 decoded JSON bytes**, 19 stored vectors read/rematched,
+7,297 matches reused in the loaded scope, **4,145 committed statements / 4,116
+affected rows**, and 6,638,902 compiled write JSON bytes with zero WebSocket
+commits. Wake through prune was **72,173 ms**. It reported 60 Source outcomes and
+5,420 persisted Items. Source outcomes differ from bootstrap, so runtime and
+write-volume changes are observations, not an isolated performance experiment.
+This read includes the cursor overlap covering the preceding initialization.
+
+After that follow-up, read-only checks confirmed eleven migrations, one ingestion
+checkpoint, one reader profile, 15,828 live Signals and reader matches, zero
+foreign-reader matches, and 4,214 Items with input revisions. The corpus held
+5,420 Items, 15,854 Signals/Links, and 18,188 Citations. All saved Brief and entry
+digests remained identical: four Briefs, 83 entries, and four entries today.
+
+The steady-state [run 34225819631](https://github.com/SaKaNa-Y/Zis/actions/runs/34225819631)
+succeeded after the initialization overlap had cleared: **4,505,792 decoded JSON
+bytes**, zero stored vectors read, zero matches recomputed, and 1,463 matches reused
+in the loaded scope. This is **84.29% less decoded JSON** than the bootstrap run;
+the count excludes unchanged Signals kept in Postgres and is not a billed-egress
+measurement. There were **3,998 committed statements / 3,988 affected rows**,
+6,431,090 compiled write JSON bytes, and zero WebSocket commits. Wake through prune
+was **31,090 ms**, with 60 Source outcomes and 5,420 persisted Items. The pinned
+model cache restored successfully. Source response timing and outcomes can affect
+runtime; this is the observed validation result, not a controlled benchmark.
+
+A final read-only integrity check reproduced every post-overlap count and verified
+unchanged sealed Brief/entry digests. The new manual snapshot remains the recovery
+point. All implementation work is deployed; #92 remains open for delayed actual
+transfer, the complete first-24-hour observation, and final monthly budget
+qualification. Do not treat the three manual validation runs as scheduled-run
+evidence or enable hourly ingestion from decoded-payload estimates.
