@@ -407,7 +407,10 @@ describe('brief admission through the ingestion seam', () => {
         expiresAt: new Date(WAKE_AT.getTime() + 1),
       },
     )
-    const permanentEmbedding = [...corpus.signals.find(signal => signal.id === signalId)!.embedding!]
+    const storedEmbedding = corpus.signals.find(signal => signal.id === signalId)!.embedding
+    if (!Array.isArray(storedEmbedding))
+      throw new Error('This retention fixture must have a loaded embedding')
+    const permanentEmbedding = [...storedEmbedding]
 
     const graph = await runCut(corpus)
 

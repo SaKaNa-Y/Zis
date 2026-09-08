@@ -403,6 +403,9 @@ export interface PersistedLink {
   createdAt: Date
 }
 
+/** An existing vector deliberately left in the database for this wake. */
+export interface StoredSignalEmbedding { stored: true }
+
 export interface PersistedSignal {
   id: string
   targetLinkId: string
@@ -412,7 +415,7 @@ export interface PersistedSignal {
   textBasis: SignalTextBasis | null
   embeddingText: string | null
   embeddingTextExpiresAt: Date | null
-  embedding: number[] | null
+  embedding: number[] | StoredSignalEmbedding | null
   embeddingModel: string | null
   embeddingDimensions: number | null
   embeddingVersion: string | null
@@ -464,6 +467,11 @@ export interface PersistedReaderSignalMatch {
   relevance: number | null
   gap: number | null
   matchedAt: Date
+}
+
+export interface ReaderMatchProfile {
+  userId: string
+  fingerprint: string
 }
 
 export type BriefAdmission = 'interest' | 'convergence'
@@ -524,6 +532,8 @@ export interface PersistedGraph {
   users: PersistedUser[]
   interests: PersistedInterest[]
   readerSignalMatches: PersistedReaderSignalMatch[]
+  /** Committed atomically with matches; absent on pre-incremental corpora. */
+  readerMatchProfiles?: ReaderMatchProfile[]
   briefs: PersistedBrief[]
   briefEntries: PersistedBriefEntry[]
   readStates: PersistedReadState[]
@@ -559,6 +569,7 @@ interface RunIngestionCommon {
   wakeAt?: Date
   initialGraph?: PersistedGraph
   embeddingProvider?: EmbeddingProvider
+  loadSignalEmbeddings?: (ids: readonly string[]) => Promise<ReadonlyMap<string, number[]>>
   onSourceCommitted?: (
     source: IngestionSource,
     graph: PersistedGraph,
@@ -1475,12 +1486,12 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
 type NumericVector = readonly number[] | Float32Array
 
 function assertStoredVector(
-  vector: NumericVector | null,
+  vector: NumericVector | StoredSignalEmbedding | null,
   label: string,
 ): asserts vector is NumericVector {
-  if (vector === null || vector.length !== EMBEDDING_DIMENSIONS) {
+  if (vector === null || 'stored' in vector || vector.length !== EMBEDDING_DIMENSIONS) {
     throw new Error(
-      `${label} must contain ${EMBEDDING_DIMENSIONS} embedding dimensions; received ${vector?.length ?? 'null'}`,
+      `${label} must contain ${EMBEDDING_DIMENSIONS} embedding dimensions; received ${vector === null ? 'null' : 'stored' in vector ? 'deferred' : vector.length}`,
     )
   }
   if (!vector.every(component => Number.isFinite(component)))
@@ -1537,6 +1548,7 @@ async function embedSignalsAndMatchInterests(
   graph: PersistedGraph,
   provider: EmbeddingProvider,
   at: Date,
+  loadSignalEmbeddings: RunIngestionCommon['loadSignalEmbeddings'],
 ): Promise<void> {
   if (provider.model !== EMBEDDING_MODEL
     || provider.dimensions !== EMBEDDING_DIMENSIONS
@@ -1565,7 +1577,8 @@ async function embedSignalsAndMatchInterests(
       return [{ signal, candidate }]
     }
 
-    assertStoredVector(signal.embedding, `Signal ${signal.id}`)
+    if (!('stored' in signal.embedding))
+      assertStoredVector(signal.embedding, `Signal ${signal.id}`)
     assertEmbeddingIdentity(signal, `Signal ${signal.id}`)
     if (signal.textBasis === null || signal.embeddedAt === null)
       throw new Error(`Signal ${signal.id} has incomplete embedding state`)
@@ -1621,27 +1634,62 @@ async function embedSignalsAndMatchInterests(
   const plannedSignalVector = new Map(signalPlans.map((plan, index) => [plan.signal.id, signalVectors[index]!]))
   const plannedInterestVector = new Map(interestPlans.map((plan, index) => [plan.interest.id, interestVectors[index]!]))
   const matches: PersistedReaderSignalMatch[] = []
+  const profiles: ReaderMatchProfile[] = []
+  const previousProfiles = new Map(graph.readerMatchProfiles?.map(profile => [profile.userId, profile.fingerprint]))
+  const previousMatches = new Map(graph.readerSignalMatches.map(match => [`${match.userId}\0${match.signalId}`, match]))
+  const pending: Array<{ user: PersistedUser, signal: PersistedSignal, userInterests: PersistedInterest[] }> = []
 
   for (const user of [...graph.users].sort((left, right) => left.id.localeCompare(right.id))) {
     const userInterests = orderedInterests.filter(interest => interest.userId === user.id)
+    // Include every statement and identity, so removing a non-winning Interest
+    // invalidates the cached gap as well as changing/adding the winning one.
+    const fingerprint = createHash('sha256').update(JSON.stringify([
+      'reader-match-v1',
+      provider.model,
+      provider.dimensions,
+      provider.version,
+      userInterests.map(interest => [interest.id, interest.statement]),
+    ])).digest('hex')
+    profiles.push({ userId: user.id, fingerprint })
     for (const signal of liveSignals) {
-      const signalVector = plannedSignalVector.get(signal.id) ?? signal.embedding
-      assertStoredVector(signalVector, `Signal ${signal.id}`)
-      const similarities = userInterests.map((interest) => {
-        const interestVector = plannedInterestVector.get(interest.id) ?? interest.embedding
-        assertStoredVector(interestVector, `Interest ${interest.id}`)
-        return { interest, value: cosine(signalVector, interestVector) }
-      }).sort((left, right) => right.value - left.value || left.interest.id.localeCompare(right.interest.id))
-      const winner = similarities[0]
-      matches.push({
-        userId: user.id,
-        signalId: signal.id,
-        matchedInterestId: winner?.interest.id ?? null,
-        relevance: winner?.value ?? null,
-        gap: similarities.length < 2 ? null : winner!.value - similarities[1]!.value,
-        matchedAt: at,
-      })
+      const previous = previousMatches.get(`${user.id}\0${signal.id}`)
+      if (previous !== undefined
+        && previousProfiles.get(user.id) === fingerprint
+        && !plannedSignalVector.has(signal.id)
+        && !userInterests.some(interest => plannedInterestVector.has(interest.id))
+        && signal.embeddedAt !== null
+        // New vectors are fp32 in this wake, but Postgres stores halfvec.
+        // Rematch once after that round trip before treating them as reusable.
+        && previous.matchedAt > signal.embeddedAt
+        && userInterests.every(interest => interest.embeddedAt !== null && previous.matchedAt > interest.embeddedAt)) {
+        matches.push(previous)
+        continue
+      }
+      pending.push({ user, signal, userInterests })
     }
+  }
+  const deferredIds = [...new Set(pending
+    .filter(({ signal }) => !plannedSignalVector.has(signal.id)
+      && signal.embedding !== null && 'stored' in signal.embedding)
+    .map(({ signal }) => signal.id))].sort()
+  const loaded = deferredIds.length === 0 ? new Map<string, number[]>() : await loadSignalEmbeddings?.(deferredIds)
+  for (const { user, signal, userInterests } of pending) {
+    const signalVector = plannedSignalVector.get(signal.id) ?? loaded?.get(signal.id) ?? signal.embedding
+    assertStoredVector(signalVector, `Signal ${signal.id}`)
+    const similarities = userInterests.map((interest) => {
+      const interestVector = plannedInterestVector.get(interest.id) ?? interest.embedding
+      assertStoredVector(interestVector, `Interest ${interest.id}`)
+      return { interest, value: cosine(signalVector, interestVector) }
+    }).sort((left, right) => right.value - left.value || left.interest.id.localeCompare(right.interest.id))
+    const winner = similarities[0]
+    matches.push({
+      userId: user.id,
+      signalId: signal.id,
+      matchedInterestId: winner?.interest.id ?? null,
+      relevance: winner?.value ?? null,
+      gap: similarities.length < 2 ? null : winner!.value - similarities[1]!.value,
+      matchedAt: at,
+    })
   }
 
   for (const [index, plan] of signalPlans.entries()) {
@@ -1666,7 +1714,8 @@ async function embedSignalsAndMatchInterests(
       embeddedAt: at,
     })
   }
-  graph.readerSignalMatches = matches
+  graph.readerSignalMatches = matches.sort((left, right) => left.userId.localeCompare(right.userId) || left.signalId.localeCompare(right.signalId))
+  graph.readerMatchProfiles = profiles
 }
 
 const MAX_SIGNAL_AGE_MS = 7 * 24 * 60 * 60 * 1000
@@ -2167,6 +2216,7 @@ export async function runIngestion({
   wakeAt,
   initialGraph,
   embeddingProvider,
+  loadSignalEmbeddings,
   onSourceCommitted,
 }: RunIngestionInput): Promise<PersistedGraph> {
   const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
@@ -2207,7 +2257,7 @@ export async function runIngestion({
   mergeReleaseTagAliases(graph)
   updateStrength(graph)
   if (embeddingProvider !== undefined)
-    await embedSignalsAndMatchInterests(graph, embeddingProvider, now())
+    await embedSignalsAndMatchInterests(graph, embeddingProvider, now(), loadSignalEmbeddings)
   const dailyAt = wakeAt ?? now()
   cutDueBriefs(graph, dailyAt)
   graph.items.sort((left, right) => right.publishedAt.getTime() - left.publishedAt.getTime())

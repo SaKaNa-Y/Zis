@@ -1,9 +1,10 @@
-import type { IngestionSource, PersistedGraph, SourceFetchLog } from './pipeline'
+import type { IngestionSource, PersistedGraph, PersistedSignal, SourceFetchLog } from './pipeline'
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
 import type { SafeFetch } from '@/lib/safe-fetch'
-import { and, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { Buffer } from 'node:buffer'
+import { and, eq, getTableColumns, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { db as defaultDatabase } from '@/lib/db'
 import {
   briefEntries as briefEntryTable,
@@ -15,6 +16,7 @@ import {
   links as linkTable,
   publisherHosts,
   publishers as publisherTable,
+  readerMatchProfiles as readerMatchProfileTable,
   readerSignalMatches as readerSignalMatchTable,
   readStates as readStateTable,
   robotsCache,
@@ -34,6 +36,14 @@ const SIGNAL_READ_BATCH_SIZE = 1000
 
 interface CompiledQuery {
   toSQL: () => { sql: string, params: unknown[] }
+}
+
+export interface IngestionReadMetrics {
+  initialGraphJsonBytes: number
+  signalVectorsRead: number
+  signalVectorJsonBytes: number
+  matchesRecomputed: number
+  matchesReused: number
 }
 
 function asIngestionSource(row: typeof sources.$inferSelect): IngestionSource {
@@ -117,18 +127,38 @@ async function assertHostOwnership(database: Database): Promise<void> {
   }
 }
 
-async function readSignals(database: Database): Promise<Array<typeof signalTable.$inferSelect>> {
+async function readSignals(database: Database): Promise<PersistedSignal[]> {
   // Stored vectors exceeded Neon's 64 MiB HTTP response limit in production.
   // Bound each response, retaining every row through stable primary-key cursors.
-  const rows: Array<typeof signalTable.$inferSelect> = []
+  const rows: PersistedSignal[] = []
   let afterId: string | undefined
   while (true) {
-    const page = await database.select().from(signalTable).where(afterId === undefined ? undefined : gt(signalTable.id, afterId)).orderBy(signalTable.id).limit(SIGNAL_READ_BATCH_SIZE)
+    const page = await database.select({
+      ...getTableColumns(signalTable),
+      // A persisted handle is not a missing vector. Match invalidation below
+      // decides which vectors actually have to cross the Neon HTTP boundary.
+      embedding: sql<PersistedSignal['embedding']>`CASE WHEN ${signalTable.embedding} IS NULL THEN NULL ELSE '{"stored":true}'::jsonb END`,
+    }).from(signalTable).where(afterId === undefined ? undefined : gt(signalTable.id, afterId)).orderBy(signalTable.id).limit(SIGNAL_READ_BATCH_SIZE)
     rows.push(...page)
     if (page.length < SIGNAL_READ_BATCH_SIZE)
       return rows
     afterId = page.at(-1)!.id
   }
+}
+
+async function readSignalEmbeddings(database: Database, ids: readonly string[]): Promise<ReadonlyMap<string, number[]>> {
+  const vectors = new Map<string, number[]>()
+  for (let offset = 0; offset < ids.length; offset += SIGNAL_READ_BATCH_SIZE) {
+    const rows = await database.select({ id: signalTable.id, embedding: signalTable.embedding })
+      .from(signalTable)
+      .where(inArray(signalTable.id, ids.slice(offset, offset + SIGNAL_READ_BATCH_SIZE)))
+    for (const row of rows) {
+      if (row.embedding === null)
+        throw new Error(`Signal ${row.id} lost its stored embedding during ingestion`)
+      vectors.set(row.id, row.embedding)
+    }
+  }
+  return vectors
 }
 
 async function initialGraph(
@@ -198,6 +228,7 @@ async function initialGraph(
     users: userRows,
     interests: interestRows,
     readerSignalMatches: matchRows,
+    readerMatchProfiles: includeReaderStages ? await database.select().from(readerMatchProfileTable) : [],
     briefs: briefRows,
     briefEntries: briefEntryRows,
     readStates: readStateRows,
@@ -445,15 +476,45 @@ async function commitSource(
   ))
 }
 
-async function commitFinalGraph(database: Database, graph: PersistedGraph): Promise<void> {
+function finalGraphSnapshot(graph: PersistedGraph) {
+  const keyed = <T>(rows: T[], key: (row: T) => string, serialize = (row: T) => JSON.stringify(row)) =>
+    new Map(rows.map(row => [key(row), serialize(row)]))
+  return {
+    signals: keyed(graph.signals, row => row.id, signalSnapshot),
+    interests: keyed(graph.interests, row => row.id),
+    matches: keyed(graph.readerSignalMatches, row => `${row.userId}\0${row.signalId}`),
+    profiles: keyed(graph.readerMatchProfiles ?? [], row => row.userId),
+    briefs: keyed(graph.briefs, row => row.id),
+    entries: keyed(graph.briefEntries, row => `${row.userId}\0${row.signalId}`),
+  }
+}
+
+function signalSnapshot(signal: PersistedSignal): string {
+  // Loading a vector is not a change. Its persisted revision is embeddedAt and
+  // the model/Text Basis metadata; re-embedding updates those in the same cut.
+  return JSON.stringify({ ...signal, embedding: signal.embedding === null ? null : true })
+}
+
+async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, before: ReturnType<typeof finalGraphSnapshot>): Promise<void> {
+  const graph = {
+    signals: finalGraph.signals.filter(row => before.signals.get(row.id) !== signalSnapshot(row)),
+    interests: finalGraph.interests.filter(row => before.interests.get(row.id) !== JSON.stringify(row)),
+    readerSignalMatches: finalGraph.readerSignalMatches.filter(row => before.matches.get(`${row.userId}\0${row.signalId}`) !== JSON.stringify(row)),
+    readerMatchProfiles: (finalGraph.readerMatchProfiles ?? []).filter(row => before.profiles.get(row.userId) !== JSON.stringify(row)),
+    briefs: finalGraph.briefs.filter(row => !before.briefs.has(row.id)),
+    briefEntries: finalGraph.briefEntries.filter(row => !before.entries.has(`${row.userId}\0${row.signalId}`)),
+  }
   if (graph.signals.length === 0
     && graph.interests.length === 0
     && graph.readerSignalMatches.length === 0
     && graph.briefs.length === 0
-    && graph.briefEntries.length === 0) {
+    && graph.briefEntries.length === 0
+    && graph.readerMatchProfiles.length === 0) {
     return
   }
-  const ordered = [...graph.signals].sort((left, right) => left.id.localeCompare(right.id))
+  const ordered = graph.signals.flatMap(signal => signal.embedding === null || !('stored' in signal.embedding)
+    ? [{ ...signal, embedding: signal.embedding }]
+    : []).sort((left, right) => left.id.localeCompare(right.id))
   const statements: CompiledQuery[] = []
   const batches = Array.from(
     { length: Math.ceil(ordered.length / SIGNAL_WRITE_BATCH_SIZE) },
@@ -466,6 +527,16 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
       strength: 0,
       originPublisherId: null,
     }))).onConflictDoNothing({ target: signalTable.id }))
+  }
+  for (const signal of graph.signals) {
+    if (signal.embedding === null || !('stored' in signal.embedding))
+      continue
+    statements.push(database.update(signalTable).set({
+      mergedIntoId: signal.mergedIntoId,
+      strength: signal.strength,
+      originPublisherId: signal.originPublisherId,
+      embeddingText: signal.embeddingText,
+    }).where(eq(signalTable.id, signal.id)))
   }
   for (const batch of batches) {
     statements.push(database.insert(signalTable).values(batch).onConflictDoUpdate({
@@ -516,6 +587,12 @@ async function commitFinalGraph(database: Database, graph: PersistedGraph): Prom
       }))
     }
   }
+  if (graph.readerMatchProfiles.length > 0) {
+    statements.push(database.insert(readerMatchProfileTable).values(graph.readerMatchProfiles).onConflictDoUpdate({
+      target: readerMatchProfileTable.userId,
+      set: { fingerprint: sql`excluded.fingerprint` },
+    }))
+  }
   if (graph.briefs.length > 0) {
     const orderedBriefs = [...graph.briefs].sort((left, right) =>
       left.userId.localeCompare(right.userId) || left.localDate.localeCompare(right.localDate),
@@ -557,6 +634,7 @@ export async function runNeonIngestion(
   database: Database = defaultDatabase(),
   fetcher: SafeFetch = safeFetch,
   embeddingProvider?: EmbeddingProvider,
+  reportReads?: (metrics: IngestionReadMetrics) => void,
 ): Promise<PersistedGraph> {
   await assertHostOwnership(database)
   await refreshRobotDisabledSources(database, at, fetcher)
@@ -576,6 +654,14 @@ export async function runNeonIngestion(
   ])
   const dueSources = rows.map(asIngestionSource)
   const graph = await initialGraph(database, dueSources, embeddingProvider !== undefined)
+  const before = finalGraphSnapshot(graph)
+  const metrics: IngestionReadMetrics = {
+    initialGraphJsonBytes: Buffer.byteLength(JSON.stringify(graph)),
+    signalVectorsRead: 0,
+    signalVectorJsonBytes: 0,
+    matchesRecomputed: 0,
+    matchesReused: 0,
+  }
   const persisted = await runIngestion({
     sources: dueSources,
     fetch: fetcher,
@@ -583,10 +669,16 @@ export async function runNeonIngestion(
     wakeAt: at,
     initialGraph: graph,
     embeddingProvider,
+    loadSignalEmbeddings: async (ids) => {
+      const vectors = await readSignalEmbeddings(database, ids)
+      metrics.signalVectorsRead += vectors.size
+      metrics.signalVectorJsonBytes += Buffer.byteLength(JSON.stringify([...vectors]))
+      return vectors
+    },
     onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
       commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
   })
-  await commitFinalGraph(database, persisted)
+  await commitFinalGraph(database, persisted, before)
   const dormantSourceIds = new Set(dormantRows.map(source => source.id))
   for (const source of persisted.sources) {
     if (source.disabledAt === null && source.newestItemAt !== null && source.newestItemAt < dormantBefore)
@@ -596,5 +688,8 @@ export async function runNeonIngestion(
   }
   persisted.dormantSourceIds = [...dormantSourceIds]
   await commitRetention(database, at)
+  metrics.matchesReused = persisted.readerSignalMatches.filter(row => before.matches.get(`${row.userId}\0${row.signalId}`) === JSON.stringify(row)).length
+  metrics.matchesRecomputed = persisted.readerSignalMatches.length - metrics.matchesReused
+  reportReads?.(metrics)
   return persisted
 }

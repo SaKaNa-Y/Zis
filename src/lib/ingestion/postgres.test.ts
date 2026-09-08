@@ -1052,6 +1052,7 @@ describe('the production ingestion startup assertion', () => {
       mergedIntoId: null,
       strength: 0,
       originPublisherId: null,
+      embedding: null,
       createdAt: targetLink.createdAt,
     }
     const historicalCitation = {

@@ -285,6 +285,14 @@ export const readerSignalMatches = pgTable('reader_signal_match', {
   ),
 ])
 
+/** The exact Profile whose matches were atomically committed by ingestion. */
+export const readerMatchProfiles = pgTable('reader_match_profile', {
+  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  fingerprint: text('fingerprint').notNull(),
+}, table => [
+  check('reader_match_profile_fingerprint_check', sql`${table.fingerprint} ~ '^[0-9a-f]{64}$'`),
+])
+
 /** One reader's persisted selection for one local calendar day. */
 export const briefs = pgTable('brief', {
   id: uuid('id').primaryKey().defaultRandom(),

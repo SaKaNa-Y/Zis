@@ -63,6 +63,11 @@ async function main(argv: string[]): Promise<void> {
     database,
     safeFetch,
     embeddingProvider,
+    (metrics) => {
+      // Counts only: never log reader statements, vectors, or query parameters.
+      // Decoded graph JSON is a planning measure, not Neon's billed egress.
+      process.stdout.write(`zis pipeline decoded read payload: ${metrics.initialGraphJsonBytes + metrics.signalVectorJsonBytes} JSON bytes; stored Signal vectors read: ${metrics.signalVectorsRead}; matches recomputed: ${metrics.matchesRecomputed}; reused: ${metrics.matchesReused} (not billed network transfer)\n`)
+    },
   )
   const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
 
