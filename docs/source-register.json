@@ -291,8 +291,7 @@
       "id": "github",
       "name": "GitHub",
       "hosts": [
-        "github.blog",
-        "github.com"
+        "github.blog"
       ],
       "measured": {
         "cites": 43,

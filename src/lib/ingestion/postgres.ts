@@ -261,7 +261,6 @@ async function refreshRobotDisabledSources(database: Database, at: Date, fetcher
     isNotNull(sources.disabledAt),
     eq(sources.disabledReason, ROBOTS_AUTO_DISABLED_REASON),
     or(isNull(sources.retryAfterAt), lte(sources.retryAfterAt, at)),
-    inArray(sources.transport, ['rss', 'atom']),
   ))
   const candidates = rows.map(asIngestionSource)
   if (candidates.length === 0)
@@ -312,7 +311,7 @@ async function refreshRobotDisabledSources(database: Database, at: Date, fetcher
       if (queue === undefined)
         return
       for (const source of queue) {
-        const decision = await gate.decide(source.endpointUrl)
+        const decision = await gate.decide(source.transport === 'github_graphql' ? 'https://api.github.com/graphql' : source.endpointUrl)
         const statements: CompiledQuery[] = []
         if (decision.record !== undefined)
           statements.push(robotsStatement(database, decision.record))
@@ -644,6 +643,7 @@ export async function runNeonIngestion(
   fetcher: SafeFetch = safeFetch,
   embeddingProvider?: EmbeddingProvider,
   reportReads?: (metrics: IngestionReadMetrics) => void,
+  githubToken?: string,
 ): Promise<PersistedGraph> {
   const writesBefore = database.writeMetrics?.()
   await assertHostOwnership(database)
@@ -654,12 +654,10 @@ export async function runNeonIngestion(
     database.select().from(sources).where(and(
       isNull(sources.disabledAt),
       or(isNull(sources.retryAfterAt), lte(sources.retryAfterAt, at)),
-      inArray(sources.transport, ['rss', 'atom']),
     )),
     database.select({ id: sources.id }).from(sources).where(and(
       isNull(sources.disabledAt),
       lt(sources.newestItemAt, dormantBefore),
-      inArray(sources.transport, ['rss', 'atom']),
     )),
   ])
   const dueSources = rows.map(asIngestionSource)
@@ -690,6 +688,7 @@ export async function runNeonIngestion(
   }
   const persisted = await runIngestion({
     sources: dueSources,
+    githubToken,
     fetch: fetcher,
     now: () => new Date(),
     wakeAt: at,

@@ -212,6 +212,45 @@ partial graph commits.
 
 ## 4. Cadence is uniform; deferral is per-Source
 
+### Implemented API Sources
+
+In addition to RSS/Atom, the runner supports the register's two HN lists,
+18 Bluesky author feeds and nine GitHub release watches. Migration
+`0011_api_sources.sql` adds them without resetting existing Sources. GitHub's
+editorial host is `github.blog`; `github.com` is a shared Transport venue and
+must not be assigned to one Publisher.
+
+- HN reads every ID returned by the current `topstories` / `newstories` lists
+  (up to 500 each), serially fetching Firebase Items. Deleted/dead Items and jobs
+  are skipped. The Item address is the HN discussion; the submitted URL is an
+  outbound Citation. Both lists belong to the same Publisher.
+- Bluesky reads the newest 100 author-feed rows with `posts_no_replies` and
+  `includePins=false`. Reposts are excluded and the author's DID must match the
+  Source. Facet links and external embeds supply Citations.
+- GitHub reads the newest 100 releases by creation time using authenticated
+  GraphQL. Drafts are excluded; release tags provide stable Item identity.
+  The Source endpoint identifies the repository's releases page; requests go to
+  `https://api.github.com/graphql`. Actions maps the existing `GH_PUBLIC_PAT`
+  secret to the runner's `GITHUB_PAT` environment variable.
+
+These are current bounded feed windows, not historical backfills. The runner
+prints the bounds. A burst larger than a window, or an old draft published
+outside GitHub's creation-ordered window, can be missed. Daily polling also
+misses HN submissions that leave the list before the next wake. Increasing
+coverage requires measuring window loss and cost; adding these Sources does
+not authorize an hourly schedule or promise a larger Brief.
+
+API requests retain robots checks, address pinning, byte limits and global /
+per-host concurrency constraints. Authenticated POST queries reject redirects.
+HTTP errors, invalid JSON and GraphQL partial errors become failed fetches;
+a failed HN child request never commits a partially fetched list. Retry-After
+and GitHub's exhausted-rate-limit reset are retained as Source deferrals.
+The runner reports failed Source outcomes separately from overall job success.
+
+API contracts: [HN](https://github.com/HackerNews/API),
+[Bluesky author feed](https://docs.bsky.app/docs/api/app-bsky-feed-get-author-feed),
+[GitHub GraphQL](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql).
+
 **There is no `poll_interval_minutes` column, and no scheduler.** Curated
 per-source cadence was cut: it saves zero CU-hours (ADR-0008), and with the
 validator cache a Source that hasn't changed costs exactly **one 304**.

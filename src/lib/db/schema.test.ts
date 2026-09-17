@@ -441,6 +441,7 @@ describe('the ingestion schema', () => {
       '0008_retention_and_production_corpus',
       '0009_incremental_signal_matching',
       '0010_incremental_graph_reads',
+      '0011_api_sources',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

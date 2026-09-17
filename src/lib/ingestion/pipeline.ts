@@ -10,11 +10,12 @@ import {
 } from '@/lib/embeddings/provider'
 import { createRobotsGate } from '@/lib/robots'
 import { createSafeFetch, mediaType, SafeFetchError } from '@/lib/safe-fetch'
+import { ApiSourceError, fetchApiSource } from './api-sources'
 import { canonicalizeLink, publisherHostKey } from './canonicalize'
+import { capEmbeddingText, collapse, decodeCharacterReferences, plainText } from './plain-text'
 import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const MAX_FEED_BYTES = 2 * 1024 * 1024
-const MAX_EMBEDDING_TEXT_CHARS = 1200
 export const RETENTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 type FeedParseErrorCode = 'too_large' | 'unsafe_xml' | 'invalid_xml'
@@ -29,7 +30,7 @@ class FeedParseError extends Error {
   }
 }
 
-interface ParsedFeedItem {
+export interface ParsedFeedItem {
   guid?: string
   guidPermalink?: string
   link?: string
@@ -77,37 +78,6 @@ const CONTENT_FIELDS = new Set(['summary', 'description', 'content', 'encoded'])
 
 function localName(name: string): string {
   return (name.split(':').at(-1) ?? name).toLowerCase()
-}
-
-function collapse(text: string): string {
-  return text.replace(/\s+/g, ' ').trim()
-}
-
-function capEmbeddingText(text: string): string {
-  if (text.length <= MAX_EMBEDDING_TEXT_CHARS)
-    return text
-  return Array.from(text).slice(0, MAX_EMBEDDING_TEXT_CHARS).join('')
-}
-
-function decodeCharacterReferences(text: string): string {
-  const named: Record<string, string> = {
-    amp: '&',
-    apos: '\'',
-    gt: '>',
-    lt: '<',
-    nbsp: ' ',
-    quot: '"',
-  }
-  return text.replace(/&(?:#(\d+)|#x([\da-f]+)|([a-z]+));/gi, (whole, decimal: string, hex: string, name: string) => {
-    const value = decimal === undefined
-      ? hex === undefined ? named[name.toLowerCase()] : String.fromCodePoint(Number.parseInt(hex, 16))
-      : String.fromCodePoint(Number.parseInt(decimal, 10))
-    return value ?? whole
-  })
-}
-
-function plainText(text: string): string {
-  return collapse(decodeCharacterReferences(text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ')))
 }
 
 function cleanedAnchorText(text: string | undefined): string | undefined {
@@ -577,6 +547,7 @@ interface RunIngestionCommon {
   sources: IngestionSource[]
   publisherHosts?: PublisherHost[]
   now?: () => Date
+  githubToken?: string
   wakeAt?: Date
   initialGraph?: PersistedGraph
   embeddingProvider?: EmbeddingProvider
@@ -1153,6 +1124,11 @@ function responseDeferral(headers: Record<string, string>, at: Date): Date | nul
       : Date.parse(retryAfter)
     if (Number.isFinite(milliseconds))
       candidates.push(new Date(milliseconds))
+  }
+  if (headers['x-ratelimit-remaining'] === '0') {
+    const reset = Number(headers['x-ratelimit-reset']) * 1000
+    if (Number.isFinite(reset) && reset > at.getTime())
+      candidates.push(new Date(reset))
   }
   const pollSeconds = Number(headers['x-poll-interval'])
   if (Number.isFinite(pollSeconds) && pollSeconds >= 0)
@@ -2065,6 +2041,7 @@ async function ingestSource(
   now: () => Date,
   loadSourceState: RunIngestionCommon['loadSourceState'],
   loadCitationTargets: RunIngestionCommon['loadCitationTargets'],
+  githubToken?: string,
 ): Promise<{
   touchedHttpCacheKeys: ReadonlySet<string>
   touchedItemIds: ReadonlySet<string>
@@ -2072,15 +2049,16 @@ async function ingestSource(
   const touchedHttpCacheKeys = new Set<string>()
   const touchedItemIds = new Set<string>()
   const result = { touchedHttpCacheKeys, touchedItemIds }
-  if (source.transport !== 'rss' && source.transport !== 'atom')
-    throw new Error(`Source ${source.id} uses unsupported transport ${source.transport}`)
   const startedAt = now()
   let response: SafeFetchResponse | undefined
   let fetchedAt = startedAt
   try {
     const cacheKey = httpCacheKey(source.endpointUrl)
     const cache = graph.httpCache.find(record => record.url === cacheKey)
-    response = await fetch(source.endpointUrl, { headers: cacheHeaders(cache) })
+    const api = source.transport === 'rss' || source.transport === 'atom'
+      ? undefined
+      : await fetchApiSource(source, fetch, githubToken)
+    response = api?.response ?? await fetch(source.endpointUrl, { headers: cacheHeaders(cache) })
     fetchedAt = now()
     if (source.disabledReason === ROBOTS_AUTO_DISABLED_REASON) {
       source.disabledAt = null
@@ -2138,7 +2116,7 @@ async function ingestSource(
       return result
     }
 
-    const parsed = parseFeed(response.bytes)
+    const parsed = api?.items ?? parseFeed(response.bytes)
     for (const item of parsed) {
       const permalink = canonicalizeLink(item.guidPermalink)
       const linked = canonicalizeLink(item.link)
@@ -2248,7 +2226,9 @@ async function ingestSource(
       throw error
     touchedHttpCacheKeys.clear()
     touchedItemIds.clear()
-    const outcome = failureOutcome(error)
+    if (error instanceof ApiSourceError)
+      response = error.response
+    const outcome = error instanceof ApiSourceError ? error.outcome : failureOutcome(error)
     const failedAt = now()
     const originDeferral = response === undefined ? undefined : responseDeferral(response.headers, failedAt)
     recordFailure(graph, source, startedAt, failedAt, outcome, error, response, originDeferral)
@@ -2268,6 +2248,7 @@ export async function runIngestion({
   fetch: liveFetch,
   now = () => new Date(),
   wakeAt,
+  githubToken,
   initialGraph,
   embeddingProvider,
   loadSignalEmbeddings,
@@ -2305,7 +2286,7 @@ export async function runIngestion({
       if (queue === undefined)
         return
       for (const source of queue) {
-        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets)
+        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets, githubToken)
         await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
       }
     }

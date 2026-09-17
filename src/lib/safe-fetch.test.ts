@@ -65,6 +65,22 @@ function redirectTo(location: string, status = 302): TransportResponse {
   return { status, headers: { location }, body: null }
 }
 
+describe('authenticated POST queries', () => {
+  it('passes the query body through the pinned transport', async () => {
+    const transport = transportRecording(() => ok('{}'))
+    const fetch = createSafeFetch({ resolve: publicResolver(), transport })
+    await fetch('https://api.github.com/graphql', { method: 'POST', body: '{"query":"query { viewer { login } }"}', headers: { authorization: 'Bearer test-only' } })
+    expect(transport.requests[0]).toMatchObject({ method: 'POST', body: '{"query":"query { viewer { login } }"}', pinnedIp: PUBLIC_IP, headers: { authorization: 'Bearer test-only' } })
+  })
+
+  it.each([301, 302, 303, 307, 308])('refuses HTTP %i before forwarding a POST credential or body', async (status) => {
+    const transport = transportRecording(() => redirectTo('https://untrusted.example/', status))
+    const fetch = createSafeFetch({ resolve: publicResolver(), transport })
+    await expect(fetch('https://api.github.com/graphql', { method: 'POST', body: '{}', headers: { authorization: 'Bearer test-only' } })).rejects.toThrow('POST redirects are not allowed')
+    expect(transport.requests).toHaveLength(1)
+  })
+})
+
 async function codeOf(promise: Promise<unknown>): Promise<string> {
   try {
     await promise

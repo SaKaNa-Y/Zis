@@ -72,7 +72,8 @@ export type Resolver = (hostname: string) => Promise<ResolvedAddress[]>
  */
 export interface PinnedRequest {
   url: string
-  method: 'GET' | 'HEAD'
+  method: 'GET' | 'HEAD' | 'POST'
+  body?: string
   headers: Record<string, string>
   /** The validated address the socket must connect to. */
   pinnedIp: string
@@ -135,7 +136,9 @@ export interface SafeFetchDeps {
 }
 
 export interface SafeFetchOptions {
-  method?: 'GET' | 'HEAD'
+  method?: 'GET' | 'HEAD' | 'POST'
+  /** POST queries are never redirected, so credentials cannot leave the endpoint. */
+  body?: string
   headers?: Record<string, string>
   /** Total budget for the whole fetch including every hop. May lower, never raise, the 20s limit. */
   timeoutMs?: number
@@ -402,6 +405,7 @@ export const undiciTransport: Transport = async (request) => {
     response = await undiciFetch(request.url, {
       method: request.method,
       headers: request.headers,
+      body: request.body,
       // Redirects are followed by `safeFetch` so every hop is revalidated.
       redirect: 'manual',
       signal: request.signal,
@@ -448,6 +452,7 @@ export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFe
   return async function safeFetch(url, options = {}) {
     const {
       method = 'GET',
+      body,
       headers: extraHeaders = {},
       timeoutMs = DEFAULT_TIMEOUT_MS,
       signal: callerSignal,
@@ -501,6 +506,7 @@ export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFe
           const pinned: PinnedRequest = {
             url: target.href,
             method: hopMethod,
+            body,
             headers: requestHeaders,
             pinnedIp: pin.address,
             family: pin.family,
@@ -521,6 +527,8 @@ export function createSafeFetch({ resolve, transport = undiciTransport }: SafeFe
           const location = response.headers.location
           if (REDIRECT_STATUSES.has(response.status) && location !== undefined) {
             discard(response.body)
+            if (method === 'POST')
+              throw new SafeFetchError('transport_error', target.href, 'POST redirects are not allowed')
 
             if (hop >= MAX_REDIRECTS)
               throw new SafeFetchError('too_many_redirects', target.href, `more than ${MAX_REDIRECTS} redirects`)

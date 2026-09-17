@@ -80,6 +80,63 @@ async function fixture() {
   }
 }
 
+it('selects API Sources and keeps their venue ownership valid on the next database run', async () => {
+  const test = await fixture()
+  await test.pg.exec(`DELETE FROM source;
+    UPDATE publisher_host SET host='news.ycombinator.com';
+    INSERT INTO source(publisher_id,transport,endpoint_url) VALUES
+    ('00000000-0000-4000-8000-000000000001','hn_firebase','https://hacker-news.firebaseio.com/v0/topstories.json'),
+    ('00000000-0000-4000-8000-000000000001','bluesky_feed','https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=did%3Aplc%3Atest&limit=100&filter=posts_no_replies&includePins=false'),
+    ('00000000-0000-4000-8000-000000000001','github_graphql','https://github.com/example/repo/releases');`)
+  const fetcher: SafeFetch = async (url, options) => {
+    const robots = url.endsWith('/robots.txt')
+    let payload: unknown = {}
+    if (url.endsWith('topstories.json')) {
+      payload = [1]
+    }
+    else if (url.endsWith('/item/1.json')) {
+      payload = { id: 1, type: 'story', title: 'A story', time: 1789603200, url: 'https://article.example/new' }
+    }
+    else if (url.includes('getAuthorFeed')) {
+      payload = { feed: [{ post: { uri: 'at://did:plc:test/app.bsky.feed.post/123', author: { did: 'did:plc:test' }, record: { $type: 'app.bsky.feed.post', text: 'A post', createdAt: '2026-09-17T00:00:00Z' } } }] }
+    }
+    else if (url === 'https://api.github.com/graphql') {
+      expect(options?.method).toBe('POST')
+      expect(options?.headers?.authorization).toBe('Bearer test-only')
+      payload = { data: { repository: { releases: { nodes: [{ tagName: 'v1', name: 'Release', url: 'https://github.com/example/repo/releases/tag/v1', description: '', publishedAt: '2026-09-17T00:00:00Z', isDraft: false }] } } } }
+    }
+    const body = robots ? 'User-agent: *\nAllow: /' : JSON.stringify(payload)
+    const bytes = new TextEncoder().encode(body)
+    return { url, status: 200, headers: { 'content-type': robots ? 'text/plain' : 'application/json' }, contentType: robots ? 'text/plain' : 'application/json', bytes, byteLength: bytes.length, text: () => body }
+  }
+  for (let run = 0; run < 2; run++) {
+    const graph = await runNeonIngestion(new Date(), test.database, fetcher, undefined, undefined, 'test-only')
+    expect(graph.fetchLogs.slice(-3).map(log => log.outcome)).toEqual(['ok', 'ok', 'ok'])
+  }
+  expect(await test.database.select().from(schema.items)).toHaveLength(3)
+})
+
+it('adds exactly the 29 registered API Sources idempotently without resetting RSS state', async () => {
+  const pg = await PGlite.create({ extensions: { vector } })
+  databases.push(pg)
+  const folder = new URL('../../../drizzle/', import.meta.url)
+  for (const name of readdirSync(folder).filter(name => name.endsWith('.sql') && !name.startsWith('0011')).sort())
+    await pg.exec(readFileSync(new URL(name, folder), 'utf8'))
+  await pg.exec('UPDATE source SET consecutive_failures=3,disabled_reason=\'preserve this state\'')
+  const migration = readFileSync(new URL('0011_api_sources.sql', folder), 'utf8')
+  await pg.exec(migration)
+  await pg.exec(migration)
+  const rows = await pg.query<{ transport: string, count: number }>('SELECT transport,count(*)::int AS count FROM source GROUP BY transport ORDER BY transport')
+  expect(rows.rows).toEqual([
+    { transport: 'rss', count: 67 },
+    { transport: 'hn_firebase', count: 2 },
+    { transport: 'github_graphql', count: 9 },
+    { transport: 'bluesky_feed', count: 18 },
+  ])
+  expect((await pg.query('SELECT id FROM source WHERE transport=\'rss\' AND consecutive_failures=3 AND disabled_reason=\'preserve this state\'')).rows).toHaveLength(67)
+  expect((await pg.query('SELECT host FROM publisher_host WHERE host IN (\'github.com\',\'bsky.app\')')).rows).toHaveLength(0)
+})
+
 it.each([200, 304])('leaves unchanged expired corpus metadata in Postgres after HTTP %i', async (status) => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-08-01T06:00:00Z'))

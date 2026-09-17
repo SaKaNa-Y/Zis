@@ -71,6 +71,7 @@ async function main(argv: string[]): Promise<void> {
         process.stdout.write(`zis pipeline committed SQL statements: ${metrics.committedStatements}; affected rows: ${metrics.affectedRows}; compiled write JSON: ${metrics.compiledWriteBytes} bytes; WebSocket commits: ${metrics.websocketCommits}\n`)
       }
     },
+    env.githubPat(),
   )
   const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
 
@@ -86,6 +87,10 @@ async function main(argv: string[]): Promise<void> {
   process.stdout.write(
     `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.corpusCounts?.items ?? graph.items.length} persisted Item(s)\n`,
   )
+  process.stdout.write('zis API windows: complete returned HN lists; newest 100 Bluesky feed rows and GitHub releases per Source; no historical backfill\n')
+  for (const log of graph.fetchLogs.filter(log => log.startedAt >= wakeAt && log.outcome !== 'ok' && log.outcome !== 'not_modified')) {
+    process.stdout.write(`zis Source ${log.sourceId}: ${log.outcome} (HTTP ${log.httpStatus ?? 'none'})\n`)
+  }
   for (const sourceId of graph.dormantSourceIds) {
     process.stdout.write(
       `::warning title=Dormant Source::Source ${sourceId} has published no new Item in six months; review it manually.\n`,

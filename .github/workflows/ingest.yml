@@ -30,7 +30,8 @@ jobs:
           path: .cache/transformers
           key: transformers-${{ runner.os }}-bge-small-en-v1.5-ea104dacec62c0de699686887e3f920caeb4f3e3-fp32-v3.8.1
       - run: pnpm install --frozen-lockfile
-      - name: Ingest due RSS and Atom Sources into Neon
+      - name: Ingest due Sources into Neon
         run: pnpm exec tsx scripts/pipeline/run.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GITHUB_PAT: ${{ secrets.GH_PUBLIC_PAT }}
