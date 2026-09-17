@@ -54,14 +54,24 @@ describe('aPI Sources through the real ingestion seam', () => {
   it('fetches authenticated GraphQL releases, preserves tag identity and updates edited text', async () => {
     const input = source('github_graphql', 'https://github.com/owner/repo/releases')
     const release = { tagName: 'v1', name: '<b>Version one</b>', url: `${input.endpointUrl}/tag/v1`, description: 'Read https://article.example/announcement', publishedAt: NOW.toISOString(), isDraft: false }
-    const responses = [robots('https://api.github.com'), { ...json('https://api.github.com/graphql', { data: { repository: { releases: { nodes: [release] } } } }), whenHeaders: { authorization: 'Bearer test-token' } }]
+    const responses = [robots('https://api.github.com'), { ...json('https://api.github.com/graphql', { data: { repository: { url: 'https://github.com/owner/repo', releases: { nodes: [release] } } } }), whenHeaders: { authorization: 'Bearer test-token' } }]
     const graph = await runIngestion({ sources: [input], githubToken: 'test-token', now: () => NOW, responses })
     expect(graph.items[0]).toMatchObject({ externalId: 'v1', title: 'Version one', url: release.url })
     expect(graph.citations.some(c => c.kind === 'outbound')).toBe(true)
-    responses[1] = json('https://api.github.com/graphql', { data: { repository: { releases: { nodes: [{ ...release, name: 'Updated' }] } } } })
+    responses[1] = json('https://api.github.com/graphql', { data: { repository: { url: 'https://github.com/owner/repo', releases: { nodes: [{ ...release, name: 'Updated' }] } } } })
     await runIngestion({ sources: [input], githubToken: 'test-token', now: () => NOW, responses, initialGraph: graph })
     expect(graph.items).toHaveLength(1)
     expect(graph.items[0]?.title).toBe('Updated')
+  })
+
+  it('accepts a transferred repository but rejects unrelated release URLs', async () => {
+    const input = source('github_graphql', 'https://github.com/old/repo/releases')
+    const release = { tagName: 'v1', name: 'Release', url: 'https://github.com/new/repo/releases/tag/v1', description: '', publishedAt: NOW.toISOString(), isDraft: false }
+    for (const unrelated of [false, true]) {
+      const graph = await runIngestion({ sources: [{ ...input }], githubToken: 'test-token', now: () => NOW, responses: [robots('https://api.github.com'), json('https://api.github.com/graphql', { data: { repository: { url: 'https://github.com/new/repo', releases: { nodes: [{ ...release, url: unrelated ? 'https://github.com/other/repo/releases/tag/v1' : release.url }] } } } })] })
+      expect(graph.fetchLogs[0]?.outcome).toBe(unrelated ? 'parse_error' : 'ok')
+      expect(graph.items).toHaveLength(unrelated ? 0 : 1)
+    }
   })
 
   it('does not treat GraphQL partial data with errors as a successful empty feed', async () => {

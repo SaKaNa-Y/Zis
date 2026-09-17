@@ -103,7 +103,7 @@ it('selects API Sources and keeps their venue ownership valid on the next databa
     else if (url === 'https://api.github.com/graphql') {
       expect(options?.method).toBe('POST')
       expect(options?.headers?.authorization).toBe('Bearer test-only')
-      payload = { data: { repository: { releases: { nodes: [{ tagName: 'v1', name: 'Release', url: 'https://github.com/example/repo/releases/tag/v1', description: '', publishedAt: '2026-09-17T00:00:00Z', isDraft: false }] } } } }
+      payload = { data: { repository: { url: 'https://github.com/example/repo', releases: { nodes: [{ tagName: 'v1', name: 'Release', url: 'https://github.com/example/repo/releases/tag/v1', description: '', publishedAt: '2026-09-17T00:00:00Z', isDraft: false }] } } } }
     }
     const body = robots ? 'User-agent: *\nAllow: /' : JSON.stringify(payload)
     const bytes = new TextEncoder().encode(body)

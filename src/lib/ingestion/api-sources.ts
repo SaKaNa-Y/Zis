@@ -136,19 +136,25 @@ export async function fetchApiSource(source: IngestionSource, fetch: SafeFetch, 
       method: 'POST',
       headers: { 'authorization': `Bearer ${githubToken}`, 'content-type': 'application/json' },
       body: JSON.stringify({
-        query: 'query($owner:String!,$name:String!){repository(owner:$owner,name:$name){releases(first:100,orderBy:{field:CREATED_AT,direction:DESC}){nodes{tagName name url description publishedAt isDraft}}}}',
+        query: 'query($owner:String!,$name:String!){repository(owner:$owner,name:$name){url releases(first:100,orderBy:{field:CREATED_AT,direction:DESC}){nodes{tagName name url description publishedAt isDraft}}}}',
         variables: { owner: repository[1], name: repository[2] },
       }),
     }))
     if (result.errors !== undefined)
       throw new ApiSourceError('GitHub GraphQL query failed', 'http_error', response)
-    const releases = object(object(object(result.data).repository).releases)
+    const resolvedRepository = object(object(result.data).repository)
+    // GitHub resolves transferred repositories (for example facebook/react).
+    // Validate against that authoritative identity, not the old configured path.
+    const repositoryUrl = text(resolvedRepository.url)
+    if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(repositoryUrl))
+      throw new ApiSourceError('Invalid resolved GitHub repository URL', 'parse_error')
+    const releases = object(resolvedRepository.releases)
     for (const value of list(releases.nodes, 100)) {
       const release = object(value)
       if (release.isDraft === true || release.publishedAt === null)
         continue
       const url = text(release.url)
-      if (!url.startsWith(`${source.endpointUrl}/tag/`))
+      if (!url.startsWith(`${repositoryUrl}/releases/tag/`))
         throw new ApiSourceError('Release URL differs from Source repository', 'parse_error')
       items.push({ guid: text(release.tagName), link: url, title: bounded(release.name || release.tagName), text: bounded(release.description ?? ''), summary: bounded(release.description ?? ''), rawFeedDate: text(release.publishedAt), outboundUrls: outbound(release.description) })
     }
