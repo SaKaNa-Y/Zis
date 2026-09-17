@@ -190,3 +190,11 @@ point. All implementation work is deployed; #92 remains open for delayed actual
 transfer, the complete first-24-hour observation, and final monthly budget
 qualification. Do not treat the three manual validation runs as scheduled-run
 evidence or enable hourly ingestion from decoded-payload estimates.
+
+
+## Follow-up acceptance
+
+The [September 17 acceptance record](2026-09-17-daily-cadence-acceptance.md)
+completes the daily-cadence observation using nine successful scheduled runs and
+actual Neon usage. It explicitly supersedes the missed first-24-hour checkpoint
+without inventing historical counters. Hourly remains unapproved.
