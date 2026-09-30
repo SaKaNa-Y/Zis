@@ -132,7 +132,7 @@ export async function loadReaderScope(database: Database, graph: PersistedGraph,
   graph.citations = await batches(linkIds, page => database.select().from(citations).where(inArray(citations.linkId, page)))
   graph.items = await batches([...new Set(graph.citations.map(row => row.itemId))], page => database.select({
     ...getTableColumns(items),
-    hasOutboundCitation: sql<boolean>`EXISTS (SELECT 1 FROM citation c WHERE c.item_id = ${items.id} AND c.kind = 'outbound')`,
+    hasOutboundCitation: sql<boolean>`EXISTS (SELECT 1 FROM citation c WHERE c.item_id = ${items}.${sql.identifier('id')} AND c.kind = 'outbound')`,
   }).from(items).where(inArray(items.id, page)))
   graph.readerSignalMatches = await batches(ids, page => database.select().from(readerSignalMatches).where(inArray(readerSignalMatches.signalId, page)))
   graph.briefEntries = await batches(ids, page => database.select().from(briefEntries).where(inArray(briefEntries.signalId, page)))

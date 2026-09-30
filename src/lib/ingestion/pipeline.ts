@@ -1658,7 +1658,18 @@ async function embedSignalsAndMatchInterests(
       && !(signal.textBasis === 'own' && signal.embeddingTextExpiresAt !== null)) {
       throw new Error(`Signal ${signal.id} has incomplete embedding state`)
     }
-    return TEXT_BASIS_ORDINAL[candidate.basis] > TEXT_BASIS_ORDINAL[signal.textBasis]
+    // Repair own-text vectors produced by the former unqualified Item lookup.
+    // A real own-text candidate still wins; only a pointer's invalid own basis
+    // is replaced by the best text its complete provenance actually provides.
+    const invalidVehicleBasis = signal.textBasis === 'own'
+      && candidate.basis !== 'own'
+      && (index.citationsByRootId.get(signal.id) ?? []).some((citation) => {
+        if (citation.kind !== 'self')
+          return false
+        const item = index.itemById.get(citation.itemId)
+        return item !== undefined && itemIsVehicle(index, item)
+      })
+    return invalidVehicleBasis || TEXT_BASIS_ORDINAL[candidate.basis] > TEXT_BASIS_ORDINAL[signal.textBasis]
       ? [{ signal, candidate }]
       : []
   })

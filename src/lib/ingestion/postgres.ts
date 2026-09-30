@@ -717,7 +717,9 @@ export async function runNeonIngestion(
   const checkpoint = embeddingProvider === undefined ? undefined : (await database.execute<{ processed_through: string, configuration_hash: string }>(sql`SELECT processed_through, configuration_hash FROM ingestion_checkpoint WHERE id = 1`)).rows[0]
   let graph = await initialGraph(database, dueSources, embeddingProvider !== undefined, checkpoint !== undefined, at)
   const configurationHash = createHash('sha256').update(JSON.stringify([
-    'incremental-graph-v1',
+    // Revisit older vehicle Signals whose own-text vectors were incorrectly
+    // derived by the former incremental Item projection.
+    'incremental-graph-v2',
     register,
     embeddingProvider === undefined ? null : [embeddingProvider.model, embeddingProvider.dimensions, embeddingProvider.version],
     graph.sources.map(row => [row.id, row.publisherId, row.transport, row.endpointUrl, row.isAggregator]).sort(),
