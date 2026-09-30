@@ -332,11 +332,18 @@ export function createTransformersEmbeddingProvider(
 
       const extractor = await getExtractor()
       const embeddings: Float32Array[] = []
+      // Similar lengths reduce the tokenizer's per-batch padding. Keep the
+      // original text and index so scheduling cannot change caller semantics.
+      const inputs = texts.map((text, index) => ({ text, index }))
+        .sort((left, right) => left.text.length - right.text.length || left.index - right.index)
 
-      for (let offset = 0; offset < texts.length; offset += TRANSFORMERS_BATCH_SIZE) {
-        const batch = texts.slice(offset, offset + TRANSFORMERS_BATCH_SIZE)
-        const result = await extractor(batch, { pooling: 'cls', normalize: true })
-        embeddings.push(...validateBatch(result.tolist(), batch.length))
+      for (let offset = 0; offset < inputs.length; offset += TRANSFORMERS_BATCH_SIZE) {
+        const batch = inputs.slice(offset, offset + TRANSFORMERS_BATCH_SIZE)
+        const result = await extractor(batch.map(input => input.text), { pooling: 'cls', normalize: true })
+        const vectors = validateBatch(result.tolist(), batch.length)
+        batch.forEach((input, index) => {
+          embeddings[input.index] = vectors[index]!
+        })
       }
 
       return embeddings

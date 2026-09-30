@@ -90,7 +90,9 @@ describe('the local Transformers.js embedding provider', () => {
   })
 
   it('pins the exact fp32 CPU model and embeds unprefixed text with CLS pooling and L2 normalization', async () => {
-    const extractor = extractorReturning([vector(0.5), vector(-0.5)])
+    const extractor = vi.fn<FeatureExtractor>(async texts => ({
+      tolist: () => texts.map(text => vector(text.startsWith('Reader') ? 0.5 : -0.5)),
+    }))
     const load = vi.fn<TransformersLoader>().mockResolvedValue(extractor)
     const provider = createTransformersEmbeddingProvider({ load })
 
@@ -114,12 +116,13 @@ describe('the local Transformers.js embedding provider', () => {
     expect(TRANSFORMERS_MODEL_ID).toBe('Xenova/bge-small-en-v1.5')
     expect(TRANSFORMERS_MODEL_REVISION).toBe('ea104dacec62c0de699686887e3f920caeb4f3e3')
     expect(extractor).toHaveBeenCalledWith(
-      [
+      expect.arrayContaining([
         'Reader statement exactly as written',
         'Signal basis exactly as stored',
-      ],
+      ]),
       { pooling: 'cls', normalize: true },
     )
+    expect(extractor.mock.calls[0]?.[0]).toHaveLength(2)
     expect(embeddings).toHaveLength(2)
     expect(embeddings[0]).toBeInstanceOf(Float32Array)
     expect(embeddings[0]).toHaveLength(384)
@@ -241,19 +244,53 @@ describe('the local Transformers.js embedding provider', () => {
     }
   })
 
-  it('uses stable batches of at most 32 texts', async () => {
-    const extractor = vi.fn<FeatureExtractor>(async texts => ({
-      tolist: () => texts.map((_, index) => vector(index)),
+  it('reduces mixed-length padding in bounded batches while restoring every input position', async () => {
+    const inputs = Array.from({ length: 65 }, (_, index) => {
+      const text = `document ${String(index).padStart(2, '0')}`
+      return text.padEnd(index % 3 === 0 ? 1200 : index % 3 === 1 ? 16 : 200, 'x')
+    })
+    inputs[20] = 'duplicate same text'
+    inputs[55] = 'duplicate same text'
+    const texts = Object.freeze(inputs)
+    const original = [...texts]
+    const extractor = vi.fn<FeatureExtractor>(async batch => ({
+      tolist: () => batch.map(text => vector(texts.indexOf(text))),
     }))
     const load = vi.fn<TransformersLoader>().mockResolvedValue(extractor)
     const provider = createTransformersEmbeddingProvider({ load })
-    const texts = Array.from({ length: 65 }, (_, index) => `text-${index}`)
 
     const embeddings = await provider.embed(texts)
 
     expect(extractor.mock.calls.map(([batch]) => batch.length)).toEqual([32, 32, 1])
-    expect(extractor.mock.calls.flatMap(([batch]) => batch)).toEqual(texts)
-    expect(embeddings).toHaveLength(65)
+    expect(extractor.mock.calls.flatMap(([batch]) => batch).sort()).toEqual([...texts].sort())
+    expect(extractor.mock.calls.every(([, options]) => options.pooling === 'cls' && options.normalize)).toBe(true)
+    expect(embeddings.map(embedding => embedding[0])).toEqual(texts.map(text => texts.indexOf(text)))
+    expect(texts).toEqual(original)
+    const paddedCharacters = extractor.mock.calls.reduce((total, [batch]) =>
+      total + batch.length * Math.max(...batch.map(text => text.length)), 0)
+    const contiguousCharacters = [texts.slice(0, 32), texts.slice(32, 64), texts.slice(64)]
+      .reduce((total, batch) => total + batch.length * Math.max(...batch.map(text => text.length)), 0)
+    expect(paddedCharacters).toBeLessThan(contiguousCharacters * 0.75)
+  })
+
+  it('stops on a failed batch and restores a complete result when the caller retries', async () => {
+    const texts = Object.freeze(Array.from({ length: 65 }, (_, index) => `${index}-${'x'.repeat(65 - index)}`))
+    const failure = new Error('model execution failed')
+    const extractor = vi.fn<FeatureExtractor>(async (batch) => {
+      if (extractor.mock.calls.length === 2)
+        throw failure
+      return { tolist: () => batch.map(text => vector(texts.indexOf(text))) }
+    })
+    const load = vi.fn<TransformersLoader>().mockResolvedValue(extractor)
+    const provider = createTransformersEmbeddingProvider({ load })
+
+    await expect(provider.embed(texts)).rejects.toBe(failure)
+    expect(extractor).toHaveBeenCalledTimes(2)
+
+    const embeddings = await provider.embed(texts)
+    expect(embeddings.map(embedding => embedding[0])).toEqual(texts.map((_, index) => index))
+    expect(extractor).toHaveBeenCalledTimes(5)
+    expect(load).toHaveBeenCalledOnce()
   })
 
   it('shares a lazy model load across concurrent calls', async () => {
