@@ -7,15 +7,21 @@ import { briefEntries, citations, httpCache, items, links, readerSignalMatches, 
 import { httpCacheKey, MAX_SIGNAL_AGE_MS } from './pipeline'
 
 const PAGE_SIZE = 1000
+const READER_READ_CONCURRENCY = 4
+const signalMetadataColumns = {
+  ...getTableColumns(signals),
+  embedding: sql<PersistedSignal['embedding']>`CASE WHEN ${signals.embedding} IS NULL THEN NULL ELSE '{"stored":true}'::jsonb END`,
+}
 
 export async function readSignalMetadata(database: Database, filter?: SQL): Promise<PersistedSignal[]> {
   const rows: PersistedSignal[] = []
   let afterId: string | undefined
   while (true) {
-    const page = await database.select({
-      ...getTableColumns(signals),
-      embedding: sql<PersistedSignal['embedding']>`CASE WHEN ${signals.embedding} IS NULL THEN NULL ELSE '{"stored":true}'::jsonb END`,
-    }).from(signals).where(and(filter, afterId === undefined ? undefined : gt(signals.id, afterId))).orderBy(signals.id).limit(PAGE_SIZE)
+    const page = await database.select(signalMetadataColumns)
+      .from(signals)
+      .where(and(filter, afterId === undefined ? undefined : gt(signals.id, afterId)))
+      .orderBy(signals.id)
+      .limit(PAGE_SIZE)
     rows.push(...page)
     if (page.length < PAGE_SIZE)
       return rows
@@ -28,6 +34,73 @@ async function batches<T>(ids: readonly string[], read: (page: string[]) => Prom
   for (let offset = 0; offset < ids.length; offset += PAGE_SIZE)
     rows.push(...await read(ids.slice(offset, offset + PAGE_SIZE)))
   return rows
+}
+
+/** Reader-only permits: Source workers keep their existing concurrency bounds. */
+function createReaderStage() {
+  const queued: Array<{ start: () => void, reject: (reason: unknown) => void }> = []
+  const idle: Array<() => void> = []
+  let active = 0
+  let failed = false
+  let failure: unknown
+  function pump(): void {
+    for (let permits = READER_READ_CONCURRENCY - active; permits > 0; permits--) {
+      if (failed)
+        break
+      const next = queued.shift()
+      if (next === undefined)
+        break
+      active++
+      next.start()
+    }
+    if (active === 0) {
+      for (const resolve of idle.splice(0))
+        resolve()
+    }
+  }
+  return {
+    read<T>(run: () => PromiseLike<T>): Promise<T> {
+      return new Promise<T>((resolve, reject) => {
+        if (failed) {
+          reject(failure)
+          return
+        }
+        queued.push({
+          reject,
+          start: () => {
+            void Promise.resolve().then(run).then(resolve, (error: unknown) => {
+              if (!failed) {
+                failed = true
+                failure = error
+                for (const pending of queued.splice(0))
+                  pending.reject(error)
+              }
+              reject(error)
+            }).finally(() => {
+              active--
+              pump()
+            })
+          },
+        })
+        pump()
+      })
+    },
+    async drain(): Promise<void> {
+      if (active > 0)
+        await new Promise<void>(resolve => idle.push(resolve))
+    },
+  }
+}
+
+async function readerBatches<T>(
+  stage: ReturnType<typeof createReaderStage>,
+  ids: readonly string[],
+  read: (page: string[]) => PromiseLike<T[]>,
+): Promise<T[]> {
+  const pages = Array.from({ length: Math.ceil(ids.length / PAGE_SIZE) }, (_, index) =>
+    stage.read(() => read(ids.slice(index * PAGE_SIZE, (index + 1) * PAGE_SIZE))))
+  // Promise.all retains page order even when responses complete out of order.
+  return (await Promise.all(pages)).flat()
 }
 
 function appendMissing<T>(target: T[], rows: T[], key: (row: T) => string): void {
@@ -126,24 +199,51 @@ export async function loadReaderScope(database: Database, graph: PersistedGraph,
       FROM scope JOIN edges e ON e.a = scope.id OR e.b = scope.id
     ) SELECT id FROM scope ORDER BY id`)
   const ids = result.rows.map(row => row.id)
-  graph.signals = await batches(ids, page => readSignalMetadata(database, inArray(signals.id, page)))
-  const linkIds = graph.signals.map(row => row.targetLinkId)
-  graph.links = await batches(linkIds, page => database.select().from(links).where(inArray(links.id, page)))
-  graph.citations = await batches(linkIds, page => database.select().from(citations).where(inArray(citations.linkId, page)))
-  graph.items = await batches([...new Set(graph.citations.map(row => row.itemId))], page => database.select({
-    ...getTableColumns(items),
-    hasOutboundCitation: sql<boolean>`EXISTS (SELECT 1 FROM citation c WHERE c.item_id = ${items}.${sql.identifier('id')} AND c.kind = 'outbound')`,
-  }).from(items).where(inArray(items.id, page)))
-  graph.readerSignalMatches = await batches(ids, page => database.select().from(readerSignalMatches).where(inArray(readerSignalMatches.signalId, page)))
-  graph.briefEntries = await batches(ids, page => database.select().from(briefEntries).where(inArray(briefEntries.signalId, page)))
-  graph.readStates = await batches(ids, page => database.select().from(readStates).where(inArray(readStates.signalId, page)))
-  const claims = ids.length === 0
-    ? []
-    : (await database.execute<{ aliasLinkId: string, targetLinkIds: string[] }>(sql`WITH ${aliasClaims}
-    SELECT alias_link_id AS "aliasLinkId", array_agg(DISTINCT target_link_id) AS "targetLinkIds"
-    FROM claims WHERE alias_link_id = ANY(${sql.param(linkIds)}::uuid[]) GROUP BY alias_link_id`)).rows
-  graph.releaseTagAliases = claims
-  return Buffer.byteLength(JSON.stringify([ids, graph.signals, graph.links, graph.citations, graph.items, graph.readerSignalMatches, graph.briefEntries, graph.readStates, claims]))
+  const stage = createReaderStage()
+  try {
+    const [signalRows, matchRows, briefRows, readRows] = await Promise.all([
+      // Each page already contains at most 1000 unique primary keys. One query
+      // is complete; a second keyset probe can only be empty.
+      readerBatches(stage, ids, page => database.select(signalMetadataColumns)
+        .from(signals)
+        .where(inArray(signals.id, page))
+        .orderBy(signals.id)),
+      readerBatches(stage, ids, page => database.select().from(readerSignalMatches).where(inArray(readerSignalMatches.signalId, page))),
+      readerBatches(stage, ids, page => database.select().from(briefEntries).where(inArray(briefEntries.signalId, page))),
+      readerBatches(stage, ids, page => database.select().from(readStates).where(inArray(readStates.signalId, page))),
+    ])
+    const linkIds = signalRows.map(row => row.targetLinkId)
+    const [linkRows, citationRows, claims] = await Promise.all([
+      readerBatches(stage, linkIds, page => database.select().from(links).where(inArray(links.id, page))),
+      readerBatches(stage, linkIds, page => database.select().from(citations).where(inArray(citations.linkId, page))),
+      ids.length === 0
+        ? []
+        : stage.read(async () => (await database.execute<{ aliasLinkId: string, targetLinkIds: string[] }>(sql`WITH ${aliasClaims}
+          SELECT alias_link_id AS "aliasLinkId", array_agg(DISTINCT target_link_id) AS "targetLinkIds"
+          FROM claims WHERE alias_link_id = ANY(${sql.param(linkIds)}::uuid[]) GROUP BY alias_link_id`)).rows),
+    ])
+    const itemRows = await readerBatches(stage, [...new Set(citationRows.map(row => row.itemId))], page => database.select({
+      ...getTableColumns(items),
+      // A column alone is unqualified in a single-table projection and would
+      // bind to citation.id inside the subquery instead of the outer Item.
+      hasOutboundCitation: sql<boolean>`EXISTS (SELECT 1 FROM citation c WHERE c.item_id = ${items}.${sql.identifier('id')} AND c.kind = 'outbound')`,
+    }).from(items).where(inArray(items.id, page)))
+    Object.assign(graph, {
+      signals: signalRows,
+      links: linkRows,
+      citations: citationRows,
+      items: itemRows,
+      readerSignalMatches: matchRows,
+      briefEntries: briefRows,
+      readStates: readRows,
+      releaseTagAliases: claims,
+    })
+    return Buffer.byteLength(JSON.stringify([ids, signalRows, linkRows, citationRows, itemRows, matchRows, briefRows, readRows, claims]))
+  }
+  finally {
+    // A failed query must not leave peer reads running into the next stage.
+    await stage.drain()
+  }
 }
 
 export function recentBriefDate(at: Date): string {
