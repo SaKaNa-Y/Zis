@@ -12,8 +12,12 @@ The validated *decisions* are in the resolution comment on
 
 ## Run it
 
+Use Node 22 and pnpm 11.9.0, as in the root project. This directory has its own
+`pnpm-workspace.yaml` and lockfile; run installation from this directory. Do not
+pass `--ignore-workspace`, which would skip the security overrides here.
+
 ```sh
-pnpm install --ignore-workspace
+pnpm install --frozen-lockfile
 node run.mjs            # the four outputs                              (#21)
 node argmax-check.mjs   # is the citing rung's definition load-bearing?  (#21)
 node argmax-margin.mjs  # margin over 2nd, and per-Interest vagueness    (#35)
