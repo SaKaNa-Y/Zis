@@ -1,4 +1,4 @@
-import { DesktopDestinationRail, MobileDestinationFooter } from './destinations'
+import { DestinationNavigation, MobileDestinationFooter } from './destinations'
 
 export type TodayFormAction = (formData: FormData) => void | Promise<void>
 
@@ -31,7 +31,7 @@ export interface TodayBriefViewProps {
   period?: 'today' | 'earlier'
 }
 
-const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
+const READING_GRID = 'brief-grid'
 
 function signalProvenanceHref(entrySignalId: string): string {
   return `/signals/${entrySignalId}`
@@ -83,7 +83,7 @@ function EntryActionForm({
     <form action={action}>
       <input name="signalId" type="hidden" value={signalId} />
       <button
-        className="underline decoration-rule underline-offset-4 hover:text-ink disabled:no-underline disabled:opacity-70"
+        className="entry-action disabled:opacity-70"
         disabled={disabled}
         type="submit"
       >
@@ -135,8 +135,8 @@ function EntryActions({
         </a>
       </div>
       <details className="mt-3 text-meta text-ink-faint lg:hidden">
-        <summary aria-label="Entry actions" className="w-fit cursor-pointer select-none marker:text-ink-faint">
-          ⋯
+        <summary aria-label="Entry actions" className="entry-action w-fit cursor-pointer select-none">
+          Actions
         </summary>
         <div aria-live="polite" className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
           <EntryActionForm
@@ -182,10 +182,11 @@ function BriefEntry({
 
   return (
     <article
-      className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID}`}
+      className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID} brief-entry`}
       id={`entry-${entry.position}`}
     >
-      <div className="min-w-0 xl:col-start-2 xl:row-start-1">
+      <span className="entry-number" aria-hidden="true">{String(entry.position).padStart(2, '0')}</span>
+      <div className="entry-copy">
         {isConvergence
           ? <h3 className="text-body font-semibold tracking-[-0.012em] text-ink lg:text-body-lg">{titleLink}</h3>
           : <h2 className="text-title font-medium tracking-[-0.018em] text-ink lg:text-title-lg">{titleLink}</h2>}
@@ -197,10 +198,11 @@ function BriefEntry({
               </p>
             )}
       </div>
-      <div className="mt-3 xl:col-start-1 xl:row-start-1 xl:mt-0 xl:pt-1 xl:text-right">
+      <div className="entry-context">
+        <span className="context-label">Why this surfaced</span>
         <WhyText entry={entry} />
       </div>
-      <div className="xl:col-start-2 xl:row-start-2">
+      <div className="entry-tools">
         <EntryActions actionTargets={actionTargets} entry={entry} />
       </div>
     </article>
@@ -212,25 +214,28 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
   const convergenceEntries = brief.entries.filter(entry => entry.admittedBy === 'convergence')
 
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="brief-v2">
       <a
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#today-brief"
       >
         Skip to brief
       </a>
-      <DesktopDestinationRail current={period === 'today' ? '/' : '/earlier'} />
+      <DestinationNavigation current={period === 'today' ? '/' : '/earlier'} />
       <div className="min-w-0">
-        <main className="min-w-0 px-5 py-10 sm:px-8 lg:px-12 lg:py-14 xl:px-16" id="today-brief">
-          <div className="mx-auto max-w-measure lg:max-w-measure-lg xl:max-w-[54rem]">
+        <main className="brief-canvas" id="today-brief">
+          <div className="brief-document">
             <div className={READING_GRID}>
-              <header className="xl:col-start-2">
+              <header className="brief-intro">
                 <p className="font-mono text-date tabular-nums uppercase tracking-[0.16em] text-ink-faint">
                   {dateLabel(brief.localDate)}
                 </p>
-                <h1 className="mt-2 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
-                  Your brief
+                <h1 className="brief-heading">
+                  Your daily
+                  {' '}
+                  <span>brief.</span>
                 </h1>
+                <p className="brief-deck">What mattered. Why it matters. Then back to your day.</p>
               </header>
             </div>
 
@@ -254,7 +259,8 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
               : null}
             {interestEntries.length > 0
               ? (
-                  <section aria-label="Stories matched to your Interests" className="mt-register">
+                  <section aria-label="Stories matched to your Interests" className="brief-register">
+                    <p className="register-label">Matched to your Interests</p>
                     {interestEntries.map(entry => (
                       <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} />
                     ))}
@@ -267,7 +273,7 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
                     <div className={READING_GRID}>
                       <hr className="mt-register border-0 border-t border-rule xl:col-start-2" />
                     </div>
-                    <section aria-labelledby="convergence-heading" className="pt-6">
+                    <section aria-labelledby="convergence-heading" className="convergence-register">
                       <div className={READING_GRID}>
                         <h2 className="xl:col-start-2" id="convergence-heading">
                           <span className="block text-meta font-semibold uppercase tracking-[0.14em] text-ink">
@@ -285,6 +291,15 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
                   </>
                 )
               : null}
+            {brief.hasBrief && brief.entries.length > 0 && (
+              <div className="brief-finish">
+                <p className="xl:col-start-2">
+                  <span aria-hidden="true">✓</span>
+                  {' '}
+                  That’s your brief. The rest of the day is yours.
+                </p>
+              </div>
+            )}
           </div>
         </main>
         <MobileDestinationFooter current={period === 'today' ? '/' : '/earlier'} />
