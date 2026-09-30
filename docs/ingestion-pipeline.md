@@ -721,3 +721,28 @@ Item, Link, Citation and existing-vector Signal metadata writes are batched;
 stored vectors, Interest Profile locking and sealed Briefs retain their existing
 semantics. The normal-run target remains 120 seconds, verified by production
 stage timings rather than by local operation counts alone.
+
+After Source workers finish, reader-scope tables and pages share four read
+permits. Known pages contain at most 1000 unique Signal IDs, so one metadata
+query is complete; unrestricted bootstrap reads retain keyset pagination.
+A failed read stops queued work and drains active reads before the stage exits,
+without replacing the graph with a partial result.
+
+The local embedding provider groups similar-length texts into its existing
+32-input batches, then restores vectors to the caller's original order. This
+reduces tokenizer padding without changing input text, model revision, fp32
+execution, CLS pooling or L2 normalization. A same-process ABBA comparison of
+128 mixed-length synthetic texts on an M5 Pro measured 2.71–2.76 seconds for
+contiguous batches and 0.968 seconds for grouped batches, including ordering and
+restoration. The largest vector component difference was below 1e-7. This
+validates the padding optimization, not a production runtime guarantee.
+
+Incremental Item reads explicitly qualify the outer Item identity in the
+outbound-Citation existence check. An unqualified `id` inside that subquery
+resolved to the Citation's identity, falsely classifying HN and Bluesky pointers
+as their own story text on the second wake. The repair invalidates an existing
+`own` vector only when complete current provenance has vehicle self-Citations
+and no valid own-text candidate. It recomputes the best valid basis and match;
+ordinary rung upgrades, genuine self-authored posts and sealed Briefs retain
+their existing behavior. The configuration fingerprint advances once so the
+repair also inspects older affected Signals outside the recent reader scope.
