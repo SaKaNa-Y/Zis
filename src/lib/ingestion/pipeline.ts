@@ -175,9 +175,6 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
     throw new FeedParseError('invalid_xml', 'feed is not valid UTF-8 XML', { cause })
   }
 
-  if (/<!DOCTYPE\b/i.test(xml))
-    throw new FeedParseError('unsafe_xml', 'DTD declarations are forbidden in feeds')
-
   const parsed: ParsedFeedItem[] = []
   const stack: string[] = []
   let feedKind: 'rss' | 'atom' | undefined
@@ -185,6 +182,7 @@ function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
 
   try {
     const parser = new SaxesParser()
+    // A doctype inside CDATA is Item text; only an XML declaration is a DTD.
     parser.on('doctype', () => {
       throw new FeedParseError('unsafe_xml', 'DTD declarations are forbidden in feeds')
     })

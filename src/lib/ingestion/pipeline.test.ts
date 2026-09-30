@@ -101,7 +101,7 @@ describe('the ingestion seam', () => {
 
   it.each([
     {
-      name: 'rejects a DTD before the chosen parser sees it',
+      name: 'rejects an XML DTD declaration',
       body: '<!DOCTYPE rss SYSTEM "file:///etc/passwd"><rss><channel /></rss>',
       outcome: 'parse_error',
     },
@@ -137,6 +137,41 @@ describe('the ingestion seam', () => {
       httpStatus: 200,
       itemsSeen: 0,
     })])
+  })
+
+  it('ingests an HTML doctype inside RSS CDATA as Item text', async () => {
+    const graph = await runIngestion({
+      sources: [source],
+      now: () => NOW,
+      responses: [
+        { url: 'https://publisher.example/robots.txt', status: 404 },
+        {
+          url: source.endpointUrl,
+          status: 200,
+          headers: { 'content-type': 'application/rss+xml' },
+          body: `<?xml version="1.0"?>
+            <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel>
+              <item>
+                <guid>cdata-html</guid>
+                <title>Release notes</title>
+                <link>https://publisher.example/release</link>
+                <description>A new release.</description>
+                <content:encoded><![CDATA[<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+                  <html><body><p>New release details.</p><a href="https://example.org/spec">Release specification</a></body></html>
+                ]]></content:encoded>
+              </item>
+            </channel></rss>`,
+        },
+      ],
+    })
+
+    expect(graph.fetchLogs).toEqual([expect.objectContaining({ outcome: 'ok', itemsSeen: 1, itemsNew: 1 })])
+    expect(graph.items).toEqual([expect.objectContaining({
+      externalId: 'cdata-html',
+      title: 'Release notes',
+      text: 'New release details. Release specification',
+    })])
+    expect(graph.links).toContainEqual(expect.objectContaining({ url: 'https://example.org/spec' }))
   })
 
   it('updates an edited upstream Item in place without re-keying it', async () => {
