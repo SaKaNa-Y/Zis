@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { appearanceSettings } from '@/lib/settings/server'
 import './globals.css'
+import './product.css'
 
 export const metadata: Metadata = {
   title: 'Zis',

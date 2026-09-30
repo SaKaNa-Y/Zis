@@ -3,7 +3,7 @@ import type {
   SignalProvenancePublisher,
 } from '@/lib/signals/provenance'
 import Link from 'next/link'
-import { DesktopDestinationRail, MobileDestinationFooter } from '../../destinations'
+import { DestinationNavigation, MobileDestinationFooter } from '../../destinations'
 
 export interface SignalProvenanceViewProps {
   provenance: SignalProvenanceModel
@@ -94,16 +94,16 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
   const publisherCountLabel = `${provenance.strength} distinct ${provenance.strength === 1 ? 'Publisher' : 'Publishers'}, with the origin excluded.`
 
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="brief-v2 app-shell">
       <a
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#signal-provenance"
       >
         Skip to provenance
       </a>
-      <DesktopDestinationRail />
+      <DestinationNavigation />
       <div className="min-w-0">
-        <main className="mx-auto max-w-[64rem] px-5 py-10 sm:px-8 lg:px-12 lg:py-14" id="signal-provenance">
+        <main className="page-content provenance-content" id="signal-provenance">
           <nav aria-label="Breadcrumb" className="text-meta text-ink-faint">
             <Link className="underline decoration-rule underline-offset-4 hover:text-ink" href="/">
               ← Today
@@ -114,7 +114,7 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
             <p className="font-mono text-date font-semibold uppercase tracking-[0.16em] text-ink-faint">
               Signal provenance
             </p>
-            <h1 className="mt-3 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
+            <h1 className="page-title provenance-title mt-3">
               <a
                 className="break-words decoration-accent underline-offset-4 hover:underline"
                 href={provenance.originUrl}
@@ -134,7 +134,7 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
                 )}
           </header>
 
-          <section aria-label="Historical explanation" className="mt-register max-w-measure-lg">
+          <section aria-label="Historical explanation" className="explanation-panel mt-register max-w-measure-lg">
             <h2 className="text-meta font-semibold text-ink-dim">
               Why this appeared in the Brief of
               {' '}
@@ -166,7 +166,7 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
                 Each Publisher is counted once. Every Citation remains visible below.
               </p>
             </div>
-            <div className="mt-6 overflow-x-auto">
+            <div tabIndex={0} role="region" aria-label="Citation record, scroll horizontally for more" className="citation-table mt-6 overflow-x-auto">
               <table aria-labelledby="citation-record-heading" className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-rule font-mono text-meta uppercase tracking-[0.1em] text-ink-faint">

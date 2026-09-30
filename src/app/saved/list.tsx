@@ -61,7 +61,7 @@ export function SavedList({ saved }: { saved: SavedPage }) {
               </p>
             )
           : (
-              <ul className="divide-y divide-rule">
+              <ul className="saved-list">
                 {entries.map(entry => removals.has(entry.signalId)
                   ? (
                       <li key={entry.signalId} className="py-5 first:pt-0">

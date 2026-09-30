@@ -57,7 +57,8 @@ describe('today brief', () => {
     }))
 
     expect(html.match(/<article/g)).toHaveLength(1)
-    expect(html).toMatch(/<section[^>]*class="mt-register"[^>]*><article class="mt-entry first:mt-0 /)
+    expect(html).toContain('aria-label="Stories matched to your Interests"')
+    expect(html).toContain('class="register-label">Matched to your Interests')
     expect(html).toContain('href="https://database.example/deep-storage"')
     expect(html).toContain('target="_blank"')
     expect(html).toContain('rel="noopener noreferrer"')
@@ -141,7 +142,7 @@ describe('today brief', () => {
     expect(html).toContain('Skip to brief')
     expect(html).toContain('<details')
     expect(html).toContain('aria-live="polite"')
-    expect(html).toContain('max-w-measure lg:max-w-measure-lg')
+    expect(html).toContain('class="entry-copy"')
     expect(html).toContain('break-words')
     expect(html).not.toContain('leading-relaxed')
     expect(html).not.toContain('first-of-type:mt-6')

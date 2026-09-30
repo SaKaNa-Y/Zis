@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { appearanceSettings } from '@/lib/settings/server'
 import { generationTime } from '@/lib/settings/timing'
-import { DesktopDestinationRail, MobileDestinationFooter } from '../destinations'
+import { DestinationNavigation, MobileDestinationFooter } from '../destinations'
 import { AccountControls, AppearanceControl } from './controls'
 
 export const metadata: Metadata = { title: 'Settings — Zis' }
@@ -17,17 +17,19 @@ export default async function SettingsPage() {
     throw new Error('Reader settings are unavailable')
   const appearance = await appearanceSettings.read()
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
-      <DesktopDestinationRail current="/settings" />
+    <div className="brief-v2 app-shell">
+      <DestinationNavigation current="/settings" />
       <div className="min-w-0">
-        <main className="mx-auto max-w-measure px-5 py-10 sm:px-8 lg:max-w-measure-lg lg:px-12 lg:py-14">
-          <h1 className="font-display text-title font-semibold tracking-[-0.025em] lg:text-title-lg">Settings</h1>
-          <section aria-labelledby="appearance-heading" className="mt-register">
+        <main className="page-content">
+          <p className="eyebrow page-eyebrow">Your space</p>
+          <h1 className="page-title">Settings</h1>
+          <p className="page-description">A few considered choices, just for you.</p>
+          <section aria-labelledby="appearance-heading" className="settings-panel mt-register">
             <h2 id="appearance-heading" className="font-display text-body font-semibold">Appearance</h2>
             <p className="mt-3 text-meta text-ink-dim">For this browser only. Your choice stays after signing out.</p>
             <AppearanceControl initialAppearance={appearance} />
           </section>
-          <section aria-labelledby="timing-heading" className="mt-register border-t border-rule pt-7">
+          <section aria-labelledby="timing-heading" className="settings-panel mt-register">
             <h2 id="timing-heading" className="font-display text-body font-semibold">Your daily Brief</h2>
             <p className="mt-3 text-body text-ink-dim">
               Generation is scheduled to start daily at
@@ -51,7 +53,7 @@ export default async function SettingsPage() {
               <p className="mt-3">These values are read-only. Today’s and earlier Briefs stay as they are.</p>
             </details>
           </section>
-          <section aria-labelledby="account-heading" className="mt-register border-t border-rule pt-7">
+          <section aria-labelledby="account-heading" className="settings-panel mt-register">
             <h2 id="account-heading" className="font-display text-body font-semibold">Account</h2>
             <AccountControls />
           </section>

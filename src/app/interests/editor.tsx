@@ -24,7 +24,7 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
   const invalid = rows.some(row => !row.statement.trim() || Array.from(row.statement.trim()).length > MAX_CHARACTERS)
 
   return (
-    <form action={action} className="mt-register">
+    <form action={action} className="interest-editor mt-register">
       <input type="hidden" name="profile" value={JSON.stringify(rows.map(({ id, statement }) => ({ id, statement })))} />
       <fieldset disabled={pending}>
         <legend className="sr-only">Your Interest statements</legend>
