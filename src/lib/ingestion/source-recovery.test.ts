@@ -102,11 +102,15 @@ describe('reviewed Source recovery maintenance', () => {
     const before = await state(pg)
     await pg.exec(recovery)
     const after = await state(pg)
+    // Each maintenance step has its own identity-preservation test. A fresh
+    // seed reaches the current register only after applying both reviewed moves.
+    await pg.exec(readFileSync(new URL('../../../scripts/operations/2026-09-30-recover-remaining-sources.sql', import.meta.url), 'utf8'))
+    const current = await state(pg)
     const expectedUrls = register.publishers.flatMap(publisher =>
       publisher.sources.filter(source => source.transport === 'rss')
         .flatMap(source => 'url' in source && source.url !== undefined ? [source.url] : []),
     ).sort()
-    expect(after.source!.filter(row => row.transport === 'rss').map(row => row.endpoint_url).sort()).toEqual(expectedUrls)
+    expect(current.source!.filter(row => row.transport === 'rss').map(row => row.endpoint_url).sort()).toEqual(expectedUrls)
     for (const row of before.source!) {
       expect(after.source!.find(candidate => candidate.id === row.id)).toEqual({
         ...row,
@@ -114,6 +118,6 @@ describe('reviewed Source recovery maintenance', () => {
       })
     }
     await pg.exec(recovery)
-    expect(await state(pg)).toEqual(after)
+    expect(await state(pg)).toEqual(current)
   })
 })

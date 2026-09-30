@@ -19,6 +19,98 @@ const source = {
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
 }
 
+describe('reviewed full-feed compatibility', () => {
+  const antfuFeed = 'https://antfu.me/feed.xml'
+  const largeFeeds = [
+    'https://danluu.com/atom.xml',
+    'https://magazine.sebastianraschka.com/feed',
+    'https://vercel.com/atom',
+  ]
+  const escape = String.fromCharCode(0x1B)
+  const item = '<item><guid isPermaLink="false">unchanged-guid</guid><title>Full post</title><description><![CDATA[<a href="https://example.org/tail">Final citation</a>]]></description></item>'
+
+  function sizedFeed(bytes: number): string {
+    const prefix = '<rss><channel><!--'
+    const suffix = `-->${item}</channel></rss>`
+    return `${prefix}${'x'.repeat(bytes - prefix.length - suffix.length)}${suffix}`
+  }
+
+  async function ingest(endpointUrl: string, body: string) {
+    return runIngestion({
+      sources: [{ ...source, endpointUrl }],
+      now: () => NOW,
+      responses: [
+        { url: `${new URL(endpointUrl).origin}/robots.txt`, status: 404 },
+        { url: endpointUrl, status: 200, headers: { 'content-type': 'application/xml' }, body },
+      ],
+    })
+  }
+
+  it.each(largeFeeds)('preserves the full feed and tail citation above 2 MiB for %s', async (endpointUrl) => {
+    const graph = await ingest(endpointUrl, sizedFeed(MAX_FEED_BYTES + 1))
+    expect(graph.fetchLogs[0]?.outcome).toBe('ok')
+    expect(graph.items).toEqual([expect.objectContaining({ externalId: 'unchanged-guid' })])
+    expect(graph.links).toContainEqual(expect.objectContaining({ url: 'https://example.org/tail' }))
+  })
+
+  it.each([
+    { endpointUrl: 'https://danluu.com/atom.xml', bytes: 8 * 1024 * 1024 - 1, outcome: 'ok' },
+    { endpointUrl: 'https://danluu.com/atom.xml', bytes: 8 * 1024 * 1024, outcome: 'ok' },
+    { endpointUrl: 'https://danluu.com/atom.xml', bytes: 8 * 1024 * 1024 + 1, outcome: 'too_large' },
+    { endpointUrl: 'https://other.example/feed', bytes: 2 * 1024 * 1024 - 1, outcome: 'ok' },
+    { endpointUrl: 'https://other.example/feed', bytes: 2 * 1024 * 1024, outcome: 'ok' },
+    { endpointUrl: 'https://other.example/feed', bytes: 2 * 1024 * 1024 + 1, outcome: 'too_large' },
+    { endpointUrl: 'https://danluu.com/other.xml', bytes: 2 * 1024 * 1024 + 1, outcome: 'too_large' },
+    { endpointUrl: 'https://vercel.com/atom?extra=1', bytes: 2 * 1024 * 1024 + 1, outcome: 'too_large' },
+  ])('enforces $bytes bytes at $endpointUrl as $outcome', async ({ endpointUrl, bytes, outcome }) => {
+    const graph = await ingest(endpointUrl, sizedFeed(bytes))
+    expect(graph.fetchLogs[0]?.outcome).toBe(outcome)
+    expect(graph.items).toHaveLength(outcome === 'ok' ? 1 : 0)
+    if (outcome === 'ok')
+      expect(graph.links).toContainEqual(expect.objectContaining({ url: 'https://example.org/tail' }))
+  })
+
+  it('removes antfu ANSI SGR presentation only within CDATA while preserving identity and citations', async () => {
+    const body = `<rss><channel><item><guid isPermaLink="false">unchanged-guid</guid><title>Full post</title><description><![CDATA[<pre><code>${escape}[1;34mOriginal text${escape}[0m</code></pre><a href="https://example.org/tail">Final citation</a>]]></description></item></channel></rss>`
+    const graph = await ingest(antfuFeed, body)
+    expect(graph.fetchLogs[0]?.outcome).toBe('ok')
+    expect(graph.items).toEqual([expect.objectContaining({
+      externalId: 'unchanged-guid',
+      title: 'Full post',
+      text: 'Original text Final citation',
+    })])
+    expect(graph.links).toContainEqual(expect.objectContaining({ url: 'https://example.org/tail' }))
+    const uncolored = await ingest(antfuFeed, body.replaceAll(`${escape}[1;34m`, '').replaceAll(`${escape}[0m`, ''))
+    expect(graph.items).toEqual(uncolored.items)
+    expect(graph.citations).toEqual(uncolored.citations)
+    expect(graph.links).toEqual(uncolored.links)
+
+    const unrelated = await ingest('https://antfu.me/other.xml', body)
+    expect(unrelated.fetchLogs[0]?.outcome).toBe('parse_error')
+  })
+
+  it.each([
+    { name: 'a non-SGR escape', fragment: `<description><![CDATA[${escape}[2J]]></description>` },
+    { name: 'another illegal control', fragment: `<description><![CDATA[${String.fromCharCode(1)}]]></description>` },
+    { name: 'SGR outside CDATA', fragment: `<description>${escape}[34m</description>` },
+    { name: 'fake CDATA in a comment', fragment: `<!-- <![CDATA[${escape}[34m]]> -->` },
+    { name: 'fake CDATA in an attribute', fragment: `<description data-fake="<![CDATA[${escape}[34m]]>">Text</description>` },
+    { name: 'fake CDATA in a processing instruction', fragment: `<?fake <![CDATA[${escape}[34m]]> ?>` },
+    { name: 'unclosed CDATA', fragment: `<description><![CDATA[${escape}[34m` },
+    { name: 'malformed XML', fragment: `<description><![CDATA[${escape}[34m]]></broken>` },
+  ])('still rejects $name for antfu', async ({ fragment }) => {
+    const graph = await ingest(antfuFeed, `<rss><channel><item><title>Invalid</title>${fragment}</item></channel></rss>`)
+    expect(graph.fetchLogs[0]?.outcome).toBe('parse_error')
+    expect(graph.items).toHaveLength(0)
+  })
+
+  it.each([antfuFeed, ...largeFeeds])('continues rejecting external entities for %s', async (endpointUrl) => {
+    const graph = await ingest(endpointUrl, `<!DOCTYPE rss [<!ENTITY external SYSTEM "file:///etc/passwd">]><rss><channel><item><title>&external;</title><description><![CDATA[${escape}[34m]]></description></item></channel></rss>`)
+    expect(graph.fetchLogs[0]?.outcome).toBe('parse_error')
+    expect(graph.items).toHaveLength(0)
+  })
+})
+
 describe('the ingestion seam', () => {
   it('persists normalized RSS Items only after robots allows the host', async () => {
     const graph = await runIngestion({

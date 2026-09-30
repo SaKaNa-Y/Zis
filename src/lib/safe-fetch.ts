@@ -29,7 +29,7 @@
  */
 
 import type { IpFamily } from './ip'
-import { Agent, fetch as undiciFetch } from 'undici'
+import { Agent, parseMIMEType, fetch as undiciFetch } from 'undici'
 import { blockedReason, numericHostReason, parseIp } from './ip'
 
 /** §1.1. Everything else — `file:`, `data:`, `gopher:`, `blob:` — is refused. */
@@ -169,16 +169,39 @@ export type SafeFetch = (url: string, options?: SafeFetchOptions) => Promise<Saf
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
 
 /**
- * The media type alone, with any parameters dropped.
+ * The media type essence extracted by Fetch's response-header algorithm.
  *
  * Exported because `robots.ts` decides on it too — a 200 is a robots file only
  * when it is `text/plain`, and two implementations of "what type is this" is one
- * of them being subtly wrong.
+ * of them being subtly wrong. Duplicate fields are exposed as a combined value;
+ * Fetch selects the last valid, non-wildcard type. Commas inside quoted
+ * parameters do not separate fields. No body sniffing or host exceptions.
+ * https://fetch.spec.whatwg.org/#concept-header-extract-mime-type
  */
 export function mediaType(contentTypeHeader: string | undefined): string | undefined {
   if (contentTypeHeader === undefined)
     return undefined
-  return contentTypeHeader.split(';')[0]?.trim().toLowerCase()
+
+  let essence: string | undefined
+  let start = 0
+  let quoted = false
+  for (let index = 0; index <= contentTypeHeader.length; index++) {
+    const character = contentTypeHeader[index]
+    if (quoted && character === '\\' && index + 1 < contentTypeHeader.length) {
+      index++
+      continue
+    }
+    if (character === '"')
+      quoted = !quoted
+    if (index !== contentTypeHeader.length && (quoted || character !== ','))
+      continue
+
+    const parsed = parseMIMEType(contentTypeHeader.slice(start, index))
+    if (parsed !== 'failure' && parsed.essence !== '*/*')
+      essence = parsed.essence
+    start = index + 1
+  }
+  return essence
 }
 
 /**

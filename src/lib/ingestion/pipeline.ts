@@ -12,10 +12,10 @@ import { createRobotsGate } from '@/lib/robots'
 import { createSafeFetch, mediaType, SafeFetchError } from '@/lib/safe-fetch'
 import { ApiSourceError, fetchApiSource } from './api-sources'
 import { canonicalizeLink, publisherHostKey } from './canonicalize'
+import { feedParseByteLimit, normalizeFeedXml } from './feed-policy'
 import { capEmbeddingText, collapse, decodeCharacterReferences, plainText } from './plain-text'
 import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
-const MAX_FEED_BYTES = 2 * 1024 * 1024
 export const RETENTION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 
 type FeedParseErrorCode = 'too_large' | 'unsafe_xml' | 'invalid_xml'
@@ -163,13 +163,14 @@ function finishItem(item: MutableFeedItem): ParsedFeedItem | undefined {
   }
 }
 
-function parseFeed(bytes: Uint8Array): ParsedFeedItem[] {
-  if (bytes.byteLength > MAX_FEED_BYTES)
-    throw new FeedParseError('too_large', `feed exceeds ${MAX_FEED_BYTES} bytes`)
+function parseFeed(bytes: Uint8Array, endpointUrl: string): ParsedFeedItem[] {
+  const maxBytes = feedParseByteLimit(endpointUrl)
+  if (bytes.byteLength > maxBytes)
+    throw new FeedParseError('too_large', `feed exceeds ${maxBytes} bytes`)
 
   let xml: string
   try {
-    xml = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    xml = normalizeFeedXml(new TextDecoder('utf-8', { fatal: true }).decode(bytes), endpointUrl)
   }
   catch (cause) {
     throw new FeedParseError('invalid_xml', 'feed is not valid UTF-8 XML', { cause })
@@ -696,7 +697,7 @@ interface RequestScheduler {
   acquire: (url: string, signal?: AbortSignal) => Promise<() => void>
 }
 
-function createRequestScheduler(limit: number): RequestScheduler {
+function createRequestScheduler(limit: number, hostLimit: (host: string) => number = () => 1): RequestScheduler {
   interface WaitingRequest {
     host: string
     signal?: AbortSignal
@@ -706,12 +707,12 @@ function createRequestScheduler(limit: number): RequestScheduler {
   }
 
   const waiting: WaitingRequest[] = []
-  const activeHosts = new Set<string>()
+  const activeHosts = new Map<string, number>()
   let active = 0
 
   function pump(): void {
     while (active < limit) {
-      const index = waiting.findIndex(candidate => !activeHosts.has(candidate.host))
+      const index = waiting.findIndex(candidate => (activeHosts.get(candidate.host) ?? 0) < hostLimit(candidate.host))
       if (index === -1)
         return
       const [request] = waiting.splice(index, 1)
@@ -720,14 +721,14 @@ function createRequestScheduler(limit: number): RequestScheduler {
       if (request.onAbort !== undefined)
         request.signal?.removeEventListener('abort', request.onAbort)
       active++
-      activeHosts.add(request.host)
+      activeHosts.set(request.host, (activeHosts.get(request.host) ?? 0) + 1)
       let released = false
       request.resolve(() => {
         if (released)
           return
         released = true
         active--
-        activeHosts.delete(request.host)
+        activeHosts.set(request.host, (activeHosts.get(request.host) ?? 1) - 1)
         pump()
       })
     }
@@ -765,7 +766,7 @@ class RobotsDeniedError extends Error {
 }
 
 function createPolicyFetch(graph: PersistedGraph, fetch: SafeFetch, now: () => Date): SafeFetch {
-  const requests = createRequestScheduler(6)
+  const requests = createRequestScheduler(6, host => host === 'hacker-news.firebaseio.com' ? 4 : 1)
   const policyChecks = createRequestScheduler(Number.MAX_SAFE_INTEGER)
   const gate = createRobotsGate({
     fetchRobots: async (url) => {
@@ -783,7 +784,7 @@ function createPolicyFetch(graph: PersistedGraph, fetch: SafeFetch, now: () => D
     now,
   })
 
-  return async (url, options = {}) => fetch(url, {
+  const policyFetch: SafeFetch = async (url, options = {}) => fetch(url, {
     ...options,
     beforeRequest: async (hopUrl, signal) => {
       const releasePolicy = await policyChecks.acquire(hopUrl, signal)
@@ -799,6 +800,29 @@ function createPolicyFetch(graph: PersistedGraph, fetch: SafeFetch, now: () => D
       return requests.acquire(hopUrl, signal)
     },
   })
+  // The two HN lists often overlap. Share only successful public item reads
+  // within this wake; a subsequent wake fetches edits and deletions afresh.
+  const hnItems = new Map<string, Promise<SafeFetchResponse>>()
+  return (url, options = {}) => {
+    if ((options.method !== undefined && options.method !== 'GET')
+      || options.headers !== undefined || options.signal !== undefined
+      || !/^https:\/\/hacker-news\.firebaseio\.com\/v0\/item\/[1-9]\d*\.json$/.test(url)) {
+      return policyFetch(url, options)
+    }
+    const existing = hnItems.get(url)
+    if (existing !== undefined)
+      return existing
+    const pending = policyFetch(url, options).then((response) => {
+      if (response.status < 200 || response.status >= 300)
+        hnItems.delete(url)
+      return response
+    }, (error) => {
+      hnItems.delete(url)
+      throw error
+    })
+    hnItems.set(url, pending)
+    return pending
+  }
 }
 
 function createGraphRobotsStore(graph: PersistedGraph): RobotsStore {
@@ -2114,7 +2138,7 @@ async function ingestSource(
       return result
     }
 
-    const parsed = api?.items ?? parseFeed(response.bytes)
+    const parsed = api?.items ?? parseFeed(response.bytes, source.endpointUrl)
     for (const item of parsed) {
       const permalink = canonicalizeLink(item.guidPermalink)
       const linked = canonicalizeLink(item.link)

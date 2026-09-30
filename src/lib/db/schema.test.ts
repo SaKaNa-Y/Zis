@@ -394,7 +394,9 @@ describe('the ingestion schema', () => {
     expect(rssUrls).toHaveLength(67)
     // Historical seeds are immutable. Explicit reviewed endpoint updates are
     // applied after them; source-recovery.test.ts verifies the resulting corpus.
-    const recoverySql = readFileSync(join(root, 'scripts/operations/2026-09-30-recover-reviewed-sources.sql'), 'utf8')
+    const recoverySql = ['2026-09-30-recover-reviewed-sources.sql', '2026-09-30-recover-remaining-sources.sql']
+      .map(name => readFileSync(join(root, 'scripts/operations', name), 'utf8'))
+      .join('\n')
     const reviewedEndpointUpdates = [...recoverySql.matchAll(/\bSET\s+endpoint_url\s*=\s*'((?:''|[^'])+)'/g)]
       .map(match => match[1]!.replaceAll('\'\'', '\''))
     for (const url of rssUrls) {

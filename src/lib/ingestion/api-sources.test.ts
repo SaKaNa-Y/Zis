@@ -1,5 +1,7 @@
 import type { CannedTransportResponse, IngestionSource } from './pipeline'
+import { setImmediate } from 'node:timers/promises'
 import { describe, expect, it } from 'vitest'
+import { createSafeFetch } from '../safe-fetch'
 import { runIngestion } from './pipeline'
 
 const NOW = new Date('2026-09-17T00:00:00Z')
@@ -22,7 +24,6 @@ describe('aPI Sources through the real ingestion seam', () => {
     const top = source('hn_firebase', `${hn}/v0/topstories.json`, 'hn-top')
     const latest = { ...source('hn_firebase', `${hn}/v0/newstories.json`, 'hn-new'), publisherId: top.publisherId }
     const responses = [robots(hn), json(top.endpointUrl, [1, 2, 3]), json(latest.endpointUrl, [1]), json(`${hn}/v0/item/1.json`, { id: 1, type: 'story', title: 'Useful &amp; new', time: NOW.getTime() / 1000, url: 'https://article.example/new' }), json(`${hn}/v0/item/2.json`, { deleted: true }), json(`${hn}/v0/item/3.json`, { id: 3, type: 'job' })]
-    responses.push(json(`${hn}/v0/item/1.json`, { id: 1, type: 'story', title: 'Useful &amp; new', time: NOW.getTime() / 1000, url: 'https://article.example/new' }))
     const graph = await runIngestion({ sources: [top, latest], responses, now: () => NOW })
     expect(graph.items).toHaveLength(2)
     expect(graph.items[0]).toMatchObject({ externalId: '1', url: 'https://news.ycombinator.com/item?id=1', title: 'Useful & new' })
@@ -34,12 +35,104 @@ describe('aPI Sources through the real ingestion seam', () => {
     expect(graph.fetchLogs.slice(-2).map(log => log.itemsNew)).toEqual([0, 0])
   })
 
+  it('fetches a complete HN list with four bounded workers instead of serial network round trips', async () => {
+    const input = source('hn_firebase', `${hn}/v0/topstories.json`)
+    const ids = Array.from({ length: 12 }, (_, index) => index + 1)
+    const graph = await runIngestion({ sources: [input], now: () => NOW, responses: [
+      robots(hn),
+      json(input.endpointUrl, ids),
+      ...ids.map(id => ({
+        ...json(`${hn}/v0/item/${id}.json`, { id, type: 'story', title: `Story ${id}`, time: 1 }),
+        waitForActive: 4,
+        delayMs: 5,
+        failAboveHostActive: 4,
+        failAboveActive: 6,
+      })),
+    ] })
+    expect(graph.fetchLogs[0]).toMatchObject({ outcome: 'ok', itemsSeen: ids.length })
+    expect(graph.items.map(item => item.externalId).sort()).toEqual(ids.map(String).sort())
+  })
+
   it('does not commit a partial HN list if a child request fails and preserves Retry-After', async () => {
     const input = source('hn_firebase', `${hn}/v0/topstories.json`)
     const graph = await runIngestion({ sources: [input], now: () => NOW, responses: [robots(hn), json(input.endpointUrl, [1, 2]), json(`${hn}/v0/item/1.json`, { id: 1, type: 'story', title: 'Story', time: 1 }), { ...json(`${hn}/v0/item/2.json`, {}, 429), headers: { 'retry-after': '3600' } }] })
     expect(graph.items).toEqual([])
     expect(graph.fetchLogs[0]).toMatchObject({ outcome: 'http_error', httpStatus: 429 })
     expect(graph.sources[0]?.retryAfterAt?.getTime()).toBeGreaterThanOrEqual(NOW.getTime() + 3600000)
+  })
+
+  it('drains an HN failure batch, retries failed shared reads and refreshes successful reads next wake', async () => {
+    const top = source('hn_firebase', `${hn}/v0/topstories.json`, 'hn-top')
+    const latest = { ...source('hn_firebase', `${hn}/v0/newstories.json`, 'hn-new'), publisherId: top.publisherId }
+    const failedBodyRead = Promise.withResolvers<void>()
+    const releaseSiblings = Promise.withResolvers<void>()
+    const calls = new Map<string, number>()
+    const commits: { sourceId: string, active: number }[] = []
+    let active = 0
+    let maximumActive = 0
+    let wake = 1
+    const fetch = createSafeFetch({
+      resolve: async () => [{ address: '93.184.216.34', family: 4 }],
+      transport: async (request) => {
+        const path = new URL(request.url).pathname
+        calls.set(path, (calls.get(path) ?? 0) + 1)
+        const itemId = Number(path.match(/^\/v0\/item\/(\d+)\.json$/)?.[1])
+        const isItem = Number.isSafeInteger(itemId)
+        const failed = itemId === 1 && calls.get(path) === 1
+        if (isItem) {
+          active++
+          maximumActive = Math.max(maximumActive, active)
+        }
+        const value = path === '/v0/topstories.json'
+          ? [1, 2, 3, 4, 5]
+          : path === '/v0/newstories.json'
+            ? [1]
+            : { id: itemId, type: 'story', title: `Wake ${wake} story ${itemId}`, time: NOW.getTime() / 1000 }
+        return {
+          status: path === '/robots.txt' ? 404 : failed ? 429 : 200,
+          headers: { 'content-type': 'application/json' },
+          body: (async function* () {
+            try {
+              if (failed)
+                await setImmediate()
+              else if (isItem && wake === 1 && itemId !== 1)
+                await releaseSiblings.promise
+              yield new TextEncoder().encode(JSON.stringify(value))
+            }
+            finally {
+              if (isItem)
+                active--
+              if (failed)
+                failedBodyRead.resolve()
+            }
+          })(),
+        }
+      },
+    })
+    const running = runIngestion({
+      sources: [top, latest],
+      fetch,
+      now: () => NOW,
+      onSourceCommitted: async (input) => { commits.push({ sourceId: input.id, active }) },
+    })
+    await failedBodyRead.promise
+    await setImmediate()
+    const commitsBeforeDrain = [...commits]
+    releaseSiblings.resolve()
+    const graph = await running
+    expect(commitsBeforeDrain).toEqual([])
+    expect(maximumActive).toBe(4)
+    expect(commits).toEqual([{ sourceId: top.id, active: 0 }, { sourceId: latest.id, active: 0 }])
+    expect(calls.get('/v0/item/5.json')).toBeUndefined()
+    expect(calls.get('/v0/item/1.json')).toBe(2)
+    expect(graph.fetchLogs.map(log => log.outcome)).toEqual(['http_error', 'ok'])
+    expect(graph.items).toEqual([expect.objectContaining({ sourceId: latest.id, title: 'Wake 1 story 1' })])
+
+    wake = 2
+    await runIngestion({ sources: [latest], initialGraph: graph, fetch, now: () => new Date(NOW.getTime() + 1000) })
+    expect(calls.get('/v0/item/1.json')).toBe(3)
+    expect(graph.items).toEqual([expect.objectContaining({ sourceId: latest.id, title: 'Wake 2 story 1' })])
+    expect(graph.fetchLogs.at(-1)).toMatchObject({ outcome: 'ok', itemsNew: 0 })
   })
 
   it('uses Bluesky DID identity, facets and nested embeds without borrowing repost authorship', async () => {

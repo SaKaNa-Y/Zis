@@ -7,6 +7,7 @@ import {
   DEFAULT_TIMEOUT_MS,
   MAX_REDIRECTS,
   MAX_RESPONSE_BYTES,
+  mediaType,
   SafeFetchError,
 } from './safe-fetch'
 
@@ -23,6 +24,23 @@ import {
 
 const PUBLIC_IP = '93.184.216.34'
 const METADATA_IP = '169.254.169.254'
+
+describe('fetch response MIME type extraction', () => {
+  it.each([
+    ['application/octet-stream, text/plain', 'text/plain'],
+    ['text/plain; charset=utf-8, text/html', 'text/html'],
+    ['text/html; note="a, text/plain"', 'text/html'],
+    ['text/html; note="escaped\\\", text/plain"', 'text/html'],
+    ['text/html; note="unfinished, text/plain\\', 'text/html'],
+    ['text/html; note="a, b", TEXT/PLAIN; charset=utf-8', 'text/plain'],
+    ['text/html, invalid, */*, ', 'text/html'],
+    ['invalid, */*, ', undefined],
+    ['text /plain', undefined],
+    [undefined, undefined],
+  ])('extracts %s as %s', (header, expected) => {
+    expect(mediaType(header)).toBe(expected)
+  })
+})
 
 /** A resolver that answers each lookup from a queue, so rebinding is testable. */
 function resolverReturning(...answers: ResolvedAddress[][]): Resolver & { calls: string[] } {

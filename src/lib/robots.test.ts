@@ -227,6 +227,29 @@ describe('the parser, in the fail-closed direction', () => {
     expect(isPathAllowed(record.directives, '/v0/topstories.json')).toBe(true)
   })
 
+  it('obeys the actual HN rules after Fetch normalizes its duplicate Content-Type fields', () => {
+    const record = recordFrom('hacker-news.firebaseio.com', served(200, {
+      body: 'User-agent: *\nAllow: /*.json$\nAllow: /*.json?*$\nDisallow: /\n',
+      headers: { 'content-type': 'application/octet-stream, text/plain' },
+    }), AT)
+    expect(record).toMatchObject({ verdict: 'allow', authoritative: true, contentType: 'text/plain' })
+    expect(isPathAllowed(record.directives, '/v0/topstories.json')).toBe(true)
+    expect(isPathAllowed(record.directives, '/v0/item/12345.json?print=pretty')).toBe(true)
+    expect(isPathAllowed(record.directives, '/')).toBe(false)
+    expect(isPathAllowed(record.directives, '/v0/topstories')).toBe(false)
+    expect(isPathAllowed(record.directives, '/v0/topstories.json/raw')).toBe(false)
+  })
+
+  it.each([
+    'text/plain; charset=utf-8, text/html',
+    'text/html; note="a, text/plain"',
+    'text/plain, application/octet-stream',
+    'invalid, */*',
+  ])('refuses the ruleset when Fetch does not extract text/plain: %s', (contentType) => {
+    const record = recordFrom('example.com', served(200, { body: HN, contentType }), AT)
+    expect(record).toMatchObject({ verdict: 'ambiguous', authoritative: false })
+  })
+
   it('handles `*` in the middle of a pattern', () => {
     const directives = parseRobotsTxt('User-agent: *\nDisallow: /a/*/secret\n')
     expect(isPathAllowed(directives, '/a/b/secret')).toBe(false)

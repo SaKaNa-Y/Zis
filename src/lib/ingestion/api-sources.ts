@@ -59,11 +59,23 @@ export async function fetchApiSource(source: IngestionSource, fetch: SafeFetch, 
   if (source.transport === 'hn_firebase') {
     if (!/^https:\/\/hacker-news\.firebaseio\.com\/v0\/(?:top|new)stories\.json$/.test(source.endpointUrl))
       throw new ApiSourceError('Unsupported Hacker News list', 'parse_error')
-    const ids = list(await json(source.endpointUrl), 500)
-    for (const id of new Set(ids)) {
-      if (!Number.isSafeInteger(id) || Number(id) <= 0)
-        throw new ApiSourceError('Invalid Hacker News item ID', 'parse_error')
-      const value = await json(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
+    const ids = [...new Set(list(await json(source.endpointUrl), 500))]
+    if (ids.some(id => !Number.isSafeInteger(id) || Number(id) <= 0))
+      throw new ApiSourceError('Invalid Hacker News item ID', 'parse_error')
+    const values: unknown[] = []
+    // HN documents no rate limit. Keep four requests in flight, below the
+    // shared six-request cap, and drain a batch before reporting any failure.
+    for (let offset = 0; offset < ids.length; offset += 4) {
+      const batch = await Promise.allSettled(ids.slice(offset, offset + 4)
+        .map(id => json(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)))
+      for (const result of batch) {
+        if (result.status === 'rejected')
+          throw result.reason
+        values.push(result.value)
+      }
+    }
+    for (const [index, value] of values.entries()) {
+      const id = ids[index]
       if (value === null)
         continue
       const item = object(value)
