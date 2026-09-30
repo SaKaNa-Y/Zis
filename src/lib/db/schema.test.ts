@@ -392,8 +392,15 @@ describe('the ingestion schema', () => {
       .map(source => source.url)
       .filter((url): url is string => url !== undefined)
     expect(rssUrls).toHaveLength(67)
-    for (const url of rssUrls)
-      expect(retentionTieringSql).toContain(`'${url.replaceAll('\'', '\'\'')}'`)
+    // Historical seeds are immutable. Explicit reviewed endpoint updates are
+    // applied after them; source-recovery.test.ts verifies the resulting corpus.
+    const recoverySql = readFileSync(join(root, 'scripts/operations/2026-09-30-recover-reviewed-sources.sql'), 'utf8')
+    const reviewedEndpointUpdates = [...recoverySql.matchAll(/\bSET\s+endpoint_url\s*=\s*'((?:''|[^'])+)'/g)]
+      .map(match => match[1]!.replaceAll('\'\'', '\''))
+    for (const url of rssUrls) {
+      const seeded = retentionTieringSql.includes(`'${url.replaceAll('\'', '\'\'')}'`)
+      expect(seeded || reviewedEndpointUpdates.includes(url)).toBe(true)
+    }
     const rssPublishers = sourceRegister.publishers.filter(publisher =>
       publisher.sources.some(source => source.transport === 'rss'),
     )

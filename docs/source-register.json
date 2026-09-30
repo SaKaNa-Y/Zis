@@ -1134,7 +1134,7 @@
       "sources": [
         {
           "transport": "rss",
-          "url": "https://www.sophiebits.com/atom.xml"
+          "url": "https://sophiebits.com/atom.xml"
         },
         {
           "transport": "bluesky-author",
