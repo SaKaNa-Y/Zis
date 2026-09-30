@@ -28,7 +28,7 @@ function build() {
       const bytes = statements.reduce((total, statement) =>
         total + Buffer.byteLength(JSON.stringify(statement)), 0)
       if (bytes <= 16 * 1024 * 1024) {
-        const results = await http.transaction(statements.map(statement => http.query(statement.sql, statement.params)), { fullResults: true })
+        const results = await http.transaction(statements.map(statement => http.query(statement.sql, statement.params)), { fullResults: true, isolationLevel: 'ReadCommitted' })
         writes.affectedRows += results.reduce((total, result) => total + (result.rowCount ?? 0), 0)
         writes.committedStatements += statements.length
         writes.compiledWriteBytes += bytes
@@ -42,7 +42,7 @@ function build() {
         const connection = await pool.connect()
         let failed = true
         try {
-          await connection.query('BEGIN')
+          await connection.query('BEGIN ISOLATION LEVEL READ COMMITTED')
           let affectedRows = 0
           for (const statement of statements) {
             const result = await connection.query(statement.sql, statement.params)

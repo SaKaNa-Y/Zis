@@ -629,4 +629,46 @@ empty Citation graph.
 - **XML parsing: the rule, not the library.** Byte cap enforced **before** the
   parser sees input, no DTD, no entity expansion. The contract is a **test that
   feeds a billion-laughs payload and asserts rejection** — verified, not assumed.
-  Name a library as a starting point; the test is what survives a swap.
+  Name a library as a starting point; the test is what survives a swap. An HTML
+  doctype inside CDATA is ordinary Item text, not an XML DTD declaration; the
+  XML parser's doctype event enforces the distinction.
+
+## 14. Commit recovery and daily health
+
+Ingestion retries a failed database **transaction batch**, at most three total
+attempts with one- and three-second waits. Only recognized connection failures,
+serialization failures and deadlocks qualify. It reuses the same compiled SQL,
+parameters, IDs and wake timestamp; it does not restart the pipeline or fetch
+Sources again. Constraints, permissions and changed Interest Profiles fail
+immediately.
+
+Each Source transaction first locks its Source row through the existing update.
+A separate later statement inserts its fetch log only when `(source_id,
+started_at)` is absent. Explicit `READ COMMITTED` isolation lets that statement
+see a previous commit after waiting for its row lock. This handles a lost commit
+acknowledgement without duplicate logs. The final graph transaction retains the
+Interest Profile advisory lock and fixed Brief IDs. A fatal worker failure stops
+new work and waits for already-started workers before reporting the final state.
+
+The runner writes a GitHub Actions job summary on success and failure, including
+the complete Source inventory, disabled Sources, current outcomes, elapsed time,
+retry count and confirmation of every due reader's persisted daily Brief. It
+emits warnings for degraded Sources and the 120-second budget, and fails the job
+when ingestion fails or a due Brief is missing. An empty persisted Brief is
+valid; an unavailable inventory or failed confirmation query is reported as
+unknown. Reports omit reader statements, credentials, URL paths and raw errors.
+GitHub supplies `GITHUB_STEP_SUMMARY`; it is not an application secret.
+
+Recovery does not reconstruct an earlier day's missing Brief from today's graph
+or append to an already sealed Brief. A persistent outage still fails after the
+bounded attempts. A workflow that never starts cannot produce this report;
+GitHub's scheduler and notification settings remain separate operating concerns.
+
+The reviewed RSS recovery is an explicit
+[configuration maintenance transaction](../scripts/operations/2026-09-30-recover-reviewed-sources.sql),
+run after deploying the CDATA parser fix. It re-enables only the two automatically
+disabled GitHub feeds and changes Sophie's existing Source to the canonical apex
+URL, preserving its identity and manual disable decisions. New databases seeded
+from the immutable migrations need this same maintenance transaction to match
+the current register. No schema migration, cached robots allow, historical Brief
+repair or blanket Source reset is part of this operation.

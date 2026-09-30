@@ -1,6 +1,7 @@
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
+import { setImmediate } from 'node:timers/promises'
 import { and, eq, isNotNull, lt, lte } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import {
@@ -18,6 +19,7 @@ import {
   sources,
 } from '@/lib/db/schema'
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, EMBEDDING_VERSION } from '@/lib/embeddings/provider'
+import { ROBOTS_AUTO_DISABLED_REASON } from './pipeline'
 import { runNeonIngestion } from './postgres'
 
 function databaseReturning(...results: unknown[][]): Database {
@@ -167,6 +169,68 @@ function unitVector(axis: number): Float32Array {
 }
 
 describe('the production ingestion startup assertion', () => {
+  it('drains robots recovery writes and stops queued Sources before rejecting', async () => {
+    const at = new Date('2026-09-30T06:00:00Z')
+    const rows = ['one.example', 'two.example', 'one.example'].map((host, index) => ({
+      id: `00000000-0000-4000-8000-00000000000${index + 1}`,
+      publisherId: '00000000-0000-4000-8000-000000000010',
+      transport: 'rss' as const,
+      endpointUrl: `https://${host}/feed-${index}.xml`,
+      isAggregator: false,
+      disabledAt: at,
+      disabledReason: ROBOTS_AUTO_DISABLED_REASON,
+      consecutiveFailures: 10,
+      retryAfterAt: null,
+      lastPolledAt: at,
+      newestItemAt: null,
+      createdAt: at,
+    }))
+    const { database } = capturingDatabase([], [], rows, [])
+    let releaseSlow!: () => void
+    const slow = new Promise<void>((resolve) => {
+      releaseSlow = resolve
+    })
+    let markSecondStarted!: () => void
+    const secondStarted = new Promise<void>((resolve) => {
+      markSecondStarted = resolve
+    })
+    let markFailure!: () => void
+    const failed = new Promise<void>((resolve) => {
+      markFailure = resolve
+    })
+    const failure = new Error('permanent recovery write failure')
+    let writes = 0
+    let slowCompleted = false
+    database.commit = async () => {
+      writes++
+      if (writes === 1) {
+        await secondStarted
+        markFailure()
+        throw failure
+      }
+      markSecondStarted()
+      await slow
+      slowCompleted = true
+    }
+    let finished = false
+    const result = runNeonIngestion(at, database, fixtureFetcher(() => ({ status: 404 })))
+      .then(() => { finished = true }, (error: unknown) => {
+        finished = true
+        return error
+      })
+    await failed
+    await setImmediate()
+    try {
+      expect(finished).toBe(false)
+    }
+    finally {
+      releaseSlow()
+    }
+    expect(await result).toBe(failure)
+    expect(slowCompleted).toBe(true)
+    expect(writes).toBe(2)
+  })
+
   it('matches a loaded graph with no due Sources and persists all embedding outputs idempotently', async () => {
     const at = new Date('2026-08-29T08:00:00.000Z')
     const link = {

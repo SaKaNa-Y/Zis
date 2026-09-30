@@ -10,6 +10,8 @@
  * what the repo-invariant test exercises.
  */
 
+import type { IngestionHealthInput } from '@/lib/ingestion/health-report'
+import { appendFile } from 'node:fs/promises'
 import process from 'node:process'
 import { db } from '@/lib/db'
 import {
@@ -17,6 +19,8 @@ import {
   prepareTransformersModelCache,
 } from '@/lib/embeddings/transformers'
 import * as env from '@/lib/env'
+import { buildIngestionHealthReport } from '@/lib/ingestion/health-report'
+import { readIngestionHealthSnapshot } from '@/lib/ingestion/health-snapshot'
 import { runNeonIngestion } from '@/lib/ingestion/postgres'
 import { safeFetch } from '@/lib/safe-fetch'
 
@@ -45,60 +49,116 @@ async function main(argv: string[]): Promise<void> {
     return
   }
 
-  // Fail before the first query, so a missing secret never partially runs.
-  env.databaseUrl()
-  // A cold model download must finish before Neon wakes (ADR-0008).
-  await prepareTransformersModelCache(safeFetch)
-
-  const database = db()
-  const embeddingProvider = createTransformersEmbeddingProvider({ fetcher: safeFetch })
-  const wakeAt = new Date()
+  let wakeAt = new Date()
+  let neonWakeStartedAt: number | undefined
+  let database: ReturnType<typeof db> | undefined
+  let status: 'completed' | 'failed' = 'failed'
+  let metrics: IngestionHealthInput['metrics']
+  let databaseRetries = 0
+  let phase = 'DATABASE_URL configuration'
   process.stdout.write(
     `zis pipeline stage order: ${PIPELINE_STAGE_ORDER.join(' -> ')}\n`,
   )
-
-  const neonWakeStartedAt = Date.now()
-  const graph = await runNeonIngestion(
-    wakeAt,
-    database,
-    safeFetch,
-    embeddingProvider,
-    (metrics) => {
-      // Counts only: never log reader statements, vectors, or query parameters.
-      // Decoded graph JSON is a planning measure, not Neon's billed egress.
-      process.stdout.write(`zis pipeline decoded read payload: ${metrics.initialGraphJsonBytes + metrics.scopedGraphJsonBytes + metrics.signalVectorJsonBytes} JSON bytes; stored Signal vectors read: ${metrics.signalVectorsRead}; matches recomputed: ${metrics.matchesRecomputed}; reused in loaded scope: ${metrics.matchesReused} (not billed network transfer)\n`)
-      if (metrics.affectedRows !== undefined) {
-        process.stdout.write(`zis pipeline committed SQL statements: ${metrics.committedStatements}; affected rows: ${metrics.affectedRows}; compiled write JSON: ${metrics.compiledWriteBytes} bytes; WebSocket commits: ${metrics.websocketCommits}\n`)
-      }
-    },
-    env.githubPat(),
-  )
-  const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
-
-  process.stdout.write(
-    `zis pipeline Neon wake through prune: ${neonWakeElapsedMs} ms (budget ${NEON_WAKE_BUDGET_MS} ms)\n`,
-  )
-  if (neonWakeElapsedMs > NEON_WAKE_BUDGET_MS) {
-    process.stdout.write(
-      `::warning title=Neon wake budget exceeded::Pipeline took ${neonWakeElapsedMs} ms from the first Neon query through completed prune; budget is ${NEON_WAKE_BUDGET_MS} ms.\n`,
+  try {
+    // Fail before the first query, so missing credentials never partially run.
+    env.databaseUrl()
+    phase = 'GITHUB_PAT configuration'
+    const githubToken = env.githubPat()
+    // A cold model download must finish before Neon wakes (ADR-0008).
+    phase = 'embedding model preparation'
+    await prepareTransformersModelCache(safeFetch)
+    phase = 'database ingestion'
+    database = db()
+    const embeddingProvider = createTransformersEmbeddingProvider({ fetcher: safeFetch })
+    wakeAt = new Date()
+    neonWakeStartedAt = Date.now()
+    const graph = await runNeonIngestion(
+      wakeAt,
+      database,
+      safeFetch,
+      embeddingProvider,
+      (readMetrics) => {
+        metrics = {
+          decodedReadBytes: readMetrics.initialGraphJsonBytes + readMetrics.scopedGraphJsonBytes + readMetrics.signalVectorJsonBytes,
+          compiledWriteBytes: readMetrics.compiledWriteBytes,
+          committedStatements: readMetrics.committedStatements,
+          affectedRows: readMetrics.affectedRows,
+        }
+        // Counts only: never log reader statements, vectors, or query parameters.
+        // Decoded graph JSON is a planning measure, not Neon's billed egress.
+        process.stdout.write(`zis pipeline decoded read payload: ${metrics.decodedReadBytes} JSON bytes; stored Signal vectors read: ${readMetrics.signalVectorsRead}; matches recomputed: ${readMetrics.matchesRecomputed}; reused in loaded scope: ${readMetrics.matchesReused} (not billed network transfer)\n`)
+        if (readMetrics.affectedRows !== undefined) {
+          process.stdout.write(`zis pipeline committed SQL statements: ${readMetrics.committedStatements}; affected rows: ${readMetrics.affectedRows}; compiled write JSON: ${readMetrics.compiledWriteBytes} bytes; WebSocket commits: ${readMetrics.websocketCommits}\n`)
+        }
+      },
+      githubToken,
+      {
+        onDatabaseRetry: (event) => {
+          databaseRetries++
+          process.stdout.write(`::warning title=Retrying ingestion database transaction::${event.operation} transaction encountered ${event.reason}; retry attempt ${event.attempt}/3 after ${event.delayMs} ms.\n`)
+        },
+      },
     )
+    const neonWakeElapsedMs = Date.now() - neonWakeStartedAt
+    process.stdout.write(
+      `zis pipeline Neon wake through prune: ${neonWakeElapsedMs} ms (budget ${NEON_WAKE_BUDGET_MS} ms)\n`,
+    )
+    process.stdout.write(
+      `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.corpusCounts?.items ?? graph.items.length} persisted Item(s)\n`,
+    )
+    process.stdout.write('zis API windows: complete returned HN lists; newest 100 Bluesky feed rows and GitHub releases per Source; no historical backfill\n')
+    for (const log of graph.fetchLogs.filter(log => log.startedAt >= wakeAt && log.outcome !== 'ok' && log.outcome !== 'not_modified')) {
+      process.stdout.write(`zis Source ${log.sourceId}: ${log.outcome} (HTTP ${log.httpStatus ?? 'none'})\n`)
+    }
+    for (const sourceId of graph.dormantSourceIds) {
+      process.stdout.write(
+        `::warning title=Dormant Source::Source ${sourceId} has published no new Item in six months; review it manually.\n`,
+      )
+    }
+    status = 'completed'
+  }
+  catch {
+    // Driver errors may contain SQL parameters or reader data. The report and
+    // retry annotations provide the operational outcome without exposing them.
+    process.stderr.write(`zis pipeline: failed during ${phase}; inspect the health summary and retry annotations.\n`)
+    process.exitCode = 1
   }
 
-  process.stdout.write(
-    `zis pipeline: ${graph.sources.length} Source(s), ${graph.fetchLogs.length} outcome(s), ${graph.corpusCounts?.items ?? graph.items.length} persisted Item(s)\n`,
-  )
-  process.stdout.write('zis API windows: complete returned HN lists; newest 100 Bluesky feed rows and GitHub releases per Source; no historical backfill\n')
-  for (const log of graph.fetchLogs.filter(log => log.startedAt >= wakeAt && log.outcome !== 'ok' && log.outcome !== 'not_modified')) {
-    process.stdout.write(`zis Source ${log.sourceId}: ${log.outcome} (HTTP ${log.httpStatus ?? 'none'})\n`)
+  let snapshot: Pick<IngestionHealthInput, 'sources' | 'fetchLogs' | 'briefStatus'> = {
+    sources: null,
+    fetchLogs: [],
+    briefStatus: 'unverified',
   }
-  for (const sourceId of graph.dormantSourceIds) {
-    process.stdout.write(
-      `::warning title=Dormant Source::Source ${sourceId} has published no new Item in six months; review it manually.\n`,
-    )
+  if (database !== undefined) {
+    try {
+      snapshot = await readIngestionHealthSnapshot(database, wakeAt)
+    }
+    catch {
+      // A failed diagnostic query must not hide the ingestion failure or claim
+      // a healthy empty inventory. The report marks persistence as unverified.
+    }
   }
+  const report = buildIngestionHealthReport({
+    wake: { startedAt: wakeAt, finishedAt: new Date(), status, elapsedMs: neonWakeStartedAt === undefined ? 0 : Date.now() - neonWakeStartedAt },
+    ...snapshot,
+    metrics,
+    budgetMs: NEON_WAKE_BUDGET_MS,
+  })
+  if (report.annotations.length > 0)
+    process.stdout.write(`${report.annotations.join('\n')}\n`)
+  process.stdout.write(`zis pipeline database transaction retries: ${databaseRetries}\n`)
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY
+  if (summaryPath) {
+    await appendFile(summaryPath, `${report.summaryMarkdown}\nDatabase transaction retries: ${databaseRetries}.\n`)
+  }
+  else {
+    process.stdout.write(report.summaryMarkdown)
+  }
+  if (report.hasErrors)
+    process.exitCode = 1
 }
 
-void main(process.argv.slice(2)).catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`)
+void main(process.argv.slice(2)).catch(() => {
+  process.stderr.write('::error title=Ingestion reporting failed::The ingestion health report could not be completed. Inspect the preceding sanitized pipeline output.\n')
   process.exitCode = 1
 })

@@ -2278,18 +2278,35 @@ export async function runIngestion({
   }
   const queues = [...byHost.values()]
   let nextQueue = 0
+  let stopped = false
+  let failure: unknown
   async function worker(): Promise<void> {
-    while (true) {
-      const queue = queues[nextQueue++]
-      if (queue === undefined)
-        return
-      for (const source of queue) {
-        const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets, githubToken)
-        await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
+    try {
+      while (true) {
+        if (stopped)
+          return
+        const queue = queues[nextQueue++]
+        if (queue === undefined)
+          return
+        for (const source of queue) {
+          if (stopped)
+            return
+          const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets, githubToken)
+          await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
+        }
       }
     }
+    catch (error) {
+      if (!stopped)
+        failure = error
+      stopped = true
+    }
   }
+  // A fatal commit can leave other workers writing. Drain them before reporting
+  // failure so health checks and the next wake see a settled database state.
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
+  if (stopped)
+    throw failure
   await onSourcesComplete?.(graph)
   mergeReleaseTagAliases(graph)
   updateStrength(graph)

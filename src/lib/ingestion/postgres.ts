@@ -1,3 +1,4 @@
+import type { DatabaseRetryEvent, IngestionDatabaseRetryOptions } from './database-retry'
 import type { IngestionSource, PersistedGraph, PersistedSignal, SourceFetchLog } from './pipeline'
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
@@ -6,6 +7,7 @@ import type { SafeFetch } from '@/lib/safe-fetch'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
 import { and, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { PgDialect } from 'drizzle-orm/pg-core'
 import { db as defaultDatabase } from '@/lib/db'
 import {
   briefEntries as briefEntryTable,
@@ -32,6 +34,7 @@ import { createRobotsGate, ROBOTS_TTL_MS } from '@/lib/robots'
 import { safeFetch } from '@/lib/safe-fetch'
 import register from '../../../docs/source-register.json'
 import { publisherHostKey } from './canonicalize'
+import { commitIngestionStatements } from './database-retry'
 import { loadCitationTargets, loadReaderScope, loadSourceState, readSignalMetadata as readSignals, recentBriefDate } from './graph-reader'
 import { httpCacheKey, RETENTION_WINDOW_MS, ROBOTS_AUTO_DISABLED_REASON, runIngestion } from './pipeline'
 import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
@@ -252,11 +255,11 @@ function robotsStatement(database: Database, record: RobotsCacheRecord): Compile
   })
 }
 
-async function commitStatements(database: Database, statements: CompiledQuery[]): Promise<void> {
-  await database.commit(statements.map(statement => statement.toSQL()))
+async function commitStatements(database: Database, statements: CompiledQuery[], operation: DatabaseRetryEvent['operation'], options: IngestionDatabaseRetryOptions): Promise<void> {
+  await commitIngestionStatements(database, statements.map(statement => statement.toSQL()), operation, options)
 }
 
-async function refreshRobotDisabledSources(database: Database, at: Date, fetcher: SafeFetch): Promise<void> {
+async function refreshRobotDisabledSources(database: Database, at: Date, fetcher: SafeFetch, options: IngestionDatabaseRetryOptions): Promise<void> {
   const rows = await database.select().from(sources).where(and(
     isNotNull(sources.disabledAt),
     eq(sources.disabledReason, ROBOTS_AUTO_DISABLED_REASON),
@@ -305,31 +308,46 @@ async function refreshRobotDisabledSources(database: Database, at: Date, fetcher
 
   const queues = [...byHost.values()]
   let nextQueue = 0
+  let stopped = false
+  let failure: unknown
   async function worker(): Promise<void> {
-    while (true) {
-      const queue = queues[nextQueue++]
-      if (queue === undefined)
-        return
-      for (const source of queue) {
-        const decision = await gate.decide(source.transport === 'github_graphql' ? 'https://api.github.com/graphql' : source.endpointUrl)
-        const statements: CompiledQuery[] = []
-        if (decision.record !== undefined)
-          statements.push(robotsStatement(database, decision.record))
-        statements.push(database.update(sources).set(decision.allowed
-          ? {
-              disabledAt: null,
-              disabledReason: null,
-              consecutiveFailures: 0,
-              retryAfterAt: null,
-            }
-          : {
-              retryAfterAt: decision.record?.expiresAt ?? new Date(at.getTime() + ROBOTS_TTL_MS),
-            }).where(eq(sources.id, source.id)))
-        await commitStatements(database, statements)
+    try {
+      while (true) {
+        if (stopped)
+          return
+        const queue = queues[nextQueue++]
+        if (queue === undefined)
+          return
+        for (const source of queue) {
+          if (stopped)
+            return
+          const decision = await gate.decide(source.transport === 'github_graphql' ? 'https://api.github.com/graphql' : source.endpointUrl)
+          const statements: CompiledQuery[] = []
+          if (decision.record !== undefined)
+            statements.push(robotsStatement(database, decision.record))
+          statements.push(database.update(sources).set(decision.allowed
+            ? {
+                disabledAt: null,
+                disabledReason: null,
+                consecutiveFailures: 0,
+                retryAfterAt: null,
+              }
+            : {
+                retryAfterAt: decision.record?.expiresAt ?? new Date(at.getTime() + ROBOTS_TTL_MS),
+              }).where(eq(sources.id, source.id)))
+          await commitStatements(database, statements, 'robots', options)
+        }
       }
+    }
+    catch (error) {
+      if (!stopped)
+        failure = error
+      stopped = true
     }
   }
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
+  if (stopped)
+    throw failure
 }
 
 function sourceStatements(
@@ -439,17 +457,20 @@ function sourceStatements(
   }
 
   const log: Omit<SourceFetchLog, 'id'> = latestLog
-  statements.push(database.insert(sourceFetchLogs).values({
-    sourceId: log.sourceId,
-    startedAt: log.startedAt,
-    durationMs: log.durationMs,
-    outcome: log.outcome,
-    httpStatus: log.httpStatus,
-    itemsSeen: log.itemsSeen,
-    itemsNew: log.itemsNew,
-    bytes: log.bytes,
-    errorMessage: log.errorMessage,
-  }))
+  // The first UPDATE holds this Source's row lock until commit. Under READ
+  // COMMITTED this later statement sees any original transaction that finished
+  // while a replay waited for that lock, including a lost acknowledgement.
+  // Keep these as separate SQL statements: a shared snapshot would be unsafe.
+  const logInsert = new PgDialect().sqlToQuery(sql`insert into ${sourceFetchLogs}
+    (source_id, started_at, duration_ms, outcome, http_status, items_seen, items_new, bytes, error_message)
+    select ${log.sourceId}::uuid, ${log.startedAt.toISOString()}::timestamptz,
+      ${log.durationMs}::integer, ${log.outcome}::source_fetch_outcome,
+      ${log.httpStatus}::integer, ${log.itemsSeen}::integer, ${log.itemsNew}::integer,
+      ${log.bytes}::integer, ${log.errorMessage}::text
+    where not exists (select 1 from ${sourceFetchLogs}
+      where ${sourceFetchLogs.sourceId} = ${log.sourceId}::uuid
+        and ${sourceFetchLogs.startedAt} = ${log.startedAt.toISOString()}::timestamptz)`)
+  statements.push({ toSQL: () => logInsert })
   return statements
 }
 
@@ -459,6 +480,7 @@ async function commitSource(
   graph: PersistedGraph,
   touchedHttpCacheKeys: ReadonlySet<string>,
   touchedItemIds: ReadonlySet<string>,
+  options: IngestionDatabaseRetryOptions,
 ): Promise<void> {
   await commitStatements(database, sourceStatements(
     database,
@@ -466,7 +488,7 @@ async function commitSource(
     graph,
     touchedHttpCacheKeys,
     touchedItemIds,
-  ))
+  ), 'source', options)
 }
 
 function finalGraphSnapshot(graph: PersistedGraph) {
@@ -488,7 +510,7 @@ function signalSnapshot(signal: PersistedSignal): string {
   return JSON.stringify({ ...signal, embedding: signal.embedding === null ? null : true })
 }
 
-async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, before: ReturnType<typeof finalGraphSnapshot>, checkpoint?: typeof ingestionCheckpoints.$inferInsert): Promise<void> {
+async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, before: ReturnType<typeof finalGraphSnapshot>, checkpoint: typeof ingestionCheckpoints.$inferInsert | undefined, options: IngestionDatabaseRetryOptions): Promise<void> {
   const graph = {
     signals: finalGraph.signals.filter(row => before.signals.get(row.id) !== signalSnapshot(row)),
     interests: finalGraph.interests.filter(row => before.interests.get(row.id) !== JSON.stringify(row)),
@@ -611,13 +633,13 @@ async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, 
       set: { processedThrough: checkpoint.processedThrough, configurationHash: checkpoint.configurationHash },
     }))
   }
-  await database.commit([
+  await commitIngestionStatements(database, [
     ...guardInterestProfiles(finalGraph.interests, finalGraph.users.map(user => user.id)),
     ...statements.map(statement => statement.toSQL()),
-  ])
+  ], 'final', options)
 }
 
-async function commitRetention(database: Database, at: Date): Promise<void> {
+async function commitRetention(database: Database, at: Date, options: IngestionDatabaseRetryOptions): Promise<void> {
   const retainedSince = new Date(at.getTime() - RETENTION_WINDOW_MS)
   await commitStatements(database, [
     database.update(items).set({ text: null }).where(and(isNotNull(items.text), lt(items.createdAt, retainedSince))),
@@ -629,7 +651,7 @@ async function commitRetention(database: Database, at: Date): Promise<void> {
     )),
     database.delete(sourceFetchLogs).where(lt(sourceFetchLogs.startedAt, retainedSince)),
     database.delete(robotsCache).where(lte(robotsCache.expiresAt, at)),
-  ])
+  ], 'retention', options)
 }
 
 /**
@@ -644,10 +666,11 @@ export async function runNeonIngestion(
   embeddingProvider?: EmbeddingProvider,
   reportReads?: (metrics: IngestionReadMetrics) => void,
   githubToken?: string,
+  options: IngestionDatabaseRetryOptions = {},
 ): Promise<PersistedGraph> {
   const writesBefore = database.writeMetrics?.()
   await assertHostOwnership(database)
-  await refreshRobotDisabledSources(database, at, fetcher)
+  await refreshRobotDisabledSources(database, at, fetcher, options)
   const dormantBefore = new Date(at)
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)
   const [rows, dormantRows] = await Promise.all([
@@ -717,7 +740,7 @@ export async function runNeonIngestion(
       return vectors
     },
     onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
-      commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds),
+      commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds, options),
   })
   await commitFinalGraph(database, persisted, before, embeddingProvider === undefined
     ? undefined
@@ -725,7 +748,7 @@ export async function runNeonIngestion(
         id: 1,
         processedThrough: at,
         configurationHash,
-      })
+      }, options)
   if (incremental) {
     const counts = await database.execute<{ items: number, signals: number, citations: number, links: number }>(sql`SELECT
       (SELECT count(*)::int FROM item) AS items, (SELECT count(*)::int FROM signal) AS signals,
@@ -740,7 +763,7 @@ export async function runNeonIngestion(
       dormantSourceIds.delete(source.id)
   }
   persisted.dormantSourceIds = [...dormantSourceIds]
-  await commitRetention(database, at)
+  await commitRetention(database, at, options)
   metrics.matchesReused = persisted.readerSignalMatches.filter(row => before.matches.get(`${row.userId}\0${row.signalId}`) === JSON.stringify(row)).length
   metrics.matchesRecomputed = persisted.readerSignalMatches.length - metrics.matchesReused
   if (writesBefore !== undefined) {

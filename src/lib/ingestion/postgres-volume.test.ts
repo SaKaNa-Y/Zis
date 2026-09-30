@@ -157,7 +157,8 @@ it.each([
     const data = { query, params }
     return data
   }) as unknown as typeof database.$client.query)
-  vi.spyOn(database.$client, 'transaction').mockImplementation((async (queries: unknown) => {
+  vi.spyOn(database.$client, 'transaction').mockImplementation((async (queries: unknown, options: unknown) => {
+    expect(options).toEqual({ fullResults: true, isolationLevel: 'ReadCommitted' })
     if (Buffer.byteLength(JSON.stringify({ queries })) > 64 * 1024 * 1024)
       throw new Error('HTTP 413: request is too large (max is 67108864 bytes)')
     return []
@@ -179,6 +180,7 @@ it.each([
   if (failWrite) {
     const error = await run().then(() => null, error => error)
     expect(error?.message).toBe('Injected write failure')
+    expect(commands[0]).toBe('BEGIN ISOLATION LEVEL READ COMMITTED')
     expect(commands.at(-1)).toBe('ROLLBACK')
     expect(commands).not.toContain('COMMIT')
     expect(release).toHaveBeenCalledWith(true)
@@ -202,9 +204,9 @@ it.each([
     expect(commands).toEqual([])
     return
   }
-  expect(commands[0]).toBe('BEGIN')
+  expect(commands[0]).toBe('BEGIN ISOLATION LEVEL READ COMMITTED')
   expect(commands.at(-1)).toBe('COMMIT')
-  expect(commands.filter(command => command === 'BEGIN')).toHaveLength(1)
+  expect(commands.filter(command => command === 'BEGIN ISOLATION LEVEL READ COMMITTED')).toHaveLength(1)
   expect(commands.filter(command => command === 'COMMIT')).toHaveLength(1)
   expect(release).toHaveBeenCalledOnce()
   expect(release).toHaveBeenCalledWith(false)
