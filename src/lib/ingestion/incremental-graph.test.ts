@@ -1,5 +1,6 @@
 import type { Database, DatabaseStatement } from '@/lib/db'
 import type { SafeFetch } from '@/lib/safe-fetch'
+import { Buffer } from 'node:buffer'
 import { readdirSync, readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite-pgvector'
@@ -31,6 +32,7 @@ async function fixture() {
       const affected = await pg.transaction(async (tx) => {
         let rows = 0
         for (const statement of statements) {
+          expect(statement.params.length).toBeLessThanOrEqual(65535)
           rows += (await tx.query(statement.sql, statement.params)).affectedRows ?? 0
           if (failFinalCommit && statement.sql.includes('ingestion_checkpoint')) {
             failFinalCommit = false
@@ -41,6 +43,7 @@ async function fixture() {
       })
       writes.affectedRows += affected
       writes.committedStatements += statements.length
+      writes.compiledWriteBytes += Buffer.byteLength(JSON.stringify(statements))
     },
   }) as unknown as Database
   const publisher = '00000000-0000-4000-8000-000000000001'
@@ -79,6 +82,51 @@ async function fixture() {
     },
   }
 }
+
+it.each([
+  { count: 120, changesOwnership: false },
+  { count: 120, changesOwnership: true },
+  { count: 1200, changesOwnership: true },
+])('bounds bootstrap writes for $count unchanged Items (ownership changed: $changesOwnership)', async ({ count, changesOwnership }) => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-08-01T06:00:00Z'))
+  const test = await fixture()
+  const reader = '00000000-0000-4000-8000-000000000010'
+  await test.database.insert(schema.users).values({ id: reader, passphraseHash: '$argon2id$v=19$m=65536,t=3,p=1$fixture', timezone: 'UTC', cutHour: 6 })
+  await test.database.insert(schema.interests).values({ userId: reader, statement: 'Software' })
+  test.feed(`<rss><channel>${Array.from({ length: count }, (_, index) => `<item><guid>entry-${index}</guid><link>https://example.com/entry-${index}</link><title>Entry ${index}</title><pubDate>Sat, 01 Aug 2026 05:00:00 GMT</pubDate><description>${Array.from({ length: 3 }, (_, citation) => `&lt;a href="https://target.example/entry-${index}-${citation}"&gt;Target ${citation}&lt;/a&gt;`).join('')}</description></item>`).join('')}</channel></rss>`)
+  await runNeonIngestion(new Date(), test.database, test.fetcher, test.provider)
+  const sealed = await test.database.select().from(schema.briefs)
+  const citations = await test.database.select().from(schema.citations)
+  const items = await test.database.select().from(schema.items)
+  await test.database.insert(schema.publisherHosts).values({ publisherId: '00000000-0000-4000-8000-000000000001', host: changesOwnership ? 'target.example' : 'additional.example' })
+  vi.setSystemTime(new Date('2026-08-02T06:00:00Z'))
+  const report = vi.fn()
+  const stages = vi.fn()
+  await runNeonIngestion(new Date(), test.database, test.fetcher, test.provider, report, undefined, { onStageTiming: stages })
+  const metrics = report.mock.calls[0]![0]
+  expect((await test.database.select().from(schema.briefs)).find(row => row.localDate === sealed[0]!.localDate)).toEqual(sealed[0])
+  expect(await test.database.select().from(schema.citations)).toEqual(citations)
+  const byId = (left: { id: string }, right: { id: string }) => left.id.localeCompare(right.id)
+  expect((await test.database.select().from(schema.items)).map(({ fetchedAt: _, ...row }) => row).sort(byId)).toEqual(items.map(({ fetchedAt: _, ...row }) => row).sort(byId))
+  if (changesOwnership) {
+    const signals = await test.database.select().from(schema.signals)
+    expect(signals.every(signal => signal.strength === 0)).toBe(true)
+    expect(signals.every(signal => signal.embedding !== null)).toBe(true)
+  }
+  expect(stages.mock.calls.map(([event]) => event.stage)).toEqual([
+    'host_assertion',
+    'robots_recovery',
+    'graph_load',
+    'source_ingestion',
+    'reader_scope',
+    'graph_compute',
+    'final_commit',
+    'retention',
+  ])
+  expect(stages.mock.calls.every(([event]) => Number.isFinite(event.durationMs) && event.durationMs >= 0)).toBe(true)
+  expect(metrics.committedStatements).toBeLessThan(25)
+}, 30000)
 
 it('selects API Sources and keeps their venue ownership valid on the next database run', async () => {
   const test = await fixture()

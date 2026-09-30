@@ -116,7 +116,7 @@ required stage the ordering omitted.
 | # | stage | notes |
 |---|---|---|
 | 1 | **select due** | `WHERE disabled_at IS NULL AND (retry_after_at IS NULL OR retry_after_at <= now())`. No scheduler — see §4. |
-| 2 | **fetch** | Per-host serial, global concurrency cap 6. `robots.txt` checked per host *before* fetching. Conditional requests where the Transport supports them. |
+| 2 | **fetch** | Per-host serial, global concurrency cap 6; the public HN API permits four concurrent item reads. `robots.txt` checked per host *before* fetching. Conditional requests where the Transport supports them. |
 | 3 | **normalize** | Transport-specific → `Item`. Natural key and date clamping per §5. |
 | 4 | **hydrate** | Aggregator Sources only: fetch the issue page and extract its link list. §6. |
 | 5 | **canonicalize** | L1–L5 cascade, unchanged from the clustering spec. Hydrated URLs flow through the identical path. |
@@ -241,7 +241,14 @@ coverage requires measuring window loss and cost; adding these Sources does
 not authorize an hourly schedule or promise a larger Brief.
 
 API requests retain robots checks, address pinning, byte limits and global /
-per-host concurrency constraints. Authenticated POST queries reject redirects.
+per-host concurrency constraints. HN item requests run in batches of four under
+the global cap of six; other hosts remain serial. The
+[official API](https://github.com/HackerNews/API#uri-and-versioning) documents no
+rate limit. A failed batch is drained before failing the Source, and no partial
+list is committed. Overlapping item IDs in the two HN lists share a successful
+response only within the current wake; the next wake reads edits and deletions
+again. The complete returned lists are still processed.
+Authenticated POST queries reject redirects.
 HTTP errors, invalid JSON and GraphQL partial errors become failed fetches;
 a failed HN child request never commits a partially fetched list. Retry-After
 and GitHub's exhausted-rate-limit reset are retained as Source deferrals.
@@ -455,6 +462,14 @@ ruleset and no obtainable ruleset are opposite facts, and #29 found a host
 | 2xx other than 200, or a zero-length 2xx | **deny** — `arstechnica.com/robots.txt` answers 202, `Content-Length: 0`, `x-amzn-waf-action: challenge`, and an empty body parses as an empty ruleset, i.e. as "allowed" (#29) |
 | 4xx other than 404, 5xx, timeout, TLS failure | **deny** — `feed.infoq.com` answers 406 `application/json`; `hnrss.org` failed a TLS handshake once and allowed all on retry, so a transport error is not a verdict either |
 
+Content-Type is extracted using the
+[WHATWG Fetch algorithm](https://fetch.spec.whatwg.org/#concept-header-extract-mime-type):
+the last valid non-wildcard MIME type in the header list, preserving quoted
+commas inside parameters. This handles HN's duplicate
+`application/octet-stream, text/plain` fields as `text/plain`, while
+`text/plain; charset=utf-8, text/html` remains HTML and is denied. This is header
+parsing, not body sniffing or a host-specific robots allowance.
+
 The asymmetry between the 200 and 404 rows is the whole rule: **on a 200 the body
 *is* the ruleset**, so content-type is load-bearing; on a 404 there is no ruleset
 to misparse. A soft-404 is dangerous when it returns **200** for missing content.
@@ -540,8 +555,8 @@ ingestion, and the permanent tier is a few hundred bytes per Signal. The 384-dim
 
 ## 10. Fetch concurrency, and why it is a compute decision
 
-**Per-host serial, global concurrency cap 4–6, with a stated budget that a normal
-run completes in ≤2 minutes.**
+**Per-host serial except four concurrent public HN item reads, global concurrency
+cap 6, with a stated budget that a normal run completes in ≤2 minutes.**
 
 #2 requires "serial rather than concurrent" fetching. That is politeness toward a
 given *origin*, not a global rule, and the 47 Sources span ~44 distinct hosts. Per-
@@ -633,6 +648,17 @@ empty Citation graph.
   doctype inside CDATA is ordinary Item text, not an XML DTD declaration; the
   XML parser's doctype event enforces the distinction.
 
+  The default feed parsing limit is 2 MiB. Three reviewed complete feeds have an
+  8 MiB parsing budget at their exact configured URLs: `https://vercel.com/atom`,
+  `https://danluu.com/atom.xml`, and
+  `https://magazine.sebastianraschka.com/feed`. They measured approximately
+  3.7 MB, 6.6 MB and 2.7 MB respectively on September 30. The shared 8 MiB
+  streaming fetch limit still aborts larger responses; no feed is truncated.
+  `https://antfu.me/feed.xml` additionally removes ANSI SGR color escapes only
+  inside CDATA before strict XML parsing. Its observed defect was terminal color
+  codes in one code example. Other XML errors, control characters, DTDs and entity
+  declarations are rejected as before; other endpoints receive no normalization.
+
 ## 14. Commit recovery and daily health
 
 Ingestion retries a failed database **transaction batch**, at most three total
@@ -658,6 +684,9 @@ when ingestion fails or a due Brief is missing. An empty persisted Brief is
 valid; an unavailable inventory or failed confirmation query is reported as
 unknown. Reports omit reader statements, credentials, URL paths and raw errors.
 GitHub supplies `GITHUB_STEP_SUMMARY`; it is not an application secret.
+The summary also reports measured graph load, Source ingestion, graph compute,
+final commit and retention times. Model inference is measured separately within
+graph compute, so it must not be added to that enclosing duration.
 
 Recovery does not reconstruct an earlier day's missing Brief from today's graph
 or append to an already sealed Brief. A persistent outage still fails after the
@@ -672,3 +701,23 @@ URL, preserving its identity and manual disable decisions. New databases seeded
 from the immutable migrations need this same maintenance transaction to match
 the current register. No schema migration, cached robots allow, historical Brief
 repair or blanket Source reset is part of this operation.
+
+A second [reviewed recovery transaction](../scripts/operations/2026-09-30-recover-remaining-sources.sql)
+restores the four feeds covered by the bounded parser fixes. It expires only the
+known misinterpreted HN robots response and makes those two Sources eligible for
+a real policy recheck; it does not write an allow verdict. Import AI moves to its
+already registered, author-owned `https://jack-clark.net/feed/`. All ten current
+WordPress issues matched their Substack counterparts in normalized full text and
+outbound links. Production had no Import AI Items before this move, so no GUID
+rewrite or historical backfill is needed. The endpoint retains its existing
+Source identity; corpus rows are not modified by the maintenance transaction.
+Both reviewed transactions are idempotent and preserve manual disable decisions.
+
+Graph computation builds provenance indexes after alias changes instead of
+rescanning every Signal and Citation for each story. Source commits distinguish
+unchanged Item poll timestamps from changed content or completed hydration, so a
+configuration bootstrap does not rewrite unchanged Citation and Link rows.
+Item, Link, Citation and existing-vector Signal metadata writes are batched;
+stored vectors, Interest Profile locking and sealed Briefs retain their existing
+semantics. The normal-run target remains 120 seconds, verified by production
+stage timings rather than by local operation counts alone.

@@ -988,7 +988,7 @@ describe('the production ingestion startup assertion', () => {
     )
     const citationStatementIndex = statements.findIndex(statement =>
       statement.table === citations
-      && (statement.values as { rawUrl?: string }).rawUrl === targetUrl,
+      && [statement.values].flat().some(value => (value as { rawUrl?: string }).rawUrl === targetUrl),
     )
     expect(itemStatementIndex).toBeGreaterThanOrEqual(0)
     expect(issueCacheStatementIndex).toBeGreaterThanOrEqual(0)
@@ -1225,18 +1225,18 @@ describe('the production ingestion startup assertion', () => {
     expect(citationIndex).toBeGreaterThan(signalIndex)
     expect(statements
       .filter(statement => statement.table === citations)
-      .map(statement => statement.values)
+      .flatMap(statement => statement.values)
       .find(value => (value as { rawUrl?: string }).rawUrl?.includes('external.example')),
-    ).toMatchObject({ linkId: existingLink.id })
+    ).toMatchObject({ linkId: existingLink.id, anchorText: 'the story' })
     expect(statements.find(statement => statement.table === citations
-      && (statement.values as { kind?: string }).kind === 'outbound')?.conflict)
-      .toMatchObject({ set: { anchorText: 'the story', firstSeenAt: expect.anything() } })
+      && [statement.values].flat().some(value => (value as { kind?: string }).kind === 'outbound'))?.conflict)
+      .toMatchObject({ set: { anchorText: expect.anything(), firstSeenAt: expect.anything() } })
     const perSourceSignalWrites = statements.filter(statement => statement.kind === 'insert'
       && statement.table === signals
-      && !Array.isArray(statement.values))
+      && (statement.conflict as { target?: unknown })?.target === signals.targetLinkId)
     expect(perSourceSignalWrites).not.toHaveLength(0)
-    for (const statement of perSourceSignalWrites) {
-      expect(statement.values).toMatchObject({
+    for (const row of perSourceSignalWrites.flatMap(statement => statement.values)) {
+      expect(row).toMatchObject({
         textBasis: null,
         embeddingText: null,
         embedding: null,
@@ -1247,10 +1247,10 @@ describe('the production ingestion startup assertion', () => {
       })
     }
     expect(statements.some(statement => statement.table === signals
-      && (statement.values as { targetLinkId?: string }).targetLinkId === existingLink.id)).toBe(true)
+      && [statement.values].flat().some(value => (value as { targetLinkId?: string }).targetLinkId === existingLink.id))).toBe(true)
     const signalBatches = statements.filter(statement => statement.kind === 'insert'
       && statement.table === signals
-      && Array.isArray(statement.values))
+      && (statement.conflict as { target?: unknown })?.target === signals.id)
     expect(signalBatches).toHaveLength(2)
     expect(signalBatches[0]?.values).toEqual(expect.arrayContaining([
       expect.objectContaining({ mergedIntoId: null, strength: 0, originPublisherId: null }),

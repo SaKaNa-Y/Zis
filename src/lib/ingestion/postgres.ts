@@ -1,5 +1,5 @@
 import type { DatabaseRetryEvent, IngestionDatabaseRetryOptions } from './database-retry'
-import type { IngestionSource, PersistedGraph, PersistedSignal, SourceFetchLog } from './pipeline'
+import type { IngestionSource, IngestionStageTiming, PersistedGraph, PersistedSignal, SourceFetchLog } from './pipeline'
 import type { Database } from '@/lib/db'
 import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { RobotsCacheRecord, RobotsDirectives, RobotsStore, RobotsVerdict } from '@/lib/robots'
@@ -41,6 +41,10 @@ import { guestPublicationOwner, itemLinkIsOutbound } from './publication'
 
 const SIGNAL_WRITE_BATCH_SIZE = 1000
 const SIGNAL_READ_BATCH_SIZE = 1000
+
+export interface IngestionOptions extends IngestionDatabaseRetryOptions {
+  onStageTiming?: (event: IngestionStageTiming) => void
+}
 
 interface CompiledQuery {
   toSQL: () => { sql: string, params: unknown[] }
@@ -356,6 +360,7 @@ function sourceStatements(
   graph: PersistedGraph,
   touchedHttpCacheKeys: ReadonlySet<string>,
   touchedItemIds: ReadonlySet<string>,
+  provenanceItemIds: ReadonlySet<string>,
 ): CompiledQuery[] {
   const latestLog = [...graph.fetchLogs].reverse().find(log => log.sourceId === source.id)
   if (latestLog === undefined)
@@ -394,62 +399,75 @@ function sourceStatements(
     && touchedItemIds.has(candidate.id),
   )
   if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
-    for (const item of contentItems) {
-      statements.push(database.insert(items).values(item).onConflictDoUpdate({
+    for (let offset = 0; offset < contentItems.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+      const batch = contentItems.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)
+      const insert = database.insert(items)
+      statements.push((batch.length === 1 ? insert.values(batch[0]!) : insert.values(batch)).onConflictDoUpdate({
         target: [items.sourceId, items.externalId],
         set: {
-          url: item.url,
-          title: item.title,
-          summary: item.summary,
-          text: item.text,
-          rawFeedDate: item.rawFeedDate,
-          publishedAt: item.publishedAt,
-          fetchedAt: item.fetchedAt,
-          issueHydratedAt: item.issueHydratedAt,
-          ingestionInputHash: item.ingestionInputHash,
-          updatedAt: item.updatedAt,
+          url: sql`excluded.url`,
+          title: sql`excluded.title`,
+          summary: sql`excluded.summary`,
+          text: sql`excluded.text`,
+          rawFeedDate: sql`excluded.raw_feed_date`,
+          publishedAt: sql`excluded.published_at`,
+          fetchedAt: sql`excluded.fetched_at`,
+          issueHydratedAt: sql`excluded.issue_hydrated_at`,
+          ingestionInputHash: sql`excluded.ingestion_input_hash`,
+          updatedAt: sql`excluded.updated_at`,
         },
       }))
     }
   }
 
-  if (latestLog.outcome === 'ok' || touchedItemIds.size > 0) {
+  if (provenanceItemIds.size > 0) {
     const sourceCitations = graph.citations.filter(candidate =>
       candidate.sourceId === source.id
-      && touchedItemIds.has(candidate.itemId),
+      && provenanceItemIds.has(candidate.itemId),
     )
     const citedLinkIds = new Set(sourceCitations.map(citation => citation.linkId))
-    for (const link of graph.links.filter(candidate => citedLinkIds.has(candidate.id))) {
-      statements.push(database.insert(linkTable).values(link).onConflictDoUpdate({
+    const citedLinks = graph.links.filter(candidate => citedLinkIds.has(candidate.id)).sort((left, right) => left.id.localeCompare(right.id))
+    const signalsByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
+    for (let offset = 0; offset < citedLinks.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+      const batch = citedLinks.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)
+      const insertLinks = database.insert(linkTable)
+      statements.push((batch.length === 1 ? insertLinks.values(batch[0]!) : insertLinks.values(batch)).onConflictDoUpdate({
         target: linkTable.url,
         set: {
           firstSeenAt: sql`least(${linkTable.firstSeenAt}, excluded.first_seen_at)`,
         },
       }))
-      const signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
-      if (signal === undefined)
-        throw new Error(`Link ${link.id} completed without an eager Signal`)
-      statements.push(database.insert(signalTable).values({
-        ...signal,
-        textBasis: null,
-        embeddingText: null,
-        embeddingTextExpiresAt: null,
-        embedding: null,
-        embeddingModel: null,
-        embeddingDimensions: null,
-        embeddingVersion: null,
-        embeddedAt: null,
-      }).onConflictDoNothing({
+      const eagerSignals = batch.map((link) => {
+        const signal = signalsByLinkId.get(link.id)
+        if (signal === undefined)
+          throw new Error(`Link ${link.id} completed without an eager Signal`)
+        return {
+          ...signal,
+          textBasis: null,
+          embeddingText: null,
+          embeddingTextExpiresAt: null,
+          embedding: null,
+          embeddingModel: null,
+          embeddingDimensions: null,
+          embeddingVersion: null,
+          embeddedAt: null,
+        }
+      })
+      const insertSignals = database.insert(signalTable)
+      statements.push((eagerSignals.length === 1 ? insertSignals.values(eagerSignals[0]!) : insertSignals.values(eagerSignals)).onConflictDoNothing({
         target: signalTable.targetLinkId,
       }))
     }
-    for (const citation of sourceCitations) {
-      statements.push(database.insert(citationTable).values(citation).onConflictDoUpdate({
+    sourceCitations.sort((left, right) => left.id.localeCompare(right.id))
+    for (let offset = 0; offset < sourceCitations.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+      const batch = sourceCitations.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)
+      const insertCitations = database.insert(citationTable)
+      statements.push((batch.length === 1 ? insertCitations.values(batch[0]!) : insertCitations.values(batch)).onConflictDoUpdate({
         target: [citationTable.itemId, citationTable.kind, citationTable.rawUrl],
         set: {
-          linkId: citation.linkId,
-          sourceId: citation.sourceId,
-          anchorText: citation.anchorText,
+          linkId: sql`excluded.link_id`,
+          sourceId: sql`excluded.source_id`,
+          anchorText: sql`excluded.anchor_text`,
           firstSeenAt: sql`least(${citationTable.firstSeenAt}, excluded.first_seen_at)`,
         },
       }))
@@ -480,6 +498,7 @@ async function commitSource(
   graph: PersistedGraph,
   touchedHttpCacheKeys: ReadonlySet<string>,
   touchedItemIds: ReadonlySet<string>,
+  provenanceItemIds: ReadonlySet<string>,
   options: IngestionDatabaseRetryOptions,
 ): Promise<void> {
   await commitStatements(database, sourceStatements(
@@ -488,6 +507,7 @@ async function commitSource(
     graph,
     touchedHttpCacheKeys,
     touchedItemIds,
+    provenanceItemIds,
   ), 'source', options)
 }
 
@@ -544,15 +564,20 @@ async function commitFinalGraph(database: Database, finalGraph: PersistedGraph, 
       originPublisherId: null,
     }))).onConflictDoNothing({ target: signalTable.id }))
   }
-  for (const signal of graph.signals) {
-    if (signal.embedding === null || !('stored' in signal.embedding))
-      continue
-    statements.push(database.update(signalTable).set({
-      mergedIntoId: signal.mergedIntoId,
-      strength: signal.strength,
-      originPublisherId: signal.originPublisherId,
-      embeddingText: signal.embeddingText,
-    }).where(eq(signalTable.id, signal.id)))
+  const storedSignals = graph.signals.filter(signal => signal.embedding !== null && 'stored' in signal.embedding)
+    .sort((left, right) => left.id.localeCompare(right.id))
+  for (let offset = 0; offset < storedSignals.length; offset += SIGNAL_WRITE_BATCH_SIZE) {
+    const batch = storedSignals.slice(offset, offset + SIGNAL_WRITE_BATCH_SIZE)
+    const values = batch.map(signal => sql`(${signal.id}::uuid, ${signal.mergedIntoId}::uuid,
+      ${signal.strength}::integer, ${signal.originPublisherId}::uuid, ${signal.embeddingText}::text)`)
+    // These vectors stay in Postgres. Update only changed metadata, in bounded
+    // batches, without fetching or serializing an unchanged embedding.
+    const update = new PgDialect().sqlToQuery(sql`UPDATE ${signalTable} AS target SET
+      merged_into_id = changed.merged_into_id, strength = changed.strength,
+      origin_publisher_id = changed.origin_publisher_id, embedding_text = changed.embedding_text
+      FROM (VALUES ${sql.join(values, sql`, `)}) AS changed(id, merged_into_id, strength, origin_publisher_id, embedding_text)
+      WHERE target.id = changed.id`)
+    statements.push({ toSQL: () => update })
   }
   for (const batch of batches) {
     statements.push(database.insert(signalTable).values(batch).onConflictDoUpdate({
@@ -666,11 +691,16 @@ export async function runNeonIngestion(
   embeddingProvider?: EmbeddingProvider,
   reportReads?: (metrics: IngestionReadMetrics) => void,
   githubToken?: string,
-  options: IngestionDatabaseRetryOptions = {},
+  options: IngestionOptions = {},
 ): Promise<PersistedGraph> {
   const writesBefore = database.writeMetrics?.()
+  let phaseStarted = performance.now()
   await assertHostOwnership(database)
+  options.onStageTiming?.({ stage: 'host_assertion', durationMs: performance.now() - phaseStarted })
+  phaseStarted = performance.now()
   await refreshRobotDisabledSources(database, at, fetcher, options)
+  options.onStageTiming?.({ stage: 'robots_recovery', durationMs: performance.now() - phaseStarted })
+  phaseStarted = performance.now()
   const dormantBefore = new Date(at)
   dormantBefore.setUTCMonth(dormantBefore.getUTCMonth() - 6)
   const [rows, dormantRows] = await Promise.all([
@@ -709,6 +739,7 @@ export async function runNeonIngestion(
     matchesRecomputed: 0,
     matchesReused: 0,
   }
+  options.onStageTiming?.({ stage: 'graph_load', durationMs: performance.now() - phaseStarted })
   const persisted = await runIngestion({
     sources: dueSources,
     githubToken,
@@ -739,9 +770,11 @@ export async function runNeonIngestion(
       metrics.signalVectorJsonBytes += Buffer.byteLength(JSON.stringify([...vectors]))
       return vectors
     },
-    onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds) =>
-      commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds, options),
+    onSourceCommitted: async (source, persisted, touchedHttpCacheKeys, touchedItemIds, provenanceItemIds) =>
+      commitSource(database, source, persisted, touchedHttpCacheKeys, touchedItemIds, provenanceItemIds, options),
+    onStageTiming: options.onStageTiming,
   })
+  phaseStarted = performance.now()
   await commitFinalGraph(database, persisted, before, embeddingProvider === undefined
     ? undefined
     : {
@@ -749,6 +782,7 @@ export async function runNeonIngestion(
         processedThrough: at,
         configurationHash,
       }, options)
+  options.onStageTiming?.({ stage: 'final_commit', durationMs: performance.now() - phaseStarted })
   if (incremental) {
     const counts = await database.execute<{ items: number, signals: number, citations: number, links: number }>(sql`SELECT
       (SELECT count(*)::int FROM item) AS items, (SELECT count(*)::int FROM signal) AS signals,
@@ -763,7 +797,9 @@ export async function runNeonIngestion(
       dormantSourceIds.delete(source.id)
   }
   persisted.dormantSourceIds = [...dormantSourceIds]
+  phaseStarted = performance.now()
   await commitRetention(database, at, options)
+  options.onStageTiming?.({ stage: 'retention', durationMs: performance.now() - phaseStarted })
   metrics.matchesReused = persisted.readerSignalMatches.filter(row => before.matches.get(`${row.userId}\0${row.signalId}`) === JSON.stringify(row)).length
   metrics.matchesRecomputed = persisted.readerSignalMatches.length - metrics.matchesReused
   if (writesBefore !== undefined) {

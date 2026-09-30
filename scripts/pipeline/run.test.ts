@@ -78,6 +78,19 @@ async function runAndReadSummary(): Promise<string> {
 }
 
 describe('pipeline entrypoint health reporting', () => {
+  it('reports measured ingestion stages in logs and the Actions summary', async () => {
+    mocks.ingest.mockImplementation(async (_at, _db, _fetch, _embed, _metrics, _token, options) => {
+      options.onStageTiming({ stage: 'startup', durationMs: 125 })
+      options.onStageTiming({ stage: 'source_ingestion', durationMs: 850 })
+      options.onStageTiming({ stage: 'graph_compute', durationMs: 2100 })
+      return { sources: [source()], fetchLogs: [], items: [], dormantSourceIds: [] }
+    })
+    const summary = await runAndReadSummary()
+    expect(summary).toContain('| graph_compute | 2100 |')
+    expect(output.join('')).toContain('zis pipeline stage startup: 125 ms')
+    expect(output.join('')).toContain('zis pipeline stage source_ingestion: 850 ms')
+  })
+
   it('fails after a permanent ingestion error and keeps unknown Source state distinct from a healthy empty inventory', async () => {
     mocks.ingest.mockRejectedValue(new Error('private SQL parameters and reader Interest text'))
     mocks.snapshot.mockRejectedValue(new Error('private database URL and stack'))

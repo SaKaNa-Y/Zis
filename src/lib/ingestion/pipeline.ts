@@ -542,6 +542,11 @@ export interface CannedTransportResponse {
   failAboveHostActive?: number
 }
 
+export interface IngestionStageTiming {
+  stage: 'host_assertion' | 'robots_recovery' | 'graph_load' | 'source_ingestion' | 'reader_scope' | 'graph_compute' | 'final_commit' | 'retention'
+  durationMs: number
+}
+
 interface RunIngestionCommon {
   sources: IngestionSource[]
   publisherHosts?: PublisherHost[]
@@ -554,11 +559,13 @@ interface RunIngestionCommon {
   loadSourceState?: (source: IngestionSource, lookups?: readonly SourceItemLookup[]) => Promise<void>
   loadCitationTargets?: (urls: readonly string[]) => Promise<void>
   onSourcesComplete?: (graph: PersistedGraph) => Promise<void>
+  onStageTiming?: (event: IngestionStageTiming) => void
   onSourceCommitted?: (
     source: IngestionSource,
     graph: PersistedGraph,
     touchedHttpCacheKeys: ReadonlySet<string>,
     touchedItemIds: ReadonlySet<string>,
+    provenanceItemIds: ReadonlySet<string>,
   ) => Promise<void>
 }
 
@@ -1217,8 +1224,10 @@ function ownerOfTarget(graph: PersistedGraph, url: string): string | undefined {
   return guestPublicationOwner(url, graph.publisherHosts) ?? ownerOfHost(graph, new URL(url).hostname)
 }
 
-function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSignal {
-  let signal = graph.signals.find(candidate => candidate.targetLinkId === link.id)
+function ensureSignal(graph: PersistedGraph, link: PersistedLink, byLinkId?: Map<string, PersistedSignal>): PersistedSignal {
+  let signal = byLinkId === undefined
+    ? graph.signals.find(candidate => candidate.targetLinkId === link.id)
+    : byLinkId.get(link.id)
   if (signal === undefined) {
     signal = {
       id: link.id,
@@ -1237,18 +1246,19 @@ function ensureSignal(graph: PersistedGraph, link: PersistedLink): PersistedSign
       createdAt: link.createdAt,
     }
     graph.signals.push(signal)
+    byLinkId?.set(link.id, signal)
   }
   return signal
 }
 
-function resolveSignal(graph: PersistedGraph, signal: PersistedSignal): PersistedSignal {
+function resolveSignal(graph: PersistedGraph, signal: PersistedSignal, byId?: ReadonlyMap<string, PersistedSignal>): PersistedSignal {
   const visited = new Set<string>()
   let current = signal
   while (current.mergedIntoId !== null) {
     if (visited.has(current.id))
       throw new Error(`Signal merge cycle includes ${current.id}`)
     visited.add(current.id)
-    const next = graph.signals.find(candidate => candidate.id === current.mergedIntoId)
+    const next = byId?.get(current.mergedIntoId) ?? graph.signals.find(candidate => candidate.id === current.mergedIntoId)
     if (next === undefined)
       throw new Error(`Signal ${current.id} merges into missing Signal ${current.mergedIntoId}`)
     current = next
@@ -1260,7 +1270,18 @@ const RELEASE_TAG_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/releases\/tag\/.+
 
 function mergeReleaseTagAliases(graph: PersistedGraph): void {
   const linkById = new Map(graph.links.map(link => [link.id, link]))
+  const linkByUrl = new Map(graph.links.map(link => [link.url, link]))
+  const sourceById = new Map(graph.sources.map(source => [source.id, source]))
+  const signalById = new Map(graph.signals.map(signal => [signal.id, signal]))
   const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
+  const outboundByItemId = new Map<string, PersistedCitation[]>()
+  for (const citation of graph.citations) {
+    if (citation.kind !== 'outbound')
+      continue
+    const citations = outboundByItemId.get(citation.itemId) ?? []
+    citations.push(citation)
+    outboundByItemId.set(citation.itemId, citations)
+  }
   const targetLinkIdsByAliasLinkId = new Map<string, Set<string>>()
 
   for (const item of graph.items) {
@@ -1268,16 +1289,15 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
       break
     if (item.url === null)
       continue
-    const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+    const source = sourceById.get(item.sourceId)
     if (source === undefined)
       throw new Error(`Item ${item.id} belongs to missing Source ${item.sourceId}`)
     if (source.transport !== 'rss' && source.transport !== 'atom')
       continue
-    const targetLink = graph.links.find(link => link.url === item.url)
+    const targetLink = linkByUrl.get(item.url)
     if (targetLink === undefined)
       continue
-    const aliasLinkIds = [...new Set(graph.citations
-      .filter(citation => citation.itemId === item.id && citation.kind === 'outbound')
+    const aliasLinkIds = [...new Set((outboundByItemId.get(item.id) ?? [])
       .map(citation => citation.linkId)
       .filter((linkId) => {
         const link = linkById.get(linkId)
@@ -1307,12 +1327,12 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
     const aliasSignal = signalByLinkId.get(aliasLinkId)
     if (preferredSignal === undefined || aliasSignal === undefined)
       throw new Error('Alias merge requires every Link to have a Signal')
-    const destination = resolveSignal(graph, preferredSignal)
+    const destination = resolveSignal(graph, preferredSignal, signalById)
     const candidates = [aliasSignal, ...orderedTargetLinkIds
       .map(linkId => signalByLinkId.get(linkId))
       .filter((signal): signal is PersistedSignal => signal !== undefined)]
     for (const candidate of candidates) {
-      const root = resolveSignal(graph, candidate)
+      const root = resolveSignal(graph, candidate, signalById)
       if (root.id !== destination.id)
         root.mergedIntoId = destination.id
     }
@@ -1320,34 +1340,24 @@ function mergeReleaseTagAliases(graph: PersistedGraph): void {
 }
 
 function updateStrength(graph: PersistedGraph): void {
+  const index = indexProvenance(graph)
   for (const signal of graph.signals) {
     signal.strength = 0
     signal.originPublisherId = null
     if (signal.mergedIntoId !== null)
       continue
-    const target = graph.links.find(link => link.id === signal.targetLinkId)
+    const target = index.linkById.get(signal.targetLinkId)
     if (target === undefined)
       throw new Error(`Signal ${signal.id} targets missing Link ${signal.targetLinkId}`)
     signal.originPublisherId = ownerOfTarget(graph, target.url) ?? null
   }
 
-  const signalByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
-  const citationsByRootId = new Map<string, PersistedCitation[]>()
-  for (const citation of graph.citations) {
-    const signal = signalByLinkId.get(citation.linkId)
-    if (signal === undefined)
-      throw new Error(`Citation ${citation.id} points to a Link without a Signal`)
-    const root = resolveSignal(graph, signal)
-    const citations = citationsByRootId.get(root.id) ?? []
-    citations.push(citation)
-    citationsByRootId.set(root.id, citations)
-  }
   for (const signal of graph.signals) {
     if (signal.mergedIntoId === null) {
       signal.strength = contributingPublishers(
-        graph,
+        index,
         signal,
-        citationsByRootId.get(signal.id) ?? [],
+        index.citationsByRootId.get(signal.id) ?? [],
       ).length
     }
   }
@@ -1367,19 +1377,61 @@ interface TextBasisCandidate {
   embeddingTextExpiresAt: Date | null
 }
 
-function itemIsVehicle(graph: PersistedGraph, item: PersistedItem): boolean {
-  const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+function itemIsVehicle(index: ProvenanceIndex, item: PersistedItem): boolean {
+  const source = index.sourceById.get(item.sourceId)
   return source !== undefined
     && VEHICLE_TRANSPORTS.has(source.transport)
-    && (item.hasOutboundCitation ?? graph.citations.some(citation => citation.itemId === item.id && citation.kind === 'outbound'))
+    && (item.hasOutboundCitation ?? index.outboundItemIds.has(item.id))
 }
 
-function memberCitations(graph: PersistedGraph, root: PersistedSignal): PersistedCitation[] {
-  const memberLinkIds = new Set(graph.signals
-    .filter(signal => resolveSignal(graph, signal).id === root.id)
-    .map(signal => signal.targetLinkId))
-  return graph.citations.filter(citation => memberLinkIds.has(citation.linkId))
+/** Rebuilt after alias changes; never cached across fetches or graph mutations. */
+function indexProvenance(graph: PersistedGraph) {
+  const signalById = new Map(graph.signals.map(signal => [signal.id, signal]))
+  const rootById = new Map<string, PersistedSignal>()
+  for (const signal of graph.signals) {
+    const path: PersistedSignal[] = []
+    const visited = new Set<string>()
+    let current = signal
+    while (!rootById.has(current.id) && current.mergedIntoId !== null) {
+      if (visited.has(current.id))
+        throw new Error(`Signal merge cycle includes ${current.id}`)
+      visited.add(current.id)
+      path.push(current)
+      const next = signalById.get(current.mergedIntoId)
+      if (next === undefined)
+        throw new Error(`Signal ${current.id} merges into missing Signal ${current.mergedIntoId}`)
+      current = next
+    }
+    const root = rootById.get(current.id) ?? current
+    rootById.set(current.id, root)
+    rootById.set(signal.id, root)
+    for (const member of path)
+      rootById.set(member.id, root)
+  }
+  const rootByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, rootById.get(signal.id)!]))
+  const citationsByRootId = new Map<string, PersistedCitation[]>()
+  const outboundItemIds = new Set<string>()
+  for (const citation of graph.citations) {
+    const root = rootByLinkId.get(citation.linkId)
+    if (root === undefined)
+      throw new Error(`Citation ${citation.id} points to a Link without a Signal`)
+    const citations = citationsByRootId.get(root.id) ?? []
+    citations.push(citation)
+    citationsByRootId.set(root.id, citations)
+    if (citation.kind === 'outbound')
+      outboundItemIds.add(citation.itemId)
+  }
+  return {
+    citationsByRootId,
+    outboundItemIds,
+    rootById,
+    sourceById: new Map(graph.sources.map(source => [source.id, source])),
+    itemById: new Map(graph.items.map(item => [item.id, item])),
+    linkById: new Map(graph.links.map(link => [link.id, link])),
+  }
 }
+
+type ProvenanceIndex = ReturnType<typeof indexProvenance>
 
 interface ContributingPublisher {
   id: string
@@ -1387,13 +1439,13 @@ interface ContributingPublisher {
 }
 
 function contributingPublishers(
-  graph: PersistedGraph,
+  index: ProvenanceIndex,
   root: PersistedSignal,
-  citations: readonly PersistedCitation[] = memberCitations(graph, root),
+  citations: readonly PersistedCitation[] = index.citationsByRootId.get(root.id) ?? [],
 ): ContributingPublisher[] {
   const firstSeenByPublisherId = new Map<string, Date>()
   for (const citation of citations) {
-    const source = graph.sources.find(candidate => candidate.id === citation.sourceId)
+    const source = index.sourceById.get(citation.sourceId)
     if (source === undefined)
       throw new Error(`Citation ${citation.id} belongs to missing Source ${citation.sourceId}`)
     if (source.publisherId === root.originPublisherId)
@@ -1438,12 +1490,12 @@ function slugText(url: string): string {
   return capEmbeddingText(collapse([...hostWords, ...pathWords].join(' ')))
 }
 
-function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextBasisCandidate {
-  const citations = memberCitations(graph, root)
+function textBasisForSignal(index: ProvenanceIndex, root: PersistedSignal): TextBasisCandidate {
+  const citations = index.citationsByRootId.get(root.id) ?? []
   const ownItems = [...new Map(citations
     .filter(citation => citation.kind === 'self')
-    .map(citation => graph.items.find(item => item.id === citation.itemId))
-    .filter((item): item is PersistedItem => item !== undefined && !itemIsVehicle(graph, item))
+    .map(citation => index.itemById.get(citation.itemId))
+    .filter((item): item is PersistedItem => item !== undefined && !itemIsVehicle(index, item))
     .map(item => [item.id, item])).values()]
     .sort((left, right) =>
       (right.text?.length ?? right.summary?.length ?? 0) - (left.text?.length ?? left.summary?.length ?? 0)
@@ -1477,10 +1529,10 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
   }
 
   const citingItem = citing
-    .map(citation => graph.items.find(item => item.id === citation.itemId))
+    .map(citation => index.itemById.get(citation.itemId))
     .filter((item): item is PersistedItem => item !== undefined)
     .filter((item) => {
-      const source = graph.sources.find(candidate => candidate.id === item.sourceId)
+      const source = index.sourceById.get(item.sourceId)
       return source !== undefined && !source.isAggregator
     })
     .sort((left, right) => right.title.length - left.title.length || left.id.localeCompare(right.id))
@@ -1494,7 +1546,7 @@ function textBasisForSignal(graph: PersistedGraph, root: PersistedSignal): TextB
     }
   }
 
-  const target = graph.links.find(link => link.id === root.targetLinkId)
+  const target = index.linkById.get(root.targetLinkId)
   if (target === undefined)
     throw new Error(`Signal ${root.id} targets missing Link ${root.targetLinkId}`)
   return { basis: 'slug', text: slugText(target.url), embeddingTextExpiresAt: null }
@@ -1576,8 +1628,9 @@ async function embedSignalsAndMatchInterests(
   const liveSignals = graph.signals
     .filter(signal => signal.mergedIntoId === null)
     .sort((left, right) => left.id.localeCompare(right.id))
+  const index = indexProvenance(graph)
   const signalPlans = liveSignals.flatMap((signal) => {
-    const candidate = textBasisForSignal(graph, signal)
+    const candidate = textBasisForSignal(index, signal)
     if (candidate.text === '')
       throw new Error(`Signal ${signal.id} has an empty ${candidate.basis} embedding input`)
 
@@ -1805,8 +1858,9 @@ function whyText(
   graph: PersistedGraph,
   user: PersistedUser,
   candidate: AdmissionCandidate,
+  index: ProvenanceIndex,
 ): string {
-  const contributors = contributingPublishers(graph, candidate.signal)
+  const contributors = contributingPublishers(index, candidate.signal)
   if (contributors.length !== candidate.signal.strength) {
     throw new Error(
       `Signal ${candidate.signal.id} has Strength ${candidate.signal.strength} but ${contributors.length} contributing Publishers`,
@@ -1839,6 +1893,7 @@ function whyText(
 }
 
 function cutDueBriefs(graph: PersistedGraph, at: Date): void {
+  const provenance = indexProvenance(graph)
   const publicationTimes = new Map(graph.items.map(item => [item.id, item.publishedAt.getTime()]))
   const liveSignals = graph.signals.filter(signal => signal.mergedIntoId === null)
   for (const user of [...graph.users].sort((left, right) => left.id.localeCompare(right.id))) {
@@ -1854,7 +1909,7 @@ function cutDueBriefs(graph: PersistedGraph, at: Date): void {
     for (const signal of liveSignals) {
       if (signal.strength < 2)
         continue
-      const citations = memberCitations(graph, signal)
+      const citations = provenance.citationsByRootId.get(signal.id) ?? []
       if (citations.length === 0)
         continue
       // Discovery is provenance; a cold fetch must not make old publications new.
@@ -1925,7 +1980,7 @@ function cutDueBriefs(graph: PersistedGraph, at: Date): void {
       signalId: candidate.signal.id,
       position: index + 1,
       admittedBy: candidate.admittedBy,
-      whyText: whyText(graph, user, candidate),
+      whyText: whyText(graph, user, candidate, provenance),
       createdAt: new Date(at),
     }))
     graph.briefs.push(brief)
@@ -2067,10 +2122,12 @@ async function ingestSource(
 ): Promise<{
   touchedHttpCacheKeys: ReadonlySet<string>
   touchedItemIds: ReadonlySet<string>
+  provenanceItemIds: ReadonlySet<string>
 }> {
   const touchedHttpCacheKeys = new Set<string>()
   const touchedItemIds = new Set<string>()
-  const result = { touchedHttpCacheKeys, touchedItemIds }
+  const provenanceItemIds = new Set<string>()
+  const result = { touchedHttpCacheKeys, touchedItemIds, provenanceItemIds }
   const startedAt = now()
   let response: SafeFetchResponse | undefined
   let fetchedAt = startedAt
@@ -2114,6 +2171,8 @@ async function ingestSource(
       for (const hydratedCacheKey of hydration.touchedCacheKeys)
         touchedHttpCacheKeys.add(hydratedCacheKey)
       applyHydrationToPersistedItems(graph, source, pendingHydration, touchedItemIds)
+      for (const id of touchedItemIds)
+        provenanceItemIds.add(id)
       putHttpCache(graph, cacheKey, response, fetchedAt, true)
       touchedHttpCacheKeys.add(cacheKey)
       source.consecutiveFailures = 0
@@ -2218,6 +2277,7 @@ async function ingestSource(
         persistedItem = existing
       }
       touchedItemIds.add(persistedItem.id)
+      provenanceItemIds.add(persistedItem.id)
       recordCitation(graph, persistedItem, source, item.link, outbound ? 'outbound' : 'self', fetchedAt, undefined, outbound ? item.title : undefined)
       for (const outboundUrl of item.outboundUrls) {
         recordCitation(
@@ -2248,6 +2308,7 @@ async function ingestSource(
       throw error
     touchedHttpCacheKeys.clear()
     touchedItemIds.clear()
+    provenanceItemIds.clear()
     if (error instanceof ApiSourceError)
       response = error.response
     const outcome = error instanceof ApiSourceError ? error.outcome : failureOutcome(error)
@@ -2278,10 +2339,13 @@ export async function runIngestion({
   loadCitationTargets,
   onSourcesComplete,
   onSourceCommitted,
+  onStageTiming,
 }: RunIngestionInput): Promise<PersistedGraph> {
+  const sourcesStarted = performance.now()
   const graph = initialGraph ?? emptyGraph(sources, publisherHosts)
+  const initialSignalsByLinkId = new Map(graph.signals.map(signal => [signal.targetLinkId, signal]))
   for (const link of graph.links)
-    ensureSignal(graph, link)
+    ensureSignal(graph, link, initialSignalsByLinkId)
   const rawFetch = liveFetch ?? createCannedSafeFetch(responses ?? [])
   const fetch = createPolicyFetch(graph, rawFetch, now)
   const byHost = new Map<string, IngestionSource[]>()
@@ -2315,8 +2379,8 @@ export async function runIngestion({
         for (const source of queue) {
           if (stopped)
             return
-          const { touchedHttpCacheKeys, touchedItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets, githubToken)
-          await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds)
+          const { touchedHttpCacheKeys, touchedItemIds, provenanceItemIds } = await ingestSource(graph, source, fetch, now, loadSourceState, loadCitationTargets, githubToken)
+          await onSourceCommitted?.(source, graph, touchedHttpCacheKeys, touchedItemIds, provenanceItemIds)
         }
       }
     }
@@ -2331,7 +2395,11 @@ export async function runIngestion({
   await Promise.all(Array.from({ length: Math.min(6, queues.length) }, () => worker()))
   if (stopped)
     throw failure
+  onStageTiming?.({ stage: 'source_ingestion', durationMs: performance.now() - sourcesStarted })
+  const readerStarted = performance.now()
   await onSourcesComplete?.(graph)
+  onStageTiming?.({ stage: 'reader_scope', durationMs: performance.now() - readerStarted })
+  const computeStarted = performance.now()
   mergeReleaseTagAliases(graph)
   updateStrength(graph)
   if (embeddingProvider !== undefined)
@@ -2347,5 +2415,6 @@ export async function runIngestion({
       && source.newestItemAt < dormantBefore)
     .map(source => source.id)
   pruneRetainedState(graph, dailyAt)
+  onStageTiming?.({ stage: 'graph_compute', durationMs: performance.now() - computeStarted })
   return graph
 }

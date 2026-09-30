@@ -55,6 +55,7 @@ async function main(argv: string[]): Promise<void> {
   let status: 'completed' | 'failed' = 'failed'
   let metrics: IngestionHealthInput['metrics']
   let databaseRetries = 0
+  const stageTimings = new Map<string, number>()
   let phase = 'DATABASE_URL configuration'
   process.stdout.write(
     `zis pipeline stage order: ${PIPELINE_STAGE_ORDER.join(' -> ')}\n`,
@@ -69,7 +70,18 @@ async function main(argv: string[]): Promise<void> {
     await prepareTransformersModelCache(safeFetch)
     phase = 'database ingestion'
     database = db()
-    const embeddingProvider = createTransformersEmbeddingProvider({ fetcher: safeFetch })
+    const provider = createTransformersEmbeddingProvider({ fetcher: safeFetch })
+    const embeddingProvider = {
+      ...provider,
+      embed: async (texts: readonly string[]) => {
+        const started = performance.now()
+        const result = await provider.embed(texts)
+        const elapsed = Math.round(performance.now() - started)
+        stageTimings.set('model_embedding (within graph_compute)', (stageTimings.get('model_embedding (within graph_compute)') ?? 0) + elapsed)
+        process.stdout.write(`zis pipeline model embedding: ${texts.length} inputs; ${elapsed} ms\n`)
+        return result
+      },
+    }
     wakeAt = new Date()
     neonWakeStartedAt = Date.now()
     const graph = await runNeonIngestion(
@@ -93,6 +105,11 @@ async function main(argv: string[]): Promise<void> {
       },
       githubToken,
       {
+        onStageTiming: ({ stage, durationMs }) => {
+          const elapsed = Math.round(durationMs)
+          stageTimings.set(stage, (stageTimings.get(stage) ?? 0) + elapsed)
+          process.stdout.write(`zis pipeline stage ${stage}: ${elapsed} ms\n`)
+        },
         onDatabaseRetry: (event) => {
           databaseRetries++
           process.stdout.write(`::warning title=Retrying ingestion database transaction::${event.operation} transaction encountered ${event.reason}; retry attempt ${event.attempt}/3 after ${event.delayMs} ms.\n`)
@@ -147,12 +164,21 @@ async function main(argv: string[]): Promise<void> {
   if (report.annotations.length > 0)
     process.stdout.write(`${report.annotations.join('\n')}\n`)
   process.stdout.write(`zis pipeline database transaction retries: ${databaseRetries}\n`)
+  const timingSummary = stageTimings.size === 0
+    ? ''
+    : [
+        '\n### Stage timings\n',
+        '| Stage | Duration (ms) |',
+        '| --- | ---: |',
+        ...[...stageTimings].map(([stage, durationMs]) => `| ${stage} | ${durationMs} |`),
+        '',
+      ].join('\n')
   const summaryPath = process.env.GITHUB_STEP_SUMMARY
   if (summaryPath) {
-    await appendFile(summaryPath, `${report.summaryMarkdown}\nDatabase transaction retries: ${databaseRetries}.\n`)
+    await appendFile(summaryPath, `${report.summaryMarkdown}\nDatabase transaction retries: ${databaseRetries}.\n${timingSummary}`)
   }
   else {
-    process.stdout.write(report.summaryMarkdown)
+    process.stdout.write(`${report.summaryMarkdown}${timingSummary}`)
   }
   if (report.hasErrors)
     process.exitCode = 1
