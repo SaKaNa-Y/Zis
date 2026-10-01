@@ -181,3 +181,16 @@ Historical bearer-token copies remain in Git history. Any third-party revocation
 rotation, or history rewrite still requires a separate owner decision. The seven
 fixture alerts are deliberately left open with triage evidence, rather than
 using dismissal to present a zero-alert result.
+
+## First main-branch CodeQL result
+
+PR #100's CodeQL analysis had zero results. The first complete main analysis
+(`546de48a34b41ab7577ff1c3e2e0fcdeee60163b`, analysis `1871233056`) reported one
+`js/incomplete-url-substring-sanitization` finding at
+`src/lib/ingestion/aggregator-hydration.test.ts:84`. It was an assertion that no
+MDN reference survives aggregator hydration, using a hostname substring anywhere
+in the URL. It was not a production URL allowlist or request-routing boundary.
+The follow-up uses parsed hostname equality, preserving the intended host-wide
+assertion without matching an unrelated path or a lookalike hostname. No query
+exclusion, scan suppression, or manual alert dismissal was added. GitHub's
+post-merge analysis must confirm the finding is fixed.
