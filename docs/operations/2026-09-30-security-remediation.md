@@ -68,3 +68,20 @@ No credentials, authorization scopes, scanner settings, or alert states were
 changed. These dependency audits do not establish that the repository contains
 no other vulnerabilities or secrets. Remote alerts remain unresolved until the
 approved fix is published, merged, and re-evaluated by GitHub.
+
+## Follow-up — 2026-10-01
+
+After #98 merged as `aec27073a018be29408a5b94d96d321c067b6651`, GitHub
+marked the original 17 alerts fixed and reported new critical alert #18:
+[GHSA-vcvr-r3jv-pc5j](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j).
+Next.js 16.2.0 through versions below 16.3.6 can expose remote code execution
+when Node.js `next/og` ImageResponse receives attacker-controlled SVG content,
+attributes, or styles. No `next/og` / ImageResponse usage was found in application
+or pipeline source; the vulnerable installed version is still patched, not dismissed.
+
+The follow-up upgrades Next.js 16.3.3 to 16.3.6 and its matching env/SWC packages.
+Existing compatible sharp, browser-data, Babel, and Rolldown resolutions are
+preserved. The resolved-graph regression guard now includes the Next.js 16.x
+security floor. Authentication, application behavior, scanner permissions, and
+deployment configuration remain unchanged. The earlier validation record above
+belongs to #98; this follow-up requires its own full checks and CI before merge.
