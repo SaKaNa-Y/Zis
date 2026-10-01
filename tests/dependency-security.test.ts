@@ -20,11 +20,13 @@ describe.each(lockfiles)('security floors in %s', (file) => {
 
   it('excludes versions affected by the September 2026 advisories', () => {
     const affected = packages.filter((key) => {
-      const match = /^(undici|sharp|esbuild|js-yaml|brace-expansion)@(\d+)\.(\d+)\.(\d+)$/.exec(key)
+      const match = /^(next|undici|sharp|esbuild|js-yaml|brace-expansion)@(\d+)\.(\d+)\.(\d+)$/.exec(key)
       if (!match)
         return false
       const version = match.slice(2).map(Number)
       switch (match[1]) {
+        case 'next':
+          return !atLeast(version, [16, 3, 6]) // GHSA-vcvr-r3jv-pc5j (16.x line)
         case 'undici':
           // The application uses the 8.x line; GHSA-3xpg-4rpp-hhhm et al.
           return !atLeast(version, [8, 10, 2])
