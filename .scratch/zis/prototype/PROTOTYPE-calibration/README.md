@@ -154,3 +154,10 @@ The `27 Signals at Strength >=2` figure is a **backfill** yield over feed window
 spanning 2,064 days. Every per-day number in `findings.txt` is replayed from
 **Citation timestamps** over the last 30 days the corpus covers. Nothing is 27
 divided by anything convenient.
+
+### Follow-up URL cleanup (2026-10-01)
+
+Removed one expired third-party `access_token` JWT from two Stratechery URL
+fields. Its unverified expiry claim was 2026-08-19; no login or validity probe
+was attempted. Historical commits still contain it, so this cleanup is not a
+history purge or credential revocation.
