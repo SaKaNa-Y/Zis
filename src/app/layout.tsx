@@ -5,6 +5,7 @@ import { readLocale } from '@/lib/i18n/server'
 import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
 import './globals.css'
+import './product.css'
 
 export const metadata: Metadata = {
   title: 'Zis',

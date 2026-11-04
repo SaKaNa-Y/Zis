@@ -8,7 +8,7 @@ import type { TranslationAction } from '@/lib/translations/model'
 import Link from 'next/link'
 import { Text, useLocale } from '@/lib/i18n/context'
 import { useReadingTranslation } from '@/lib/translations/reading'
-import { DesktopDestinationRail, MobileDestinationFooter } from '../../destinations'
+import { DestinationNavigation, MobileDestinationFooter } from '../../destinations'
 
 export interface SignalProvenanceViewProps {
   translationAction?: TranslationAction
@@ -103,16 +103,16 @@ export function SignalProvenanceView({ provenance: original, translationAction }
   const publisherCountLabel = t(`${provenance.strength} distinct ${provenance.strength === 1 ? 'Publisher' : 'Publishers'}, with the origin excluded.`, `${provenance.strength} 个独立发布者，不含原始发布者。`)
 
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="brief-v2 app-shell">
       <a
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#signal-provenance"
       >
         <Text en="Skip to provenance" zh="跳至来源信息" />
       </a>
-      <DesktopDestinationRail />
+      <DestinationNavigation />
       <div className="min-w-0">
-        <main className="mx-auto max-w-[64rem] px-5 py-10 sm:px-8 lg:px-12 lg:py-14" id="signal-provenance">
+        <main className="page-content provenance-content" id="signal-provenance">
           <nav aria-label={t('Breadcrumb', '页面路径')} className="text-meta text-ink-faint">
             <Link className="underline decoration-rule underline-offset-4 hover:text-ink" href="/">
               <Text en="← Today" zh="← 今天" />
@@ -123,7 +123,7 @@ export function SignalProvenanceView({ provenance: original, translationAction }
             <p className="font-mono text-date font-semibold uppercase tracking-[0.16em] text-ink-faint">
               <Text en="Signal provenance" zh="内容来源" />
             </p>
-            <h1 className="reading-title mt-3 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
+            <h1 className="reading-title page-title provenance-title mt-3">
               <a
                 className="break-words decoration-accent underline-offset-4 hover:underline"
                 href={provenance.originUrl}
@@ -143,7 +143,7 @@ export function SignalProvenanceView({ provenance: original, translationAction }
                 )}
           </header>
 
-          <section aria-label={t('Historical explanation', '历史入选理由')} className="mt-register max-w-measure-lg">
+          <section aria-label={t('Historical explanation', '历史入选理由')} className="explanation-panel mt-register max-w-measure-lg">
             <h2 className="text-meta font-semibold text-ink-dim">
               {t('Why this appeared in the Brief of', '入选简报日期：')}
               {' '}
@@ -176,7 +176,7 @@ export function SignalProvenanceView({ provenance: original, translationAction }
                 <Text en="Each Publisher is counted once. Every Citation remains visible below." zh="每个发布者只计算一次，所有引用记录均列于下方。" />
               </p>
             </div>
-            <div className="mt-6 overflow-x-auto">
+            <div tabIndex={0} role="region" aria-label={t('Citation record, scroll horizontally for more', '引用记录，可横向滚动查看更多')} className="citation-table mt-6 overflow-x-auto">
               <table aria-labelledby="citation-record-heading" className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-rule font-mono text-meta uppercase tracking-[0.1em] text-ink-faint">

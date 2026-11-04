@@ -12,8 +12,12 @@ The validated *decisions* are in the resolution comment on
 
 ## Run it
 
+Use Node 22 and pnpm 11.9.0, as in the root project. This directory has its own
+`pnpm-workspace.yaml` and lockfile; run installation from this directory. Do not
+pass `--ignore-workspace`, which would skip the security overrides here.
+
 ```sh
-pnpm install --ignore-workspace
+pnpm install --frozen-lockfile
 node run.mjs            # the four outputs                              (#21)
 node argmax-check.mjs   # is the citing rung's definition load-bearing?  (#21)
 node argmax-margin.mjs  # margin over 2nd, and per-Interest vagueness    (#35)
@@ -150,3 +154,10 @@ The `27 Signals at Strength >=2` figure is a **backfill** yield over feed window
 spanning 2,064 days. Every per-day number in `findings.txt` is replayed from
 **Citation timestamps** over the last 30 days the corpus covers. Nothing is 27
 divided by anything convenient.
+
+### Follow-up URL cleanup (2026-10-01)
+
+Removed one expired third-party `access_token` JWT from two Stratechery URL
+fields. Its unverified expiry claim was 2026-08-19; no login or validity probe
+was attempted. Historical commits still contain it, so this cleanup is not a
+history purge or credential revocation.

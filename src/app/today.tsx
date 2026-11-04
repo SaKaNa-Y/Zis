@@ -4,7 +4,7 @@ import type { TranslationAction } from '@/lib/translations/model'
 
 import { Text, useLocale } from '@/lib/i18n/context'
 import { useReadingTranslation } from '@/lib/translations/reading'
-import { DesktopDestinationRail, MobileDestinationFooter } from './destinations'
+import { DestinationNavigation, MobileDestinationFooter } from './destinations'
 
 export type TodayFormAction = (formData: FormData) => void | Promise<void>
 
@@ -38,7 +38,7 @@ export interface TodayBriefViewProps {
   translationAction?: TranslationAction
 }
 
-const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
+const READING_GRID = 'brief-grid'
 
 function signalProvenanceHref(entrySignalId: string): string {
   return `/signals/${entrySignalId}`
@@ -57,7 +57,7 @@ export function dateLabel(localDate: string, language = 'en'): string {
 function EmptyBrief({ previousBriefDate, period }: { previousBriefDate: string | null, period: 'today' | 'earlier' }) {
   const { t } = useLocale()
   return (
-    <section className="mt-register" aria-label={t('Empty Brief', '空简报')}>
+    <section className="empty-brief mt-register" aria-label={t('Empty Brief', '空简报')}>
       <p className="text-body text-ink-dim lg:text-body-lg">{t(`Nothing cleared the bar ${period === 'today' ? 'today' : 'on this day'}. Not a quiet corner of the internet — a quiet day. Zis would rather hand you an empty page than pad one.`, '这一天没有内容达到入选标准。Zis 宁可留白，也不会为了填满页面而凑数。')}</p>
       <nav aria-label={t('What to read next', '接下来阅读')} className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint">
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={previousBriefDate === null ? '/earlier' : `/earlier/${previousBriefDate}`}>
@@ -86,7 +86,7 @@ function EntryActionForm({
     <form action={action}>
       <input name="signalId" type="hidden" value={signalId} />
       <button
-        className="underline decoration-rule underline-offset-4 hover:text-ink disabled:no-underline disabled:opacity-70"
+        className="entry-action disabled:opacity-70"
         disabled={disabled}
         type="submit"
       >
@@ -139,8 +139,8 @@ function EntryActions({
         </a>
       </div>
       <details className="mt-3 text-meta text-ink-faint lg:hidden">
-        <summary aria-label={t('Entry actions', '内容操作')} className="w-fit cursor-pointer select-none marker:text-ink-faint">
-          ⋯
+        <summary aria-label={t('Entry actions', '内容操作')} className="entry-action w-fit cursor-pointer select-none">
+          {t('Actions', '操作')}
         </summary>
         <div aria-live="polite" className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
           <EntryActionForm
@@ -191,11 +191,12 @@ function BriefEntry({
 
   return (
     <article
-      className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID}`}
+      className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID} brief-entry`}
       id={`entry-${entry.position}`}
       lang={translation.lang}
     >
-      <div className="min-w-0 xl:col-start-2 xl:row-start-1">
+      <span className="entry-number" aria-hidden="true">{String(entry.position).padStart(2, '0')}</span>
+      <div className="entry-copy">
         {isConvergence
           ? <h3 className="reading-title reading-title-convergence text-body font-semibold tracking-[-0.012em] text-ink lg:text-body-lg">{titleLink}</h3>
           : <h2 className="reading-title text-title font-medium tracking-[-0.018em] text-ink lg:text-title-lg">{titleLink}</h2>}
@@ -207,10 +208,11 @@ function BriefEntry({
               </p>
             )}
       </div>
-      <div className="mt-3 xl:col-start-1 xl:row-start-1 xl:mt-0 xl:pt-1 xl:text-right">
+      <div className="entry-context">
+        <span lang={language === 'zh' ? 'zh-CN' : 'en'} className="context-label"><Text en="Why this surfaced" zh="入选理由" /></span>
         <WhyText entry={entry} />
       </div>
-      <div lang={language === 'zh' ? 'zh-CN' : 'en'} className="xl:col-start-2 xl:row-start-2">
+      <div lang={language === 'zh' ? 'zh-CN' : 'en'} className="entry-tools">
         {translation.controls}
         <EntryActions actionTargets={actionTargets} entry={entry} />
       </div>
@@ -224,25 +226,28 @@ export function TodayBriefView({ actionTargets, brief, period = 'today', transla
   const convergenceEntries = brief.entries.filter(entry => entry.admittedBy === 'convergence')
 
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="brief-v2">
       <a
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#today-brief"
       >
         <Text en="Skip to brief" zh="跳至简报" />
       </a>
-      <DesktopDestinationRail current={period === 'today' ? '/' : '/earlier'} />
+      <DestinationNavigation current={period === 'today' ? '/' : '/earlier'} />
       <div className="min-w-0">
-        <main className="min-w-0 px-5 py-10 sm:px-8 lg:px-12 lg:py-14 xl:px-16" id="today-brief">
-          <div className="mx-auto max-w-measure lg:max-w-measure-lg xl:max-w-[54rem]">
+        <main className="brief-canvas" id="today-brief">
+          <div className="brief-document">
             <div className={READING_GRID}>
-              <header className="xl:col-start-2">
+              <header className="brief-intro">
                 <p className="font-mono text-date tabular-nums uppercase tracking-[0.16em] text-ink-faint">
                   {dateLabel(brief.localDate, language)}
                 </p>
-                <h1 className="mt-2 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
-                  <Text en="Your brief" zh="每日简报" />
+                <h1 className="brief-heading">
+                  <Text en="Your daily" zh="每日" />
+                  {' '}
+                  <span><Text en="brief." zh="简报。" /></span>
                 </h1>
+                <p className="brief-deck"><Text en="What mattered. Why it matters. Then back to your day." zh="了解重要变化，明白为何值得关注，然后回到你的生活。" /></p>
               </header>
             </div>
 
@@ -266,7 +271,8 @@ export function TodayBriefView({ actionTargets, brief, period = 'today', transla
               : null}
             {interestEntries.length > 0
               ? (
-                  <section aria-label={t('Stories matched to your Interests', '匹配关注兴趣的内容')} className="mt-register">
+                  <section aria-label={t('Stories matched to your Interests', '匹配关注兴趣的内容')} className="brief-register">
+                    <p className="register-label"><Text en="Matched to your Interests" zh="匹配你的关注兴趣" /></p>
                     {interestEntries.map(entry => (
                       <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} translationAction={translationAction} />
                     ))}
@@ -279,7 +285,7 @@ export function TodayBriefView({ actionTargets, brief, period = 'today', transla
                     <div className={READING_GRID}>
                       <hr className="mt-register border-0 border-t border-rule xl:col-start-2" />
                     </div>
-                    <section aria-labelledby="convergence-heading" className="pt-6">
+                    <section aria-labelledby="convergence-heading" className="convergence-register">
                       <div className={READING_GRID}>
                         <h2 className="xl:col-start-2" id="convergence-heading">
                           <span className="block text-meta font-semibold uppercase tracking-[0.14em] text-ink">
@@ -297,6 +303,15 @@ export function TodayBriefView({ actionTargets, brief, period = 'today', transla
                   </>
                 )
               : null}
+            {brief.hasBrief && brief.entries.length > 0 && (
+              <div className="brief-finish">
+                <p className="xl:col-start-2">
+                  <span aria-hidden="true">✓</span>
+                  {' '}
+                  <Text en="That’s your brief. The rest of the day is yours." zh="简报到此结束，余下的时间属于你。" />
+                </p>
+              </div>
+            )}
           </div>
         </main>
         <MobileDestinationFooter current={period === 'today' ? '/' : '/earlier'} />

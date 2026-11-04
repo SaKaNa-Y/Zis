@@ -90,16 +90,28 @@ export interface RobotsCacheRecord {
 
 const EMPTY_DIRECTIVES: RobotsDirectives = { matchedUserAgent: null, rules: [] }
 
-function escapeRegex(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-/** `*` is any sequence; a trailing `$` anchors to the end of the path. */
+/** Match literal segments without regex backtracking on untrusted robots rules. */
 function matches(pattern: string, path: string): boolean {
   const anchored = pattern.endsWith('$')
   const body = anchored ? pattern.slice(0, -1) : pattern
-  const source = body.split('*').map(escapeRegex).join('.*')
-  return new RegExp(`^${source}${anchored ? '$' : ''}`).test(path)
+  const segments = body.split('*')
+  const first = segments[0]!
+  if (!path.startsWith(first))
+    return false
+  if (segments.length === 1)
+    return !anchored || path.length === first.length
+
+  let offset = first.length
+  for (let index = 1; index < segments.length; index++) {
+    const segment = segments[index]!
+    if (anchored && index === segments.length - 1)
+      return path.endsWith(segment) && path.length - segment.length >= offset
+    const found = path.indexOf(segment, offset)
+    if (found === -1)
+      return false
+    offset = found + segment.length
+  }
+  return true
 }
 
 /**

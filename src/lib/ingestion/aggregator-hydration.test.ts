@@ -81,7 +81,7 @@ describe('aggregator issue-page hydration', () => {
         expect.objectContaining({ kind: 'outbound', rawUrl: rawTargetUrl }),
       ]),
     )
-    expect(graph.links.some(link => link.url.includes('developer.mozilla.org'))).toBe(false)
+    expect(graph.links.some(link => new URL(link.url).hostname === 'developer.mozilla.org')).toBe(false)
     expect(graph.links.some(link => link.url === 'https://newsletter.example/archive')).toBe(false)
 
     const targetLink = graph.links.find(link => link.url === targetUrl)!

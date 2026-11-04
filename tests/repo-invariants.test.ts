@@ -206,3 +206,28 @@ describe('the pipeline imports the shared modules rather than copying them', () 
     expect(neonWake).toBeLessThan(timerStop)
   })
 })
+
+describe('security workflow boundaries', () => {
+  it('pins external actions to immutable commits in every workflow', () => {
+    for (const { workflow } of readWorkflows()) {
+      for (const job of Object.values(workflow.jobs ?? {})) {
+        for (const step of job.steps ?? []) {
+          if (step.uses && !step.uses.startsWith('./'))
+            expect(step.uses).toMatch(/^[\w.-]+\/[\w./-]+@[a-f0-9]{40}$/)
+        }
+      }
+    }
+  })
+
+  it('gives CodeQL only source read and result upload, without application secrets or execution', () => {
+    const source = readFileSync(join(workflowsDirectory, 'codeql.yml'), 'utf8')
+    const workflow = parse(source)
+    expect(workflow.permissions).toEqual({ contents: 'read' })
+    expect(workflow.jobs.analyze.permissions).toEqual({ 'contents': 'read', 'security-events': 'write' })
+    expect(workflow.on).not.toHaveProperty('schedule')
+    expect(source).not.toContain('secrets.')
+    expect(workflow.jobs.analyze.steps.some((step: { run?: string }) => step.run)).toBe(false)
+    expect(workflow.jobs.analyze.steps.find((step: { with?: Record<string, unknown> }) => step.with?.languages)?.with)
+      .toMatchObject({ 'languages': 'javascript-typescript', 'build-mode': 'none' })
+  })
+})

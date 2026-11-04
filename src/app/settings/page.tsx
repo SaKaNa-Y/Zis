@@ -8,7 +8,7 @@ import { readLocale } from '@/lib/i18n/server'
 import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
 import { generationTime } from '@/lib/settings/timing'
-import { DesktopDestinationRail, MobileDestinationFooter } from '../destinations'
+import { DestinationNavigation, MobileDestinationFooter } from '../destinations'
 import { AccountControls } from './controls'
 import { SettingsPreferences } from './preferences'
 
@@ -24,12 +24,13 @@ export default async function SettingsPage() {
   const reading = parseReadingStyle((await cookies()).get(READING_COOKIE)?.value)
   const { t } = locale
   return (
-    <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
-      <DesktopDestinationRail current="/settings" />
+    <div className="brief-v2 app-shell">
+      <DestinationNavigation current="/settings" />
       <div className="min-w-0">
-        <main className="mx-auto max-w-[58rem] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <main className="page-content">
           <header className="mb-10">
-            <h1 className="font-display text-title font-semibold tracking-[-0.025em] lg:text-title-lg">{t('Settings', '设置')}</h1>
+            <p className="eyebrow page-eyebrow">{t('Your space', '你的空间')}</p>
+            <h1 className="page-title">{t('Settings', '设置')}</h1>
             <p className="mt-3 text-meta text-ink-dim">{t('Make room for the way you read.', '按你的习惯，安静地阅读。')}</p>
           </header>
           <SettingsPreferences initialAppearance={appearance} initialReading={reading} initialInterface={locale.interfaceLanguage} initialContent={locale.contentLanguage} />

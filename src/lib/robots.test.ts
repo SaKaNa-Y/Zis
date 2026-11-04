@@ -429,3 +429,27 @@ describe('the gate', () => {
     expect(fetched).toEqual([])
   })
 })
+
+describe('untrusted wildcard rules', () => {
+  it('finishes a repeated-wildcard nonmatch without regex backtracking', () => {
+    const pattern = `/${'*a'.repeat(32)}b$`
+    const directives = parseRobotsTxt(`User-agent: *\nDisallow: ${pattern}\n`)
+    expect(isPathAllowed(directives, `/${'a'.repeat(64)}`)).toBe(true)
+    expect(isPathAllowed(directives, `/${'a'.repeat(64)}b`)).toBe(false)
+  })
+
+  it.each([
+    ['/a*b$', '/ab', false],
+    ['/a*b$', '/abb', false],
+    ['/a*b$', '/abc', true],
+    ['/ab*bc$', '/abc', true],
+    ['/ab*bc$', '/abbc', false],
+    ['/a**b*', '/axby', false],
+    ['/a.b$', '/axb', true],
+    ['/a.b$', '/a.b', false],
+    ['/a$b', '/a$b/c', false],
+    ['/*$', '/anything', false],
+  ])('preserves literal, wildcard and end-anchor matching: %s / %s', (pattern, path, allowed) => {
+    expect(isPathAllowed(parseRobotsTxt(`User-agent: *\nDisallow: ${pattern}\n`), path)).toBe(allowed)
+  })
+})

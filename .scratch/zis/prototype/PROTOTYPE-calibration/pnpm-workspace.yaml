@@ -1,0 +1,13 @@
+# This local settings file makes the archived prototype an independent install.
+# Keep its native image dependency patched even though its workload is text-only.
+# GHSA-rgj7-g3m4-5g8c / GHSA-f88m-g3jw-g9cj.
+overrides:
+  'sharp@<0.35.4': 0.35.4
+
+# Match the root's reviewed install policy; no GPU download or image install probe.
+allowBuilds:
+  onnxruntime-node: false
+  protobufjs: false
+  sharp: false
+
+trustPolicy: no-downgrade

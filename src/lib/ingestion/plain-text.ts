@@ -27,6 +27,25 @@ export function decodeCharacterReferences(text: string): string {
   })
 }
 
+/** Replace complete markup spans without retrying an unmatched opener at each byte. */
+function stripDelimited(text: string, open: string, close: string): string {
+  const parts: string[] = []
+  let offset = 0
+  for (;;) {
+    const start = text.indexOf(open, offset)
+    if (start === -1)
+      break
+    const end = text.indexOf(close, start + open.length)
+    if (end === -1)
+      break
+    parts.push(text.slice(offset, start), ' ')
+    offset = end + close.length
+  }
+  parts.push(text.slice(offset))
+  return parts.join('')
+}
+
 export function plainText(text: string): string {
-  return collapse(decodeCharacterReferences(text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ')))
+  const withoutComments = stripDelimited(text, '<!--', '-->')
+  return collapse(decodeCharacterReferences(stripDelimited(withoutComments, '<', '>')))
 }

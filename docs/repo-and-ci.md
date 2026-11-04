@@ -127,6 +127,25 @@ and **the nine `safeFetch` tests** from `security-model.md`. Of those, **test 2
 is why the resolver is injected. Playwright and E2E infrastructure stay out of
 scope.
 
+### Approved security analysis (2026-10-01)
+
+The owner approved an independent CodeQL workflow for JavaScript/TypeScript with
+`security-extended` queries on pull requests and pushes to main, plus manual
+reruns. It has no cron, application secrets, dependency installation, application
+build, or production ingestion. Its permissions are `contents: read` and
+`security-events: write` for uploading analysis. The existing sequential CI job
+and production ingestion cadence are unchanged. Standard hosted runners on this
+public repository incur no additional Actions charge; analysis adds a parallel
+PR check, not application runtime work.
+
+All external Actions are pinned to full commit SHAs with release-version comments.
+When updating one, verify the release tag and commit in the action's official
+repository, review its release notes and permission/runtime changes, update the
+SHA and version comment together, and require the normal PR checks. Dependabot
+version-update PRs remain disabled under §5; these pins require manual maintenance.
+GitHub secret scanning and push protection are enabled. Non-provider patterns and
+validity checks remain disabled; no credential or OAuth scope was expanded.
+
 ---
 
 ## 3. Migrations: manual, and never in the build step
