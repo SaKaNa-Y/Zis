@@ -1,11 +1,17 @@
+'use client'
+
 import type {
   SignalProvenance as SignalProvenanceModel,
   SignalProvenancePublisher,
 } from '@/lib/signals/provenance'
+import type { TranslationAction } from '@/lib/translations/model'
 import Link from 'next/link'
+import { Text, useLocale } from '@/lib/i18n/context'
+import { useReadingTranslation } from '@/lib/translations/reading'
 import { DesktopDestinationRail, MobileDestinationFooter } from '../../destinations'
 
 export interface SignalProvenanceViewProps {
+  translationAction?: TranslationAction
   provenance: SignalProvenanceModel
 }
 
@@ -39,7 +45,7 @@ function PublisherRows({ publisher }: { publisher: SignalProvenancePublisher }) 
       {publisher.isOrigin
         ? (
             <span className="mt-1 block font-normal text-ink-faint">
-              Origin · excluded from Strength
+              <Text en="Origin · excluded from Strength" zh="原始发布者，不计入关注强度" />
             </span>
           )
         : null}
@@ -51,7 +57,7 @@ function PublisherRows({ publisher }: { publisher: SignalProvenancePublisher }) 
       <tr className="border-t border-rule">
         {publisherCell}
         <td className="py-4 pr-5 text-body text-ink-dim" colSpan={2}>
-          No Citation recorded.
+          <Text en="No Citation recorded." zh="尚未记录引用。" />
         </td>
       </tr>
     )
@@ -87,11 +93,14 @@ function PublisherRows({ publisher }: { publisher: SignalProvenancePublisher }) 
   ))
 }
 
-export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) {
+export function SignalProvenanceView({ provenance: original, translationAction }: SignalProvenanceViewProps) {
+  const { t } = useLocale()
+  const translation = useReadingTranslation(original.entryId, original, translationAction)
+  const provenance = { ...original, ...translation.text }
   const publishers = [...provenance.publishers].sort((left, right) =>
     Number(left.isOrigin) - Number(right.isOrigin))
-  const strengthLabel = `Strength ${provenance.strength}`
-  const publisherCountLabel = `${provenance.strength} distinct ${provenance.strength === 1 ? 'Publisher' : 'Publishers'}, with the origin excluded.`
+  const strengthLabel = `${t('Strength', '关注强度')} ${provenance.strength}`
+  const publisherCountLabel = t(`${provenance.strength} distinct ${provenance.strength === 1 ? 'Publisher' : 'Publishers'}, with the origin excluded.`, `${provenance.strength} 个独立发布者，不含原始发布者。`)
 
   return (
     <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
@@ -99,22 +108,22 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#signal-provenance"
       >
-        Skip to provenance
+        <Text en="Skip to provenance" zh="跳至来源信息" />
       </a>
       <DesktopDestinationRail />
       <div className="min-w-0">
         <main className="mx-auto max-w-[64rem] px-5 py-10 sm:px-8 lg:px-12 lg:py-14" id="signal-provenance">
-          <nav aria-label="Breadcrumb" className="text-meta text-ink-faint">
+          <nav aria-label={t('Breadcrumb', '页面路径')} className="text-meta text-ink-faint">
             <Link className="underline decoration-rule underline-offset-4 hover:text-ink" href="/">
-              ← Today
+              <Text en="← Today" zh="← 今天" />
             </Link>
           </nav>
 
-          <header className="mt-register max-w-measure-lg">
+          <header lang={translation.lang} className="mt-register max-w-measure-lg">
             <p className="font-mono text-date font-semibold uppercase tracking-[0.16em] text-ink-faint">
-              Signal provenance
+              <Text en="Signal provenance" zh="内容来源" />
             </p>
-            <h1 className="mt-3 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
+            <h1 className="reading-title mt-3 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
               <a
                 className="break-words decoration-accent underline-offset-4 hover:underline"
                 href={provenance.originUrl}
@@ -128,28 +137,29 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
             {provenance.summary === null
               ? null
               : (
-                  <p className="mt-3 break-words text-body text-ink-dim lg:text-body-lg">
+                  <p className="reading-body mt-3 break-words text-body text-ink-dim lg:text-body-lg">
                     {provenance.summary}
                   </p>
                 )}
           </header>
 
-          <section aria-label="Historical explanation" className="mt-register max-w-measure-lg">
+          <section aria-label={t('Historical explanation', '历史入选理由')} className="mt-register max-w-measure-lg">
             <h2 className="text-meta font-semibold text-ink-dim">
-              Why this appeared in the Brief of
+              {t('Why this appeared in the Brief of', '入选简报日期：')}
               {' '}
               <Link href={`/earlier/${provenance.briefDate}`} className="underline underline-offset-4">
                 <time dateTime={provenance.briefDate}>{provenance.briefDate}</time>
               </Link>
             </h2>
-            <p className="mt-2 break-words text-body text-ink-dim">{provenance.whyText}</p>
-            <p className="mt-2 text-meta text-ink-faint">This explanation is frozen. The Citation record below reflects the current Signal.</p>
+            <p lang={translation.lang} className="reading-why mt-2 break-words text-body text-ink-dim">{provenance.whyText}</p>
+            {translation.controls}
+            <p className="mt-2 text-meta text-ink-faint"><Text en="This explanation is frozen. The Citation record below reflects the current Signal." zh="原始入选理由已封存。下方引用记录反映内容当前的来源情况。" /></p>
           </section>
 
           <dl className="mt-register grid max-w-measure gap-y-5 text-body sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-6">
-            <dt className="font-mono text-meta uppercase tracking-[0.12em] text-ink-faint">Admission</dt>
-            <dd className="m-0 text-ink">{admissionLabel(provenance.admittedBy)}</dd>
-            <dt className="font-mono text-meta uppercase tracking-[0.12em] text-ink-faint">Strength</dt>
+            <dt className="font-mono text-meta uppercase tracking-[0.12em] text-ink-faint"><Text en="Admission" zh="入选方式" /></dt>
+            <dd className="m-0 text-ink">{t(admissionLabel(provenance.admittedBy), provenance.admittedBy === 'interest' ? '匹配关注兴趣' : '多个发布者共同关注')}</dd>
+            <dt className="font-mono text-meta uppercase tracking-[0.12em] text-ink-faint"><Text en="Strength" zh="关注强度" /></dt>
             <dd className="m-0 text-ink">
               <span className="font-semibold">{strengthLabel}</span>
               {' — '}
@@ -160,19 +170,19 @@ export function SignalProvenanceView({ provenance }: SignalProvenanceViewProps) 
           <section aria-labelledby="citation-record-heading" className="mt-register">
             <div className="max-w-measure-lg">
               <h2 className="font-display text-title font-semibold tracking-[-0.018em] text-ink" id="citation-record-heading">
-                Citation record
+                <Text en="Citation record" zh="引用记录" />
               </h2>
               <p className="mt-2 text-meta text-ink-faint">
-                Each Publisher is counted once. Every Citation remains visible below.
+                <Text en="Each Publisher is counted once. Every Citation remains visible below." zh="每个发布者只计算一次，所有引用记录均列于下方。" />
               </p>
             </div>
             <div className="mt-6 overflow-x-auto">
               <table aria-labelledby="citation-record-heading" className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-rule font-mono text-meta uppercase tracking-[0.1em] text-ink-faint">
-                    <th className="pb-3 pr-5 font-normal" scope="col">Publisher</th>
-                    <th className="pb-3 pr-5 font-normal" scope="col">Citing Item</th>
-                    <th className="pb-3 font-normal" scope="col">First seen</th>
+                    <th className="pb-3 pr-5 font-normal" scope="col"><Text en="Publisher" zh="发布者" /></th>
+                    <th className="pb-3 pr-5 font-normal" scope="col"><Text en="Citing Item" zh="引用内容" /></th>
+                    <th className="pb-3 font-normal" scope="col"><Text en="First seen" zh="首次发现" /></th>
                   </tr>
                 </thead>
                 <tbody>

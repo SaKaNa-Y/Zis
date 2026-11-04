@@ -1,3 +1,9 @@
+'use client'
+
+import type { TranslationAction } from '@/lib/translations/model'
+
+import { Text, useLocale } from '@/lib/i18n/context'
+import { useReadingTranslation } from '@/lib/translations/reading'
 import { DesktopDestinationRail, MobileDestinationFooter } from './destinations'
 
 export type TodayFormAction = (formData: FormData) => void | Promise<void>
@@ -29,6 +35,7 @@ export interface TodayBriefViewProps {
   }
   brief: TodayBriefModel
   period?: 'today' | 'earlier'
+  translationAction?: TranslationAction
 }
 
 const READING_GRID = 'xl:grid xl:grid-cols-[14rem_minmax(0,38rem)] xl:gap-x-8'
@@ -37,8 +44,8 @@ function signalProvenanceHref(entrySignalId: string): string {
   return `/signals/${entrySignalId}`
 }
 
-export function dateLabel(localDate: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
+export function dateLabel(localDate: string, language = 'en'): string {
+  return new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN' : 'en-GB', {
     day: 'numeric',
     month: 'long',
     timeZone: 'UTC',
@@ -48,20 +55,16 @@ export function dateLabel(localDate: string): string {
 }
 
 function EmptyBrief({ previousBriefDate, period }: { previousBriefDate: string | null, period: 'today' | 'earlier' }) {
+  const { t } = useLocale()
   return (
-    <section className="mt-register" aria-label="Empty Brief">
-      <p className="text-body text-ink-dim lg:text-body-lg">
-        Nothing cleared the bar
-        {' '}
-        {period === 'today' ? 'today' : 'on this day'}
-        . Not a quiet corner of the internet — a quiet day. Zis would rather hand you an empty page than pad one.
-      </p>
-      <nav aria-label="What to read next" className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint">
+    <section className="mt-register" aria-label={t('Empty Brief', '空简报')}>
+      <p className="text-body text-ink-dim lg:text-body-lg">{t(`Nothing cleared the bar ${period === 'today' ? 'today' : 'on this day'}. Not a quiet corner of the internet — a quiet day. Zis would rather hand you an empty page than pad one.`, '这一天没有内容达到入选标准。Zis 宁可留白，也不会为了填满页面而凑数。')}</p>
+      <nav aria-label={t('What to read next', '接下来阅读')} className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint">
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={previousBriefDate === null ? '/earlier' : `/earlier/${previousBriefDate}`}>
-          {period === 'today' ? 'Yesterday\'s Brief' : 'Previous Brief'}
+          {period === 'today' ? t('Yesterday\'s Brief', '昨日简报') : t('Previous Brief', '上一篇简报')}
         </a>
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href="/interests">
-          Your Interests
+          <Text en="Your Interests" zh="你的关注兴趣" />
         </a>
       </nav>
     </section>
@@ -95,7 +98,7 @@ function EntryActionForm({
 
 function WhyText({ entry }: { entry: TodayBriefEntry }) {
   return (
-    <p className="break-words text-meta text-ink-faint">
+    <p className="reading-why break-words text-meta text-ink-faint">
       <a
         className="underline decoration-rule underline-offset-4 hover:text-ink"
         href={signalProvenanceHref(entry.entryId)}
@@ -113,46 +116,47 @@ function EntryActions({
   actionTargets: TodayBriefViewProps['actionTargets']
   entry: TodayBriefEntry
 }) {
+  const { t } = useLocale()
   return (
     <>
       <div aria-live="polite" className="mt-3 hidden flex-wrap gap-x-5 gap-y-2 text-meta text-ink-faint lg:flex">
         <EntryActionForm
           action={actionTargets.save}
           disabled={entry.isBookmarked}
-          label={entry.isBookmarked ? 'Saved' : 'Save'}
+          label={entry.isBookmarked ? t('Saved', '已收藏') : t('Save', '收藏')}
           signalId={entry.signalId}
         />
         <span aria-hidden="true">·</span>
         <EntryActionForm
           action={actionTargets.markRead}
           disabled={entry.isRead}
-          label={entry.isRead ? 'Read' : 'Mark read'}
+          label={entry.isRead ? t('Read', '已读') : t('Mark read', '标为已读')}
           signalId={entry.signalId}
         />
         <span aria-hidden="true">·</span>
         <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={signalProvenanceHref(entry.entryId)}>
-          Why this?
+          <Text en="Why this?" zh="为何入选？" />
         </a>
       </div>
       <details className="mt-3 text-meta text-ink-faint lg:hidden">
-        <summary aria-label="Entry actions" className="w-fit cursor-pointer select-none marker:text-ink-faint">
+        <summary aria-label={t('Entry actions', '内容操作')} className="w-fit cursor-pointer select-none marker:text-ink-faint">
           ⋯
         </summary>
         <div aria-live="polite" className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
           <EntryActionForm
             action={actionTargets.save}
             disabled={entry.isBookmarked}
-            label={entry.isBookmarked ? 'Saved' : 'Save'}
+            label={entry.isBookmarked ? t('Saved', '已收藏') : t('Save', '收藏')}
             signalId={entry.signalId}
           />
           <EntryActionForm
             action={actionTargets.markRead}
             disabled={entry.isRead}
-            label={entry.isRead ? 'Read' : 'Mark read'}
+            label={entry.isRead ? t('Read', '已读') : t('Mark read', '标为已读')}
             signalId={entry.signalId}
           />
           <a className="underline decoration-rule underline-offset-4 hover:text-ink" href={signalProvenanceHref(entry.entryId)}>
-            Why this?
+            <Text en="Why this?" zh="为何入选？" />
           </a>
         </div>
       </details>
@@ -162,11 +166,16 @@ function EntryActions({
 
 function BriefEntry({
   actionTargets,
-  entry,
+  entry: originalEntry,
+  translationAction,
 }: {
   actionTargets: TodayBriefViewProps['actionTargets']
   entry: TodayBriefEntry
+  translationAction?: TranslationAction
 }) {
+  const { language } = useLocale()
+  const translation = useReadingTranslation(originalEntry.entryId, originalEntry, translationAction)
+  const entry = { ...originalEntry, ...translation.text }
   const isConvergence = entry.admittedBy === 'convergence'
   const titleLink = (
     <a
@@ -184,15 +193,16 @@ function BriefEntry({
     <article
       className={`${isConvergence ? 'mt-entry' : 'mt-entry first:mt-0'} ${READING_GRID}`}
       id={`entry-${entry.position}`}
+      lang={translation.lang}
     >
       <div className="min-w-0 xl:col-start-2 xl:row-start-1">
         {isConvergence
-          ? <h3 className="text-body font-semibold tracking-[-0.012em] text-ink lg:text-body-lg">{titleLink}</h3>
-          : <h2 className="text-title font-medium tracking-[-0.018em] text-ink lg:text-title-lg">{titleLink}</h2>}
+          ? <h3 className="reading-title reading-title-convergence text-body font-semibold tracking-[-0.012em] text-ink lg:text-body-lg">{titleLink}</h3>
+          : <h2 className="reading-title text-title font-medium tracking-[-0.018em] text-ink lg:text-title-lg">{titleLink}</h2>}
         {entry.summary === null
           ? null
           : (
-              <p className={isConvergence ? 'mt-2 break-words text-body text-ink-dim lg:text-body-lg' : 'mt-2 break-words text-body text-ink lg:text-body-lg'}>
+              <p className={isConvergence ? 'reading-body mt-2 break-words text-body text-ink-dim lg:text-body-lg' : 'reading-body mt-2 break-words text-body text-ink lg:text-body-lg'}>
                 {entry.summary}
               </p>
             )}
@@ -200,14 +210,16 @@ function BriefEntry({
       <div className="mt-3 xl:col-start-1 xl:row-start-1 xl:mt-0 xl:pt-1 xl:text-right">
         <WhyText entry={entry} />
       </div>
-      <div className="xl:col-start-2 xl:row-start-2">
+      <div lang={language === 'zh' ? 'zh-CN' : 'en'} className="xl:col-start-2 xl:row-start-2">
+        {translation.controls}
         <EntryActions actionTargets={actionTargets} entry={entry} />
       </div>
     </article>
   )
 }
 
-export function TodayBriefView({ actionTargets, brief, period = 'today' }: TodayBriefViewProps) {
+export function TodayBriefView({ actionTargets, brief, period = 'today', translationAction }: TodayBriefViewProps) {
+  const { language, t } = useLocale()
   const interestEntries = brief.entries.filter(entry => entry.admittedBy === 'interest')
   const convergenceEntries = brief.entries.filter(entry => entry.admittedBy === 'convergence')
 
@@ -217,7 +229,7 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
         className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-10 focus:not-sr-only focus:bg-paper focus:px-3 focus:py-2 focus:text-meta focus:text-ink"
         href="#today-brief"
       >
-        Skip to brief
+        <Text en="Skip to brief" zh="跳至简报" />
       </a>
       <DesktopDestinationRail current={period === 'today' ? '/' : '/earlier'} />
       <div className="min-w-0">
@@ -226,10 +238,10 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
             <div className={READING_GRID}>
               <header className="xl:col-start-2">
                 <p className="font-mono text-date tabular-nums uppercase tracking-[0.16em] text-ink-faint">
-                  {dateLabel(brief.localDate)}
+                  {dateLabel(brief.localDate, language)}
                 </p>
                 <h1 className="mt-2 font-display text-title font-semibold tracking-[-0.025em] text-ink lg:text-title-lg">
-                  Your brief
+                  <Text en="Your brief" zh="每日简报" />
                 </h1>
               </header>
             </div>
@@ -247,16 +259,16 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
               ? (
                   <div className={`mt-register ${READING_GRID}`}>
                     <p className="text-body text-ink-dim xl:col-start-2">
-                      Today&apos;s Brief has not been cut yet.
+                      <Text en="Today's Brief has not been cut yet." zh="今日简报尚未生成。" />
                     </p>
                   </div>
                 )
               : null}
             {interestEntries.length > 0
               ? (
-                  <section aria-label="Stories matched to your Interests" className="mt-register">
+                  <section aria-label={t('Stories matched to your Interests', '匹配关注兴趣的内容')} className="mt-register">
                     {interestEntries.map(entry => (
-                      <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} />
+                      <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} translationAction={translationAction} />
                     ))}
                   </section>
                 )
@@ -271,15 +283,15 @@ export function TodayBriefView({ actionTargets, brief, period = 'today' }: Today
                       <div className={READING_GRID}>
                         <h2 className="xl:col-start-2" id="convergence-heading">
                           <span className="block text-meta font-semibold uppercase tracking-[0.14em] text-ink">
-                            You did not ask for this
+                            <Text en="You did not ask for this" zh="关注之外，值得一读" />
                           </span>
                           <span className="mt-2 block max-w-measure text-meta text-ink-dim">
-                            Enough independent Publishers converged on it that it arrives anyway.
+                            <Text en="Enough independent Publishers converged on it that it arrives anyway." zh="足够多的独立发布者共同关注了这件事，因此它也出现在这里。" />
                           </span>
                         </h2>
                       </div>
                       {convergenceEntries.map(entry => (
-                        <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} />
+                        <BriefEntry actionTargets={actionTargets} entry={entry} key={entry.entryId} translationAction={translationAction} />
                       ))}
                     </section>
                   </>

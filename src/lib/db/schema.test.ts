@@ -133,6 +133,8 @@ describe('the ingestion schema', () => {
       'session_version',
       'failed_attempts',
       'locked_until',
+      'interface_language',
+      'content_language',
       'timezone',
       'cut_hour',
       'created_at',
@@ -451,6 +453,7 @@ describe('the ingestion schema', () => {
       '0009_incremental_signal_matching',
       '0010_incremental_graph_reads',
       '0011_api_sources',
+      '0012_reader_preferences_and_translations',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

@@ -1,6 +1,10 @@
 # A presentation control must change neither which information renders nor its order
 
-Status: accepted
+Status: partially superseded by [ADR-0022](0022-reader-language-and-typography-preferences.md).
+
+ADR-0022 permits reading typography and translated views over preserved originals.
+The restrictions on Brief membership, ordering, and hidden Admission text remain.
+The reasoning below records the original decision.
 
 Settled by
 [Decide whether the reader can customize the Brief's layout](https://github.com/SaKaNa-Y/Zis/issues/23).

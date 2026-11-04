@@ -65,6 +65,8 @@ export const users = pgTable('user', {
   sessionVersion: integer('session_version').notNull().default(0),
   failedAttempts: integer('failed_attempts').notNull().default(0),
   lockedUntil: timestampTz('locked_until'),
+  interfaceLanguage: text('interface_language').notNull().default('system'),
+  contentLanguage: text('content_language').notNull().default('zh'),
   timezone: text('timezone').notNull().default('Asia/Shanghai'),
   cutHour: smallint('cut_hour').notNull().default(6),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
@@ -75,6 +77,8 @@ export const users = pgTable('user', {
   ),
   check('user_session_version_nonnegative_check', sql`${table.sessionVersion} >= 0`),
   check('user_failed_attempts_nonnegative_check', sql`${table.failedAttempts} >= 0`),
+  check('user_interface_language_check', sql`${table.interfaceLanguage} IN ('system', 'en', 'zh')`),
+  check('user_content_language_check', sql`${table.contentLanguage} IN ('en', 'zh')`),
   check('user_timezone_nonempty_check', sql`length(btrim(${table.timezone})) > 0`),
   check('user_cut_hour_range_check', sql`${table.cutHour} BETWEEN 0 AND 23`),
 ])
@@ -401,4 +405,22 @@ export const robotsCache = pgTable('robots_cache', {
   expiresAt: timestampTz('expires_at').notNull(),
 }, table => [
   index('robots_cache_expires_at_idx').on(table.expiresAt),
+])
+
+/** Private translated views. Original Brief entries are never updated. */
+export const readingTranslations = pgTable('reading_translation', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sourceKey: text('source_key').notNull(),
+  language: text('language').notNull(),
+  original: jsonb('original').notNull(),
+  translated: jsonb('translated'),
+  state: text('state').notNull().default('queued'),
+  requestedAt: timestampTz('requested_at').notNull().defaultNow(),
+  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
+  attempts: integer('attempts').notNull().default(0),
+}, table => [
+  primaryKey({ columns: [table.userId, table.sourceKey, table.language] }),
+  check('reading_translation_language_check', sql`${table.language} IN ('en', 'zh')`),
+  check('reading_translation_state_check', sql`${table.state} IN ('queued', 'processing', 'ready', 'failed')`),
+  index('reading_translation_queue_idx').on(table.state, table.requestedAt),
 ])

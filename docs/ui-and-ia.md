@@ -13,25 +13,18 @@ in the prototype, and the four that lost are kept there as the record.
 
 ---
 
-## 0. Layout customization — settled, and the answer is no
+## 0. Presentation controls preserve the Brief
 
-This section used to defer the question. It is now closed by
-[#23](https://github.com/SaKaNa-Y/Zis/issues/23) and
-[ADR-0009](./adr/0009-a-presentation-control-changes-neither-information-nor-order.md):
-**a reader-facing presentation control is admissible only if it changes neither
-which information is rendered nor its order.** The theme passes that test (seven
-tokens redefined, no markup touched); hiding the why-text, collapsing the
-`convergence` register, a density toggle, a reader-settable entry order, and
-turning off the wide-screen zones all fail it. The surviving set is empty, so
-**there is no Layout section in Settings** — it is removed, not left empty (§8),
-on the same precedent as the reading view in §3: the answer is stated here rather
-than on the screen.
+[ADR-0022](adr/0022-reader-language-and-typography-preferences.md) revises the
+original decision in [ADR-0009](adr/0009-a-presentation-control-changes-neither-information-nor-order.md).
+Readers can select appearance, reading typography, and a translated view of
+content. These controls preserve Brief membership, ordering, and access to the
+original Admission explanation. Hiding explanations, collapsing convergence
+entries, and reader-settable entry ordering remain outside the design.
 
-Two things that ruling does *not* say. **Text size is adjustable** — through
-browser zoom and OS root-font-size, which are better than a Zis control because
-`rem`/`ch` sizing scales the type and the measure together (§9). And
-**`forced-colors` and `prefers-contrast` are honored** (§9). Adjustability is the
-platform's job here, not Settings'.
+Text size and font controls apply to reading content only. Browser zoom still
+scales the whole application. Forced colors and increased contrast remain
+supported independently of these preferences.
 
 ## 1. Destinations — five, and only one has permanent chrome
 
@@ -240,54 +233,41 @@ keeps `Tag` alive strictly "to explain and to retrieve". So the rail's Tags are
 enters a Brief, and the rail says so in as many words. A followable category would
 reopen #5 and needs its own ticket, not a rail entry.
 
-## 8. Settings — and the theme lives in a per-device cookie
+## 8. Settings — reader preferences and account security
 
-Settings exists so that **appearance, cut time, and account actions stop being
-loose chrome** on the reading surface. The first implementation scope, agreed
-during [#95](https://github.com/SaKaNa-Y/Zis/issues/95), is appearance, read-only
-timing information, and account actions. The owner confirmed the decisions below
-before implementation.
+[ADR-0022](adr/0022-reader-language-and-typography-preferences.md) revises the
+original English-only and browser-only typography decisions. The confirmed design
+is recorded in [Settings research](plans/2026-10-08-settings-research.md).
 
-Timing shows the stored timezone and cut hour alongside the daily generation
-arrangement. Neither value is editable in this scope. A cut hour is a condition
-checked during ingestion, not a scheduler: changing it would not create another
-run or promise delivery at that hour. Timing copy must reflect the daily scheduling
-decision in [#92](https://github.com/SaKaNa-Y/Zis/issues/92), and acknowledge that
-completion can be delayed.
+Use a single page, in this order: Appearance, Language, Reading style, Account
+security, then a short daily Brief timing explanation with expandable details.
+Desktop rows place labels on the left and controls on the right. Mobile stacks
+them. Account forms expand only when invoked.
 
-Lead with the daily generation arrangement in plain language. Put the stored
-timezone, cut hour, and explanation of the cut condition in an expandable
-read-only detail. The schedule shown must track the actual scheduling
-configuration; it is not an exact delivery promise.
+Appearance provides Light, Dark, and System. The browser cookie persists through
+sign-out. System responds to OS changes without a separate theme script or a flash.
+Reading size offers Small, Standard, Large, and Extra large. Font offers Default,
+Sans serif, and Serif, with Chinese and English fallbacks. These controls affect
+reading titles, summaries, and Admission explanations, including originals. They
+do not change navigation, controls, entry order, or membership. A bilingual preview
+shows changes immediately, with a reset for reading style. Save failures restore
+the previous browser preference.
 
-The old named-size control (Shorter / Standard / Longer) is removed from this
-scope. Admission has no fixed number of places; see `CONTEXT.md` and
-[`ranking-model.md` §9](ranking-model.md). Settings must not expose an entry quota
-or a threshold control to implement that obsolete wording.
+Interface language and content language are separate reader preferences in the
+database. Interface supports English, Simplified Chinese, and browser detection.
+Content defaults to Chinese and also supports English. These choices follow the
+reader across devices. Language selection does not filter Sources or Signals and
+does not change the Interest matching model.
 
-Account offers change passphrase and sign out everywhere. The agreed verification
-and session behavior is recorded in [`security-model.md` §6.3](security-model.md#63-authenticated-account-actions).
+Translation is an explicitly labeled view with an original-text action next to
+content. It covers current and earlier Briefs and Bookmarks. Pending and failed
+translations leave originals readable. The background task owns AI credentials;
+the web server can only queue owned content and read cached results. Details and
+trade-offs are in ADR-0022. External article translation is outside this scope.
 
-**There is no Layout section** — #23 removed the empty one this document used to
-describe (§0). Appearance is the *only* presentation control in Settings, and
-ADR-0009 is why it is the only one.
-
-**The theme preference is a per-device cookie, not a `User` column.** One reader
-on a phone at night and a desktop at noon wants two answers, and a row forces one;
-the cookie also keeps a presentation preference out of the personal-layer schema.
-The preference belongs to the current browser; another browser on the same device
-does not share it. Signing out, including after changing the passphrase, retains
-the preference for the login page and the next session. Clearing the cookie
-restores the default, **match system**.
-Selecting light, dark, or match system applies and saves immediately, with an
-explicit failure message if saving fails. Match system follows OS appearance
-changes without another selection.
-
-The server renders the saved appearance mode on `<html>` from the cookie; a
-Server Action persists changes. System mode must resolve through the browser's
-system preference, including on the first visit: the cookie alone cannot tell the
-server which OS appearance is active. Preserve the zero-flash requirement without
-`next-themes`.
+Timing remains read-only. A cut hour is a condition checked during ingestion,
+not a scheduler or delivery guarantee. No quota, threshold, or named Brief-size
+control is introduced. Account verification follows `security-model.md` section 6.3.
 
 ## 9. Typography — the real work, and there is no plugin
 
@@ -403,16 +383,9 @@ unused: nothing in this design needed the first rung of it.
   broken-image state, because there is no image.
 - **No badge** doing the work of the section heading in §2.
 - **No shared `Card`.**
-- **No layout customization, and no Layout section in Settings** (§0, ADR-0009).
-  Not a deferral — the admissibility test leaves an empty candidate set. Text size
-  and contrast are adjustable through the platform instead.
+- **No reader control over Brief membership, ordering, or hidden explanations.**
+  Reading typography and translated views are allowed by ADR-0022.
 - **No `px`** in type size, line-height, spacing, or the measure (§9). Hairline
   borders excepted.
-- **No i18n layer, no string table, and no language control** ([#24](https://github.com/SaKaNa-Y/Zis/issues/24)).
-  Zis ships in **English only** — chrome, summaries, and Interests. Not a
-  deferral: a language toggle serves a population, and Zis has one reader with one
-  answer. A Chinese interface could not reach the parts a reader actually reads
-  anyway — titles, Publisher names, and the verbatim why-text are all outside any
-  i18n layer's reach (`ranking-model.md` §6) — so it would translate five nav
-  labels and an empty state around English content. And a *summary*-language
-  control fails ADR-0009 outright: different text is different information.
+- **Interface and content language are independent.** ADR-0022 supersedes the
+  earlier English-only decision. Translation preserves inspectable originals.

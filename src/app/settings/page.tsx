@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
 import { eq } from 'drizzle-orm'
+import { cookies } from 'next/headers'
 import { verifySession } from '@/lib/auth/dal'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
+import { readLocale } from '@/lib/i18n/server'
+import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
 import { generationTime } from '@/lib/settings/timing'
 import { DesktopDestinationRail, MobileDestinationFooter } from '../destinations'
-import { AccountControls, AppearanceControl } from './controls'
+import { AccountControls } from './controls'
+import { SettingsPreferences } from './preferences'
 
 export const metadata: Metadata = { title: 'Settings — Zis' }
 
@@ -16,45 +20,50 @@ export default async function SettingsPage() {
   if (!reader)
     throw new Error('Reader settings are unavailable')
   const appearance = await appearanceSettings.read()
+  const locale = await readLocale()
+  const reading = parseReadingStyle((await cookies()).get(READING_COOKIE)?.value)
+  const { t } = locale
   return (
     <div className="min-h-screen bg-paper text-ink lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
       <DesktopDestinationRail current="/settings" />
       <div className="min-w-0">
-        <main className="mx-auto max-w-measure px-5 py-10 sm:px-8 lg:max-w-measure-lg lg:px-12 lg:py-14">
-          <h1 className="font-display text-title font-semibold tracking-[-0.025em] lg:text-title-lg">Settings</h1>
-          <section aria-labelledby="appearance-heading" className="mt-register">
-            <h2 id="appearance-heading" className="font-display text-body font-semibold">Appearance</h2>
-            <p className="mt-3 text-meta text-ink-dim">For this browser only. Your choice stays after signing out.</p>
-            <AppearanceControl initialAppearance={appearance} />
-          </section>
-          <section aria-labelledby="timing-heading" className="mt-register border-t border-rule pt-7">
-            <h2 id="timing-heading" className="font-display text-body font-semibold">Your daily Brief</h2>
-            <p className="mt-3 text-body text-ink-dim">
-              Generation is scheduled to start daily at
-              {' '}
-              <span className="font-mono tabular-nums">{generationTime()}</span>
-              {' '}
-              (Asia/Shanghai). It may start or finish later.
-            </p>
-            <details className="mt-4 text-meta text-ink-dim">
-              <summary className="cursor-pointer underline underline-offset-4">How timing works</summary>
-              <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-                <dt>Stored timezone</dt>
-                <dd className="break-words">{reader.timezone}</dd>
-                <dt>Cut hour</dt>
-                <dd className="font-mono tabular-nums">
-                  {String(reader.cutHour).padStart(2, '0')}
-                  :00
-                </dd>
-              </dl>
-              <p className="mt-3">The cut hour is the earliest local hour when a running ingestion may create that day’s Brief. It does not schedule another run or guarantee delivery at that time.</p>
-              <p className="mt-3">These values are read-only. Today’s and earlier Briefs stay as they are.</p>
-            </details>
-          </section>
-          <section aria-labelledby="account-heading" className="mt-register border-t border-rule pt-7">
-            <h2 id="account-heading" className="font-display text-body font-semibold">Account</h2>
+        <main className="mx-auto max-w-[58rem] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+          <header className="mb-10">
+            <h1 className="font-display text-title font-semibold tracking-[-0.025em] lg:text-title-lg">{t('Settings', '设置')}</h1>
+            <p className="mt-3 text-meta text-ink-dim">{t('Make room for the way you read.', '按你的习惯，安静地阅读。')}</p>
+          </header>
+          <SettingsPreferences initialAppearance={appearance} initialReading={reading} initialInterface={locale.interfaceLanguage} initialContent={locale.contentLanguage} />
+          <section aria-labelledby="account-heading" className="settings-section">
+            <h2 id="account-heading" className="settings-heading">{t('Account security', '账户安全')}</h2>
             <AccountControls />
           </section>
+          <footer className="mt-8 border-t border-rule pt-6 text-meta text-ink-dim">
+            <p>
+              {t('Your daily Brief is scheduled to start at', '每日简报计划于')}
+              {' '}
+              {generationTime()}
+              {' '}
+              (Asia/Shanghai)
+              {t('. It may start or finish later.', ' 开始生成，实际开始或完成时间可能延后。')}
+            </p>
+            <details className="mt-3">
+              <summary className="w-fit cursor-pointer underline underline-offset-4">{t('How timing works', '了解生成时间')}</summary>
+              <p className="mt-3">
+                {t('Stored timezone', '当前时区')}
+                :
+                {' '}
+                {reader.timezone}
+                .
+                {' '}
+                {t('Cut hour', '生成起始小时')}
+                :
+                {' '}
+                {String(reader.cutHour).padStart(2, '0')}
+                :00.
+              </p>
+              <p className="mt-3">{t('The cut hour is the earliest local hour when a running ingestion may create that day’s Brief. It does not schedule another run or guarantee delivery at that time.', '生成起始小时表示采集任务最早可在当地几点生成当日简报。它不会额外安排任务，也不保证届时完成。')}</p>
+            </details>
+          </footer>
         </main>
         <MobileDestinationFooter current="/settings" />
       </div>

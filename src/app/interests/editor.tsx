@@ -1,7 +1,9 @@
 'use client'
 
 import type { InterestStatement } from '@/lib/interests/validation'
+
 import { useActionState, useState } from 'react'
+import { Text, useLocale } from '@/lib/i18n/context'
 import { MAX_CHARACTERS, MAX_INTERESTS, mayNotMatch } from '@/lib/interests/validation'
 import { saveInterestProfile } from './actions'
 
@@ -10,6 +12,7 @@ function editableRows(profile: InterestStatement[]) {
 }
 
 export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
+  const { t } = useLocale()
   const [rows, setRows] = useState(() => editableRows(profile))
   const [dirty, setDirty] = useState(false)
   const [feedback, action, pending] = useActionState<{ error?: string, saved?: boolean }, FormData>(async (_previous: { error?: string, saved?: boolean }, formData: FormData) => {
@@ -27,7 +30,7 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
     <form action={action} className="mt-register">
       <input type="hidden" name="profile" value={JSON.stringify(rows.map(({ id, statement }) => ({ id, statement })))} />
       <fieldset disabled={pending}>
-        <legend className="sr-only">Your Interest statements</legend>
+        <legend className="sr-only"><Text en="Your Interest statements" zh="你的关注兴趣" /></legend>
         <ol className="space-y-7">
           {rows.map((row, index) => {
             const count = Array.from(row.statement).length
@@ -36,7 +39,7 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
               <li key={row.key}>
                 <div className="mb-2 flex items-center justify-between gap-4">
                   <label htmlFor={`interest-${row.key}`} className="font-mono text-date tabular-nums">
-                    Interest
+                    {t('Interest', '关注兴趣')}
                     {' '}
                     {String(index + 1).padStart(2, '0')}
                   </label>
@@ -49,7 +52,7 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
                       setDirty(true)
                     }}
                   >
-                    Remove
+                    <Text en="Remove" zh="移除" />
                   </button>
                 </div>
                 <textarea
@@ -73,15 +76,15 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
                     {' '}
                     {MAX_CHARACTERS}
                     {' '}
-                    characters
+                    {t('characters', '字符')}
                   </span>
-                  {mayNotMatch(row.statement) && <span>This Interest may not match. English statements work best.</span>}
+                  {mayNotMatch(row.statement) && <span><Text en="This Interest may not match. English statements work best." zh="这条兴趣可能无法匹配，目前英文描述的匹配效果更好。" /></span>}
                 </div>
               </li>
             )
           })}
         </ol>
-        <p className="mt-5 text-meta text-ink-faint">Keep 1–20 Interests. Add a replacement before removing your last Interest.</p>
+        <p className="mt-5 text-meta text-ink-faint"><Text en="Keep 1–20 Interests. Add a replacement before removing your last Interest." zh="保留 1–20 条关注兴趣。删除最后一条之前，请先添加替代内容。" /></p>
         <div className="mt-5 flex flex-wrap items-center gap-5">
           <button
             type="button"
@@ -92,13 +95,13 @@ export function InterestEditor({ profile }: { profile: InterestStatement[] }) {
               setDirty(true)
             }}
           >
-            Add Interest
+            <Text en="Add Interest" zh="添加关注兴趣" />
           </button>
-          <button type="submit" disabled={invalid || !dirty} className="rounded-sm border border-ink bg-paper px-4 py-2 text-meta text-ink disabled:opacity-40">{pending ? 'Saving…' : 'Save changes'}</button>
+          <button type="submit" disabled={invalid || !dirty} className="rounded-sm border border-ink bg-paper px-4 py-2 text-meta text-ink disabled:opacity-40">{pending ? t('Saving…', '正在保存…') : t('Save changes', '保存修改')}</button>
         </div>
       </fieldset>
       <p role="status" className="mt-4 text-meta text-ink-dim">
-        {feedback.error ?? (dirty ? 'Unsaved changes.' : feedback.saved ? 'Saved. Your changes apply to future Briefs.' : '')}
+        {feedback.error ?? (dirty ? t('Unsaved changes.', '修改尚未保存。') : feedback.saved ? t('Saved. Your changes apply to future Briefs.', '已保存，将应用于后续简报。') : '')}
       </p>
     </form>
   )

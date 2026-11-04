@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { requestTranslation } from '@/app/translation-actions'
 import { verifySession } from '@/lib/auth/dal'
 import { readTodayBrief } from '@/lib/briefs/today'
 import { markSignalRead, saveSignal } from './actions'
@@ -14,6 +15,7 @@ export default async function Home() {
 
   return (
     <TodayBriefView
+      translationAction={requestTranslation}
       actionTargets={{ markRead: markSignalRead, save: saveSignal }}
       brief={brief}
     />

@@ -3,9 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { verifySession } from '@/lib/auth/dal'
 import { savedBookmarks } from '@/lib/bookmarks/server'
+import { readLocale } from '@/lib/i18n/server'
 
 export async function changeBookmark(formData: FormData): Promise<{ receipt?: string | null, error?: string }> {
   await verifySession()
+  const { t } = await readLocale()
   let receipt: string | null = null
   try {
     const operation = formData.get('operation')
@@ -26,7 +28,7 @@ export async function changeBookmark(formData: FormData): Promise<{ receipt?: st
     }
   }
   catch {
-    return { error: 'Your change could not be saved. Please try again.' }
+    return { error: t('Your change could not be saved. Please try again.', '修改保存失败，请重试。') }
   }
   revalidatePath('/saved')
   revalidatePath('/')

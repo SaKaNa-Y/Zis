@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { requestTranslation } from '@/app/translation-actions'
 import { verifySession } from '@/lib/auth/dal'
 import { readSignalProvenance } from '@/lib/signals/provenance'
 import { SignalProvenanceView } from './provenance'
@@ -21,5 +22,5 @@ export default async function SignalProvenancePage({
   if (provenance === null)
     notFound()
 
-  return <SignalProvenanceView provenance={provenance} />
+  return <SignalProvenanceView translationAction={requestTranslation} provenance={provenance} />
 }

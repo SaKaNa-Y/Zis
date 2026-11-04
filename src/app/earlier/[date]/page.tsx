@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { requestTranslation } from '@/app/translation-actions'
 import { verifySession } from '@/lib/auth/dal'
 import { isBriefDate, readDatedBrief } from '@/lib/briefs/today'
 import { markSignalRead, saveSignal } from '../../actions'
@@ -20,6 +21,7 @@ export default async function DatedBriefPage({ params }: { params: Promise<{ dat
 
   return (
     <TodayBriefView
+      translationAction={requestTranslation}
       actionTargets={{ markRead: markSignalRead, save: saveSignal }}
       brief={brief}
       period="earlier"

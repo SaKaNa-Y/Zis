@@ -61,3 +61,5 @@ describe('earlier routes', () => {
     expect(html).not.toContain(' entries')
   })
 })
+
+vi.mock('@/lib/i18n/server', () => ({ readLocale: async () => ({ language: 'en', t: (en: string) => en }) }))
