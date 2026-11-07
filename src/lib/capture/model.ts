@@ -6,6 +6,7 @@ export interface CaptureCard { id: string, sourceId: string, sourceName: string,
 export interface CaptureRun { id: string, sourceId: string, startedAt: string, finishedAt: string | null, status: 'running' | 'success' | 'partial' | 'failed', addedCount: number, message: string | null }
 export interface CaptureStore {
   listSources: () => Promise<CaptureSource[]>
+  allowBackfill: (since: string) => Promise<number>
   saveSource: (input: { id?: string, name: string, url: string, kind: 'x' | 'blog', enabled: boolean }) => Promise<CaptureSource>
   getCard: (id: string) => Promise<CaptureCard | null>
   listCards: (limit?: number, before?: string) => Promise<CaptureCard[]>

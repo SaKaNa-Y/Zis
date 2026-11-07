@@ -89,6 +89,38 @@ describe('original capture lifecycle in PostgreSQL', () => {
     const renamed = await store.saveSource({ ...resumed, name: 'Renamed', enabled: true })
     expect(renamed.trackingSince).toBe(resumed.trackingSince)
   })
+  it('explicitly backfills enabled sources without changing deduplication or retention', async () => {
+    const since = '2026-01-02T00:00:00+08:00'
+    const boundary = '2026-01-01T16:00:00.000Z'
+    const paused = await store.saveSource({ name: 'Paused', url: 'https://x.com/paused', kind: 'x', enabled: false })
+    const earlier = await store.saveSource({ name: 'Earlier', url: 'https://example.com/', kind: 'blog', enabled: true })
+    await pg.query('UPDATE capture_source SET tracking_since=\'2025-01-01T00:00:00Z\' WHERE id=$1', [earlier.id])
+    const old = input('700', { posts: [{ ...input('700').posts[0]!, publishedAt: boundary }] })
+    await expect(store.saveCapture(old)).rejects.toThrow('predates source tracking')
+    expect(await store.allowBackfill(since)).toBe(8)
+    expect(await store.allowBackfill(since)).toBe(0)
+    expect(await store.allowBackfill('2026-01-03T00:00:00+08:00')).toBe(0)
+    const sources = await store.listSources()
+    expect(sources.find(s => s.id === source.id)!.trackingSince).toBe(boundary)
+    expect(sources.find(s => s.id === paused.id)!.trackingSince).toBe(paused.trackingSince)
+    expect(sources.find(s => s.id === earlier.id)!.trackingSince).toBe('2025-01-01T00:00:00.000Z')
+    await expect(store.saveCapture(input('701', { posts: [{ ...input('701').posts[0]!, publishedAt: '2026-01-01T15:59:59Z' }] }))).rejects.toThrow('predates source tracking')
+    const saved = await store.saveCapture(old)
+    const card = (await store.getCard(saved.id))!
+    expect(Date.parse(card.expiresAt) - Date.parse(card.capturedAt)).toBe(7 * 24 * 60 * 60 * 1000)
+    expect(await store.saveCapture(old)).toEqual({ id: saved.id, created: false })
+    expect((await store.getCard(saved.id))!.expiresAt).toBe(card.expiresAt)
+    const blog = sources.find(s => s.url === 'https://openai.com/news/')!
+    await store.saveCapture({ sourceId: blog.id, title: 'Blog', author: 'OpenAI', posts: [{ url: 'https://openai.com/news/backfill-test', body: 'Full original', publishedAt: boundary }] })
+    await pg.query('UPDATE capture_card SET expires_at=now()-interval \'1 second\' WHERE id=$1', [saved.id])
+    await expect(store.saveCapture(old)).rejects.toThrow('expired')
+  })
+  it('rejects invalid or future backfill dates without changing sources', async () => {
+    const before = await store.listSources()
+    for (const since of ['', 'invalid', '2026-02-30T00:00:00+08:00', '2099-01-01T00:00:00+08:00', '2026-01-01T00:00:00Z'])
+      await expect(store.allowBackfill(since)).rejects.toBeInstanceOf(CaptureValidationError)
+    expect(await store.listSources()).toEqual(before)
+  })
   it('deduplicates across source records and rejects overlapping unrelated threads atomically', async () => {
     const one = await store.saveCapture(input())
     const second = await store.saveSource({ name: 'OpenAI articles', url: 'https://x.com/', kind: 'blog', enabled: true })

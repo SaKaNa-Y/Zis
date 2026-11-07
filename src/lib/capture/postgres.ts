@@ -42,6 +42,17 @@ export function createCaptureStore(db: CaptureDatabase, options: Options = {}): 
     async listSources() {
       return (await db.query(`SELECT ${sourceSelect} FROM capture_source ORDER BY tracking_since,name`)).rows.map(r => dates<CaptureSource>(r))
     },
+    async allowBackfill(since) {
+      if (typeof since !== 'string' || !/^\d{4}-\d{2}-\d{2}T00:00:00\+08:00$/.test(since))
+        throw new CaptureValidationError('Choose a valid start date in Beijing time.')
+      const timestamp = Date.parse(since)
+      if (!Number.isFinite(timestamp) || timestamp > Date.now() || new Date(timestamp + 8 * 60 * 60 * 1000).toISOString().slice(0, 10) !== since.slice(0, 10))
+        throw new CaptureValidationError('Choose a valid start date no later than today in Beijing time.')
+      return write(async (q) => {
+        const result = await q('UPDATE capture_source SET tracking_since=$1::timestamptz WHERE enabled=true AND tracking_since>$1::timestamptz RETURNING id', [since])
+        return result.rows.length
+      })
+    },
     async saveSource(input) {
       if (!input || typeof input.name !== 'string' || typeof input.url !== 'string' || !input.name.trim() || input.name.length > 200 || !['x', 'blog'].includes(input.kind) || typeof input.enabled !== 'boolean')
         throw new CaptureValidationError('Invalid source')
