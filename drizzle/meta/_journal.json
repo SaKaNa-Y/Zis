@@ -92,6 +92,13 @@
       "when": 1791448858080,
       "tag": "0012_reader_preferences_and_translations",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794036395330,
+      "tag": "0013_information_capture",
+      "breakpoints": true
     }
   ]
 }

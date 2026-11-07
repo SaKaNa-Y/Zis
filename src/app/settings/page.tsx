@@ -1,13 +1,9 @@
 import type { Metadata } from 'next'
-import { eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { verifySession } from '@/lib/auth/dal'
-import { db } from '@/lib/db'
-import { users } from '@/lib/db/schema'
 import { readLocale } from '@/lib/i18n/server'
 import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
-import { generationTime } from '@/lib/settings/timing'
 import { DestinationNavigation, MobileDestinationFooter } from '../destinations'
 import { AccountControls } from './controls'
 import { SettingsPreferences } from './preferences'
@@ -15,10 +11,7 @@ import { SettingsPreferences } from './preferences'
 export const metadata: Metadata = { title: 'Settings — Zis' }
 
 export default async function SettingsPage() {
-  const { userId } = await verifySession()
-  const [reader] = await db().select({ timezone: users.timezone, cutHour: users.cutHour }).from(users).where(eq(users.id, userId))
-  if (!reader)
-    throw new Error('Reader settings are unavailable')
+  await verifySession()
   const appearance = await appearanceSettings.read()
   const locale = await readLocale()
   const reading = parseReadingStyle((await cookies()).get(READING_COOKIE)?.value)
@@ -39,31 +32,8 @@ export default async function SettingsPage() {
             <AccountControls />
           </section>
           <footer className="mt-8 border-t border-rule pt-6 text-meta text-ink-dim">
-            <p>
-              {t('Your daily Brief is scheduled to start at', '每日简报计划于')}
-              {' '}
-              {generationTime()}
-              {' '}
-              (Asia/Shanghai)
-              {t('. It may start or finish later.', ' 开始生成，实际开始或完成时间可能延后。')}
-            </p>
-            <details className="mt-3">
-              <summary className="w-fit cursor-pointer underline underline-offset-4">{t('How timing works', '了解生成时间')}</summary>
-              <p className="mt-3">
-                {t('Stored timezone', '当前时区')}
-                :
-                {' '}
-                {reader.timezone}
-                .
-                {' '}
-                {t('Cut hour', '生成起始小时')}
-                :
-                {' '}
-                {String(reader.cutHour).padStart(2, '0')}
-                :00.
-              </p>
-              <p className="mt-3">{t('The cut hour is the earliest local hour when a running ingestion may create that day’s Brief. It does not schedule another run or guarantee delivery at that time.', '生成起始小时表示采集任务最早可在当地几点生成当日简报。它不会额外安排任务，也不保证届时完成。')}</p>
-            </details>
+            <p>{t('Legacy Brief generation and Interest filtering are retired. Earlier Briefs and Saved items remain in the archive.', '旧简报生成与兴趣筛选已停用。以往简报和收藏仍保留在归档中。')}</p>
+            <p className="mt-3">{t('Planned collection starts: 08:00 and 20:00 Asia/Shanghai. An external collector must be configured separately; these are start times, not completion guarantees.', '计划采集开始时间：北京时间 08:00、20:00。需要另行配置外部采集任务；这是开始时间，不保证届时完成。')}</p>
           </footer>
         </main>
         <MobileDestinationFooter current="/settings" />

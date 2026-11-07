@@ -381,7 +381,7 @@ describe('the ingestion schema', () => {
     expect(retentionTieringSql).not.toContain('sealed')
     expect(retentionTieringSql).not.toContain('INSERT INTO "interest"')
     const sourceRegister = JSON.parse(
-      readFileSync(join(root, 'docs', 'source-register.json'), 'utf8'),
+      readFileSync(join(root, 'tests', 'fixtures', 'legacy-source-register-2026-09-30.json'), 'utf8'),
     ) as {
       publishers: Array<{
         id: string
@@ -454,6 +454,7 @@ describe('the ingestion schema', () => {
       '0010_incremental_graph_reads',
       '0011_api_sources',
       '0012_reader_preferences_and_translations',
+      '0013_information_capture',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

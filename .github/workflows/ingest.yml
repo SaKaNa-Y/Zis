@@ -1,37 +1,11 @@
-name: Ingest
-
-# Temporary daily cadence: 06:17 Asia/Shanghai (22:17 UTC on the prior day).
-# Hourly ingestion awaits the network-transfer work in #92.
+name: Legacy ingestion (retired)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 22 * * *'
-
-concurrency:
-  group: ingest-production
-  cancel-in-progress: false
-
 permissions:
   contents: read
-
 jobs:
-  ingest:
+  retired:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
-        with:
-          node-version: '22'
-          cache: pnpm
-      - name: Restore the pinned embedding model
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
-        with:
-          path: .cache/transformers
-          key: transformers-${{ runner.os }}-bge-small-en-v1.5-ea104dacec62c0de699686887e3f920caeb4f3e3-fp32-v3.8.1
-      - run: pnpm install --frozen-lockfile
-      - name: Ingest due Sources into Neon
-        run: pnpm exec tsx scripts/pipeline/run.ts
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          GITHUB_PAT: ${{ secrets.GH_PUBLIC_PAT }}
+      - name: Explain retirement
+        run: echo '::notice::Legacy ingestion is retired. No Sources are polled, Briefs generated, or paid model APIs called. Use the capture flow.'

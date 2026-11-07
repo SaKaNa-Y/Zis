@@ -1,3 +1,5 @@
+> **Historical research, archived 2026-11-07.** All legacy Source configuration has been removed from `source-register.json`; it now contains zero Sources. The lists and measurements below describe prior research, not a disabled roster or current configuration. Historical database rows and test fixtures remain intact. New capture Sources are managed separately.
+
 # The Zis v1 source register
 
 Resolves [Curate the initial source list](https://github.com/SaKaNa-Y/Zis/issues/11).

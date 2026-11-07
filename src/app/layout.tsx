@@ -6,6 +6,7 @@ import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
 import './globals.css'
 import './product.css'
+import './capture.css'
 
 export const metadata: Metadata = {
   title: 'Zis',

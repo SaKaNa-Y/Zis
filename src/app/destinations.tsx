@@ -4,14 +4,13 @@ import Link from 'next/link'
 import { Text, useLocale } from '@/lib/i18n/context'
 
 const DESTINATIONS = [
-  { href: '/', label: 'Today', zh: '今天', path: 'M4 5h16v15H4z M8 3v4 M16 3v4 M4 10h16 M8 14h3' },
-  { href: '/earlier', label: 'Earlier', zh: '往期', path: 'M4 5h16v4H4z M6 9v11h12V9 M9 13h6' },
-  { href: '/saved', label: 'Saved', zh: '收藏', path: 'M6 4h12v17l-6-4-6 4z' },
-  { href: '/interests', label: 'Interests', zh: '关注兴趣', path: 'M4 7h16 M4 17h16 M8 4v6 M16 14v6' },
+  { href: '/', label: 'Information', zh: '信息流', path: 'M4 5h16v15H4z M8 9h8 M8 13h8 M8 17h5' },
+  { href: '/capture', label: 'Add information', zh: '添加信息', path: 'M12 4v16 M4 12h16' },
+  { href: '/sources', label: 'Sources', zh: '来源管理', path: 'M4 7h16 M4 17h16 M8 4v6 M16 14v6' },
   { href: '/settings', label: 'Settings', zh: '设置', path: 'M12 3v3 M12 18v3 M3 12h3 M18 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1 M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0' },
 ] as const
 
-type DestinationHref = typeof DESTINATIONS[number]['href']
+type DestinationHref = typeof DESTINATIONS[number]['href'] | '/earlier' | '/saved' | '/interests'
 
 function DestinationIcon({ path }: { path: string }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={path} /></svg>
@@ -33,7 +32,7 @@ export function DestinationNavigation({ current }: { current?: DestinationHref }
 export function ZisBrand() {
   const { t } = useLocale()
   return (
-    <Link className="brief-brand" href="/" aria-label={t('Zis — Today', 'Zis — 今天')}>
+    <Link className="brief-brand" href="/" aria-label={t('Zis — Information', 'Zis — 信息流')}>
       <svg aria-hidden="true" viewBox="0 0 32 32" fill="none">
         <path d="M6 7h20L9 25h17" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" />
         <path d="M5 25 25 7" stroke="url(#zis-violet)" strokeWidth="5" />

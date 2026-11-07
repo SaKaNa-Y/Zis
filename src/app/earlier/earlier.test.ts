@@ -40,14 +40,15 @@ describe('earlier routes', () => {
     expect(readDatedBrief).toHaveBeenCalledWith('reader-from-session', '2026-09-05')
   })
 
-  it('renders a cut empty historic Brief with its own date and Earlier navigation', async () => {
+  it('renders a historic Brief with its own date and the new information navigation', async () => {
     readDatedBrief.mockResolvedValue({ entries: [], hasBrief: true, localDate: '2026-09-05', previousBriefDate: '2026-09-03' })
     const html = renderToStaticMarkup(await DatedBriefPage({ params: Promise.resolve({ date: '2026-09-05' }) }))
     expect(html).toContain('Saturday, 5 September 2026')
     expect(html).toContain('Nothing cleared the bar on this day.')
     expect(html).toContain('href="/earlier/2026-09-03"')
     expect(html).toContain('Previous Brief')
-    expect(html).toMatch(/<a aria-current="page"[^>]*href="\/earlier"/)
+    expect(html).toContain('href="/capture"')
+    expect(html).toContain('href="/sources"')
   })
 
   it('lists stored Brief dates including empty Briefs with working date destinations', async () => {

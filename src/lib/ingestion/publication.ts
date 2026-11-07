@@ -1,5 +1,8 @@
-import register from '../../../docs/source-register.json'
+import registerData from '../../../docs/source-register.json'
 import { canonicalizeLink, publisherHostKey } from './canonicalize'
+
+// The current register may be empty after legacy ingestion retirement.
+const register: { publishers: { hosts: string[], publications?: string[], sources: { url?: string, itemLinkRole?: string }[] }[] } = registerData
 
 interface HostOwner { host: string, publisherId: string }
 
