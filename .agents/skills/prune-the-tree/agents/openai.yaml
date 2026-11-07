@@ -1,0 +1,6 @@
+interface:
+  display_name: "Prune the Tree"
+  short_description: "Prune low-value questions while preserving user decisions"
+  default_prompt: "Use $prune-the-tree to reduce decision load while keeping important choices with me."
+policy:
+  allow_implicit_invocation: false

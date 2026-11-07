@@ -1,0 +1,6 @@
+interface:
+  display_name: "Explore New Capabilities"
+  short_description: "Discover and discuss one new capability at a time"
+  default_prompt: "Use $explore-new-capabilities to find and discuss one new capability for this project, using shared assessment and my configured records to preserve evidence, decisions and related PR coverage."
+policy:
+  allow_implicit_invocation: false

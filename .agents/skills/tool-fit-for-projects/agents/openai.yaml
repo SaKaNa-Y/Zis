@@ -1,0 +1,6 @@
+interface:
+  display_name: "Tool Fit for Projects"
+  short_description: "Evaluate tool fit against repository evidence"
+  default_prompt: "Use $tool-fit-for-projects to evaluate which tools fit this repository need without implementing a change."
+policy:
+  allow_implicit_invocation: false

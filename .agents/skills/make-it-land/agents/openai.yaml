@@ -1,0 +1,6 @@
+interface:
+  display_name: "Make It Land"
+  short_description: "Give questions and answers enough relevant context"
+  default_prompt: "Use $make-it-land to make every substantive question and answer clear enough for me to understand, judge, or act."
+policy:
+  allow_implicit_invocation: false
