@@ -115,7 +115,7 @@ export function SignalProvenanceView({ provenance: original, translationAction }
         <main className="page-content provenance-content" id="signal-provenance">
           <nav aria-label={t('Breadcrumb', '页面路径')} className="text-meta text-ink-faint">
             <Link className="underline decoration-rule underline-offset-4 hover:text-ink" href="/">
-              <Text en="← Today" zh="← 今天" />
+              <Text en="← Information" zh="← 信息流" />
             </Link>
           </nav>
 

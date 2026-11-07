@@ -1,11 +1,10 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
-import { DAILY_INGESTION_CRON, generationTime } from '../src/lib/settings/timing'
 
 /**
  * The repository-shaped decisions from `docs/repo-and-ci.md`, asserted rather
@@ -62,26 +61,26 @@ describe('the runtime is pinned in three places', () => {
   })
 })
 
-describe('one production wake serves ingestion and the daily Brief', () => {
-  it('schedules only Ingest at 06:17 Asia/Shanghai while the full graph is read', () => {
-    const scheduled = readWorkflows().filter(({ workflow }) => workflow.on?.schedule !== undefined)
-    expect(scheduled.map(({ file }) => file)).toEqual(['ingest.yml'])
-    expect(scheduled[0]?.workflow.on?.schedule).toEqual([{ cron: '17 22 * * *' }])
-    expect(scheduled[0]?.workflow.on?.schedule).toEqual([{ cron: DAILY_INGESTION_CRON }])
-    expect(generationTime()).toBe('06:17')
+describe('legacy automated execution is retired', () => {
+  it('has no automatic ingestion or translation triggers and no executable worker steps', () => {
+    for (const file of ['ingest.yml', 'translate.yml']) {
+      const source = readFileSync(join(workflowsDirectory, file), 'utf8')
+      const workflow = parse(source) as Workflow
+      expect(Object.keys(workflow.on ?? {})).toEqual(['workflow_dispatch'])
+      expect(Object.keys(workflow.jobs ?? {})).toEqual(['retired'])
+      const steps = Object.values(workflow.jobs ?? {}).flatMap(job => job.steps ?? [])
+      expect(steps).toHaveLength(1)
+      expect(steps[0]?.run).toMatch(/^echo '::notice::.* is retired/)
+      expect(steps[0]?.uses).toBeUndefined()
+      expect(steps[0]?.env).toBeUndefined()
+      expect(source).not.toContain('secrets.')
+    }
   })
 
-  it('preserves manual retries, one sequential job, and non-cancelling concurrency without migrations', () => {
-    const ingest = parse(readFileSync(join(workflowsDirectory, 'ingest.yml'), 'utf8')) as Workflow
-    expect(Object.keys(ingest.on ?? {}).sort()).toEqual(['schedule', 'workflow_dispatch'])
-    expect(Object.keys(ingest.jobs ?? {})).toEqual(['ingest'])
-    expect(ingest.concurrency).toEqual({ 'group': 'ingest-production', 'cancel-in-progress': false })
-
-    const steps = Object.values(ingest.jobs ?? {}).flatMap(job => job.steps ?? [])
-    expect(steps.map(step => step.run)).toContain('pnpm exec tsx scripts/pipeline/run.ts')
-    expect(steps.some(step => /db:migrate|drizzle-kit\s+migrate/.test(step.run ?? ''))).toBe(false)
-    expect(steps.find(step => step.run === 'pnpm exec tsx scripts/pipeline/run.ts')?.env)
-      .toHaveProperty('DATABASE_URL')
+  it('contains no current legacy Source configuration, including disabled RSS entries', () => {
+    const register = JSON.parse(readFileSync(join(root, 'docs/source-register.json'), 'utf8'))
+    expect(register.publishers).toEqual([])
+    expect(register.totals).toEqual({ publishers: 0, sources: 0 })
   })
 
   it('never gives the Vercel-only session secret to GitHub Actions', () => {
@@ -132,78 +131,25 @@ describe('ci is one sequential job, cheapest first', () => {
   })
 })
 
-describe('the pipeline imports the shared modules rather than copying them', () => {
-  it('resolves src/lib under tsx with the app\'s own tsconfig', () => {
-    const output = execFileSync(
-      process.execPath,
-      [join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'), join(root, 'scripts', 'pipeline', 'run.ts'), '--dry-run'],
-      { cwd: root, encoding: 'utf8' },
-    )
-    expect(output).toContain('shared modules resolve')
+describe('retired CLI entrypoints fail closed', () => {
+  it.each(['run', 'translate'])('%s permits only a side-effect-free dry-run', (name) => {
+    const script = join(root, 'scripts', 'pipeline', `${name}.ts`)
+    const output = execFileSync(process.execPath, [join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'), script, '--dry-run'], { cwd: root, encoding: 'utf8' })
+    expect(output).toContain('retired; dry-run only; no work performed')
+    // No database, model, cache, network or worker module can initialize at import time.
+    const source = readFileSync(script, 'utf8')
+    expect(source.match(/^import .*$/gm)).toEqual(['import process from \'node:process\''])
   })
 
-  it('surfaces dormant Sources for manual review in the Actions log', () => {
-    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
-    expect(runner).toContain('graph.dormantSourceIds')
-    expect(runner).toContain('::warning title=Dormant Source::')
-  })
-
-  it('warms the local model cache before the first Neon query', () => {
-    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
-    const cacheWarm = runner.indexOf('await prepareTransformersModelCache(safeFetch)')
-    const neonWake = runner.indexOf('await runNeonIngestion(')
-
-    expect(cacheWarm).toBeGreaterThan(-1)
-    expect(neonWake).toBeGreaterThan(-1)
-    expect(cacheWarm).toBeLessThan(neonWake)
-  })
-
-  it('reports the complete stage order and the timed Neon wake through prune', () => {
-    const runner = readFileSync(join(root, 'scripts', 'pipeline', 'run.ts'), 'utf8')
-    const expectedStages = [
-      'stage 0 assertion',
-      'select due',
-      'fetch',
-      'normalize',
-      'hydrate',
-      'canonicalize',
-      'citation-worthiness',
-      'alias merge',
-      'strength',
-      'embed',
-      'match',
-      'admission',
-      'cut',
-      'order',
-      'prune',
-    ]
-
-    let previousStage = -1
-    for (const stage of expectedStages) {
-      const stageIndex = runner.indexOf(`'${stage}'`)
-      expect(stageIndex).toBeGreaterThan(previousStage)
-      previousStage = stageIndex
-    }
-
-    expect(runner).toMatch(/PIPELINE_STAGE_ORDER\.join\(' -> '\)/)
-    expect(runner).toMatch(/zis pipeline stage order: \$\{PIPELINE_STAGE_ORDER\.join\(' -> '\)\}/)
-    expect(runner).toContain('const NEON_WAKE_BUDGET_MS = 120_000')
-    expect(runner).toContain('neonWakeStartedAt = Date.now()')
-    expect(runner).toContain('const neonWakeElapsedMs = Date.now() - neonWakeStartedAt')
-    expect(runner).toMatch(/zis pipeline Neon wake through prune: \$\{neonWakeElapsedMs\} ms/)
-    expect(runner).toMatch(/budget \$\{NEON_WAKE_BUDGET_MS\} ms/)
-    const healthReport = readFileSync(join(root, 'src/lib/ingestion/health-report.ts'), 'utf8')
-    expect(healthReport).toContain('Neon wake budget exceeded')
-    expect(runner).toContain('budgetMs: NEON_WAKE_BUDGET_MS')
-
-    const cacheWarm = runner.indexOf('await prepareTransformersModelCache(safeFetch)')
-    const timerStart = runner.indexOf('neonWakeStartedAt = Date.now()')
-    const neonWake = runner.indexOf('await runNeonIngestion(')
-    const timerStop = runner.indexOf('const neonWakeElapsedMs = Date.now() - neonWakeStartedAt')
-
-    expect(cacheWarm).toBeLessThan(timerStart)
-    expect(timerStart).toBeLessThan(neonWake)
-    expect(neonWake).toBeLessThan(timerStop)
+  it.each(['run', 'translate'])('%s refuses real execution even with credentials supplied', (name) => {
+    const result = spawnSync(process.execPath, [join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'), join(root, 'scripts', 'pipeline', `${name}.ts`)], {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, DATABASE_URL: 'postgresql://retired:retired@127.0.0.1:1/retired', DEEPSEEK_API_KEY: 'test-retired-key', GITHUB_PAT: 'test-retired-token' },
+    })
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain('is retired. Use the capture flow; historical data is retained.')
+    expect(result.stdout).toBe('')
   })
 })
 

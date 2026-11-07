@@ -1,9 +1,12 @@
 # Zis
 
-A personal, single-user, bounded daily brief of what actually mattered in tech.
-Sources are polled on a fixed schedule into a global corpus; URL co-citation
-detects which stories many independent voices converged on; an explicit interest
-model decides which of those reach the reader. Not an RSS reader. Not an inbox.
+A personal, single-user collection of original posts, author threads, and blog
+items. Information Cards appear in publication order and retain content for seven
+days after capture. The former ranked daily Brief is now an archive.
+
+The vocabulary through “Terms this project does not use” describes that legacy
+archive and its retained code. The information capture vocabulary below defines
+the new reading and collection flow.
 
 ## Language
 
@@ -173,3 +176,24 @@ _Avoid_: Seen, Unread, Status
 - **Score** — no single number ranks a Signal; admission is a conjunction of
   absolute tests. Use **Strength** for convergence and **Admission** for why
   something surfaced.
+
+## Information capture
+
+The following terms describe the current collection and reading flow. Legacy
+Brief Entry restrictions do not apply to Information Cards.
+
+**Information Card**:
+One readable collection of original source content and its images, attributed to
+its author and publication time. It can represent a single post, an author's
+ordered post thread, or a blog item; it is not a ranked Brief Entry.
+_Avoid_: Brief Entry, Signal
+
+**Post Thread**:
+A sequence of an author's original post and their continuation replies, read in
+publication order as one Information Card.
+_Avoid_: Signal, Story cluster
+
+**Incomplete Capture**:
+Collected source content with known missing parts, such as an inaccessible
+continuation or quoted post. It does not mean the source published nothing.
+_Avoid_: Empty source, No new content

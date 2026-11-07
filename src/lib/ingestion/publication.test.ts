@@ -1,5 +1,10 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { runIngestion } from './pipeline'
+
+// Preserve tests of historical provenance rules without configuring live Sources.
+vi.mock('../../../docs/source-register.json', async () => ({
+  default: (await import('../../../tests/fixtures/legacy-source-register-2026-09-30.json')).default,
+}))
 
 const at = new Date('2026-09-05T14:00:00Z')
 

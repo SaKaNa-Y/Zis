@@ -69,7 +69,7 @@ describe('signal provenance', () => {
     expect(html).not.toMatch(/class="[^"]*card/i)
     expect(html).toContain('aria-label="Primary navigation"')
     expect(html).toContain('aria-label="Footer navigation"')
-    for (const href of ['/', '/earlier', '/saved', '/interests', '/settings'])
+    for (const href of ['/', '/capture', '/sources', '/settings'])
       expect(html).toContain(`href="${href}"`)
   })
 

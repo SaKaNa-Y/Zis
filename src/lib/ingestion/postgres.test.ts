@@ -3,7 +3,7 @@ import type { EmbeddingProvider } from '@/lib/embeddings/provider'
 import type { SafeFetch } from '@/lib/safe-fetch'
 import { setImmediate } from 'node:timers/promises'
 import { and, eq, isNotNull, lt, lte } from 'drizzle-orm'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   briefEntries,
   briefs,
@@ -21,6 +21,11 @@ import {
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, EMBEDDING_VERSION } from '@/lib/embeddings/provider'
 import { ROBOTS_AUTO_DISABLED_REASON } from './pipeline'
 import { runNeonIngestion } from './postgres'
+
+// Historical provenance tests use the old roster only inside this test module.
+vi.mock('../../../docs/source-register.json', async () => ({
+  default: (await import('../../../tests/fixtures/legacy-source-register-2026-09-30.json')).default,
+}))
 
 function databaseReturning(...results: unknown[][]): Database {
   const queued = [...results]

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite-pgvector'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import register from '../../../docs/source-register.json'
+import register from '../../../tests/fixtures/legacy-source-register-2026-09-30.json'
 
 const recovery = readFileSync(new URL('../../../scripts/operations/2026-09-30-recover-reviewed-sources.sql', import.meta.url), 'utf8')
 const githubUrls = ['https://github.blog/feed/', 'https://github.blog/changelog/feed/']
@@ -93,12 +93,12 @@ describe('reviewed Source recovery maintenance', () => {
     expect(await state(pg)).toEqual(after)
   })
 
-  it('brings a fresh immutable seed into agreement with the current RSS register without replacing rows', async () => {
+  it('brings a fresh immutable seed into agreement with the historical September RSS register without replacing rows', async () => {
     const before = await state(pg)
     await pg.exec(recovery)
     const after = await state(pg)
     // Each maintenance step has its own identity-preservation test. A fresh
-    // seed reaches the current register only after applying both reviewed moves.
+    // seed reaches the historical register only after applying both reviewed moves.
     await pg.exec(readFileSync(new URL('../../../scripts/operations/2026-09-30-recover-remaining-sources.sql', import.meta.url), 'utf8'))
     const current = await state(pg)
     const expectedUrls = register.publishers.flatMap(publisher =>

@@ -8,12 +8,14 @@ vi.mock('./actions', () => ({ changeBookmark: async () => ({ error: 'Not used in
 vi.mock('server-only', () => ({}))
 beforeEach(() => vi.resetAllMocks())
 
-it('renders the empty state with both navigation layouts and a path back to Today', async () => {
+it('renders the archived saved state with both information navigation layouts', async () => {
   read.mockResolvedValue({ entries: [], page: 1, hasNext: false })
   const html = renderToStaticMarkup(await SavedPage({ searchParams: Promise.resolve({}) }))
   expect(html).toContain('No saved Signals yet.')
   expect(html).toContain('href="/"')
-  expect(html.match(/aria-current="page"[^>]*href="\/saved"/g)).toHaveLength(2)
+  expect(html.match(/href="\/capture"/g)).toHaveLength(2)
+  expect(html).toContain('aria-label="Primary navigation"')
+  expect(html).toContain('aria-label="Footer navigation"')
   expect(html).not.toContain('Next page')
 })
 

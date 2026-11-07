@@ -1,5 +1,5 @@
-import type { IngestionSource } from '@/lib/ingestion/pipeline'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
@@ -8,18 +8,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   database: vi.fn(),
   prepareModel: vi.fn(),
-  embeddingProvider: vi.fn(),
   ingest: vi.fn(),
-  snapshot: vi.fn(),
+  translator: vi.fn(),
+  safeFetch: vi.fn(),
+  network: vi.fn(),
 }))
 
 vi.mock('@/lib/db', () => ({ db: mocks.database }))
-vi.mock('@/lib/embeddings/transformers', () => ({
-  prepareTransformersModelCache: mocks.prepareModel,
-  createTransformersEmbeddingProvider: mocks.embeddingProvider,
-}))
+vi.mock('@/lib/embeddings/transformers', () => ({ prepareTransformersModelCache: mocks.prepareModel }))
 vi.mock('@/lib/ingestion/postgres', () => ({ runNeonIngestion: mocks.ingest }))
-vi.mock('@/lib/ingestion/health-snapshot', () => ({ readIngestionHealthSnapshot: mocks.snapshot }))
+vi.mock('@/lib/translations/provider', () => ({ createTranslator: mocks.translator }))
+vi.mock('@/lib/safe-fetch', () => ({ safeFetch: mocks.safeFetch }))
 
 let directory: string
 let summaryPath: string
@@ -27,22 +26,19 @@ let output: string[]
 let previousExitCode: typeof process.exitCode
 let previousArgv: string[]
 
-function source(overrides: Partial<IngestionSource> = {}): IngestionSource {
-  return { id: '00000000-0000-4000-8000-000000000001', publisherId: '00000000-0000-4000-8000-000000000002', transport: 'rss', endpointUrl: 'https://source.example/feed', isAggregator: false, disabledAt: null, disabledReason: null, consecutiveFailures: 0, retryAfterAt: null, lastPolledAt: null, newestItemAt: null, createdAt: new Date('2026-09-01T00:00:00Z'), ...overrides }
-}
-
 beforeEach(async () => {
   vi.resetModules()
   vi.resetAllMocks()
-  directory = await mkdtemp(join(tmpdir(), 'zis-run-health-'))
+  directory = await mkdtemp(join(tmpdir(), 'zis-retired-pipeline-'))
   summaryPath = join(directory, 'summary.md')
   vi.stubEnv('GITHUB_STEP_SUMMARY', summaryPath)
   vi.stubEnv('DATABASE_URL', 'postgresql://test-only-sensitive-credential@example.invalid/db')
   vi.stubEnv('GITHUB_PAT', 'test-only-sensitive-github-token')
+  vi.stubEnv('DEEPSEEK_API_KEY', 'test-only-sensitive-model-token')
+  vi.stubGlobal('fetch', mocks.network)
   previousExitCode = process.exitCode
   previousArgv = process.argv
   process.exitCode = 0
-  process.argv = ['node', 'scripts/pipeline/run.ts']
   output = []
   vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
     output.push(String(chunk))
@@ -52,11 +48,6 @@ beforeEach(async () => {
     output.push(String(chunk))
     return true
   })
-  mocks.database.mockReturnValue({})
-  mocks.prepareModel.mockResolvedValue(undefined)
-  mocks.embeddingProvider.mockReturnValue({})
-  mocks.ingest.mockResolvedValue({ sources: [source()], fetchLogs: [], items: [], dormantSourceIds: [] })
-  mocks.snapshot.mockResolvedValue({ sources: [source()], fetchLogs: [], briefStatus: 'confirmed' })
 })
 
 afterEach(async () => {
@@ -64,74 +55,46 @@ afterEach(async () => {
   process.argv = previousArgv
   vi.restoreAllMocks()
   vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
   await rm(directory, { recursive: true, force: true })
 })
 
-async function runAndReadSummary(): Promise<string> {
-  await import('./run')
-  let summary = ''
-  await vi.waitFor(async () => {
-    summary = await readFile(summaryPath, 'utf8')
-    expect(summary).toContain('Database transaction retries: 0.')
-  })
-  return summary
+function expectNoWork() {
+  for (const mock of Object.values(mocks))
+    expect(mock).not.toHaveBeenCalled()
+  expect(existsSync(summaryPath)).toBe(false)
+  expect(output.join('')).not.toContain('test-only-sensitive')
 }
 
-describe('pipeline entrypoint health reporting', () => {
-  it('reports measured ingestion stages in logs and the Actions summary', async () => {
-    mocks.ingest.mockImplementation(async (_at, _db, _fetch, _embed, _metrics, _token, options) => {
-      options.onStageTiming({ stage: 'startup', durationMs: 125 })
-      options.onStageTiming({ stage: 'source_ingestion', durationMs: 850 })
-      options.onStageTiming({ stage: 'graph_compute', durationMs: 2100 })
-      return { sources: [source()], fetchLogs: [], items: [], dormantSourceIds: [] }
-    })
-    const summary = await runAndReadSummary()
-    expect(summary).toContain('| graph_compute | 2100 |')
-    expect(output.join('')).toContain('zis pipeline stage startup: 125 ms')
-    expect(output.join('')).toContain('zis pipeline stage source_ingestion: 850 ms')
+describe.each(['run', 'translate'] as const)('retired %s entrypoint', (entrypoint) => {
+  async function execute(args: string[]) {
+    process.argv = ['node', `scripts/pipeline/${entrypoint}.ts`, ...args]
+    if (entrypoint === 'run')
+      await import('./run')
+    else
+      await import('./translate')
+  }
+
+  it.each([{ args: [] }, { args: ['--force'] }])('refuses real execution with arguments $args before any database, model or network work', async ({ args }) => {
+    await execute(args)
+    expect(process.exitCode).toBe(1)
+    expect(output.join('')).toContain('is retired. Use the capture flow; historical data is retained.')
+    expectNoWork()
   })
 
-  it('fails after a permanent ingestion error and keeps unknown Source state distinct from a healthy empty inventory', async () => {
-    mocks.ingest.mockRejectedValue(new Error('private SQL parameters and reader Interest text'))
-    mocks.snapshot.mockRejectedValue(new Error('private database URL and stack'))
-    const summary = await runAndReadSummary()
-    await vi.waitFor(() => expect(process.exitCode).toBe(1))
-    expect(summary).toContain('Wake: **failed**')
-    expect(summary).toContain('Source health is unknown')
-    expect(summary).not.toContain('0 configured Sources')
-    expect(output.join('')).toContain('::error title=Ingestion incomplete::')
-    expect(`${summary}${output.join('')}`).not.toContain('private')
-    expect(`${summary}${output.join('')}`).not.toContain('test-only-sensitive')
-  })
-
-  it('fails a completed ingestion when the expected daily Brief is missing', async () => {
-    mocks.snapshot.mockResolvedValue({ sources: [source()], fetchLogs: [], briefStatus: 'missing' })
-    const summary = await runAndReadSummary()
-    await vi.waitFor(() => expect(process.exitCode).toBe(1))
-    expect(summary).toContain('Wake: **completed**')
-    expect(summary).toContain('Daily Brief: **missing**')
-    expect(output.join('')).toContain('::error title=Daily Brief missing::')
-  })
-
-  it('warns about a disabled Source without failing a completed run with a confirmed Brief', async () => {
-    mocks.snapshot.mockResolvedValue({ sources: [source({ disabledAt: new Date(), disabledReason: 'automatically disabled after 10 consecutive failures', consecutiveFailures: 10 })], fetchLogs: [], briefStatus: 'confirmed' })
-    const summary = await runAndReadSummary()
+  it('retains a side-effect-free dry-run diagnostic', async () => {
+    await execute(['--dry-run'])
     expect(process.exitCode).toBe(0)
-    expect(summary).toContain('1 disabled; 1 require attention; 0 confirmed successful this wake')
-    expect(output.join('')).toContain('::warning title=Source needs attention::')
-    expect(output.join('')).not.toContain('::error')
+    expect(output.join('')).toContain('retired; dry-run only; no work performed.')
+    expectNoWork()
   })
 
-  it('identifies a missing preflight credential without starting ingestion or printing credential values', async () => {
+  it('reports retirement before credentials are required', async () => {
     vi.stubEnv('DATABASE_URL', '')
-    const summary = await runAndReadSummary()
-    await vi.waitFor(() => expect(process.exitCode).toBe(1))
-    expect(mocks.prepareModel).not.toHaveBeenCalled()
-    expect(mocks.database).not.toHaveBeenCalled()
-    expect(mocks.ingest).not.toHaveBeenCalled()
-    expect(mocks.snapshot).not.toHaveBeenCalled()
-    expect(output.join('')).toContain('DATABASE_URL')
-    expect(summary).toContain('Source health is unknown')
-    expect(`${summary}${output.join('')}`).not.toContain('test-only-sensitive')
+    vi.stubEnv('DEEPSEEK_API_KEY', '')
+    await execute([])
+    expect(process.exitCode).toBe(1)
+    expect(output.join('')).toContain('is retired.')
+    expectNoWork()
   })
 })
