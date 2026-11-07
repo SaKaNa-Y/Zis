@@ -1,0 +1,6 @@
+interface:
+  display_name: "Set Theory for Projects"
+  short_description: "Find evidence-backed cross-project possibilities"
+  default_prompt: "Use $set-theory-for-projects to find evidence-backed ways this project could serve more real contexts."
+policy:
+  allow_implicit_invocation: false

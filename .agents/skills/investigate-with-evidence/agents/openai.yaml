@@ -1,0 +1,6 @@
+interface:
+  display_name: "Investigate with Evidence"
+  short_description: "Resolve factual questions with bounded checks"
+  default_prompt: "Use $investigate-with-evidence to resolve this factual question with relevant sources or controlled execution and explain what the evidence establishes."
+policy:
+  allow_implicit_invocation: true

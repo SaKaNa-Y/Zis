@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Change"
+  short_description: "Review changes against standards and requirements"
+  default_prompt: "Use $review-change to review this change against the project's standards and intended requirements, verify material findings, and report evidence and limits."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Challenge the Claim"
+  short_description: "Test a claim with relevant counterevidence"
+  default_prompt: "Use $challenge-the-claim to test this claim under its stated conditions, present the strongest supported challenge, and conclude honestly if none is found."
+policy:
+  allow_implicit_invocation: false

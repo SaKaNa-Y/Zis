@@ -1,0 +1,6 @@
+interface:
+  display_name: "Just Use It"
+  short_description: "Experience public capabilities before reading source"
+  default_prompt: "Use $just-use-it to audit this developer tool slice-first through real user outcomes before inspecting its source, with honest partial coverage and evidence for every verified capability and finding."
+policy:
+  allow_implicit_invocation: false

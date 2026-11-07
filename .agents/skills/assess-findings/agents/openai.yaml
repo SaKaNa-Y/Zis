@@ -1,0 +1,6 @@
+interface:
+  display_name: "Assess Findings"
+  short_description: "Assess related findings, ideas and next actions"
+  default_prompt: "Use $assess-findings to assess these observations, separate their evidence from the value of a response, and recommend scoped next actions while preserving the active investigation boundaries."
+policy:
+  allow_implicit_invocation: true

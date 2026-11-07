@@ -1,0 +1,18 @@
+{
+  "sources": {
+    "SaKaNa-Y/skills": "76c0687f2ea55c363a4ce2ab0a88931178334610",
+    "mattpocock/skills": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "cursor/plugins": "6b0300214a09fd6029cfb7077043125758cd1fd2",
+    "AminBlg/SimpleEnglish": "a6fcb4fde098b33617cc1578d151ebf58774b883"
+  },
+  "aliases": {
+    "poteto-tdd": "pstack/skills/tdd",
+    "poteto-teach": "pstack/skills/teach"
+  },
+  "installedCounts": {
+    "mattpocock/skills": 38,
+    "SaKaNa-Y/skills": 18,
+    "AminBlg/SimpleEnglish": 1,
+    "cursor/plugins": 58
+  }
+}

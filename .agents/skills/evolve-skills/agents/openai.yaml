@@ -1,0 +1,6 @@
+interface:
+  display_name: "Evolve Skills"
+  short_description: "Improve skills from conversations and experience"
+  default_prompt: "Use $evolve-skills to find skill improvement opportunities in this conversation within the scope I specify, discuss them with me, then validate and record the changes or new skills I select."
+policy:
+  allow_implicit_invocation: false

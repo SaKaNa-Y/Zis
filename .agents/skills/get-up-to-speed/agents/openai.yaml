@@ -1,0 +1,6 @@
+interface:
+  display_name: "Get Up to Speed"
+  short_description: "Complete quickstart guides with runnable examples"
+  default_prompt: "Use $get-up-to-speed to deliver one complete guide with runnable examples for this library or developer tool, grounded in official documentation and matching source, with depth matched to my goal and explanations in a language I select."
+policy:
+  allow_implicit_invocation: false

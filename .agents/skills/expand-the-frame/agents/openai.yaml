@@ -1,0 +1,6 @@
+interface:
+  display_name: "Expand the Frame"
+  short_description: "Explore project perspectives you have not considered"
+  default_prompt: "Use $expand-the-frame to uncover relevant perspectives I have not considered, explain the knowledge behind each question, and trace my answers into further decisions, letting me choose which new directions to explore."
+policy:
+  allow_implicit_invocation: false
