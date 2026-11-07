@@ -4,28 +4,30 @@ import { setImmediate } from 'node:timers/promises'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite-pgvector'
 import { drizzle } from 'drizzle-orm/pglite'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import * as schema from '@/lib/db/schema'
 import { loadReaderScope, readSignalMetadata } from './graph-reader'
 import { runIngestion } from './pipeline'
 
-const databases: PGlite[] = []
+let pg: PGlite
 const firstWake = new Date('2026-09-30T05:00:00Z')
 const secondWake = new Date('2026-09-30T05:20:00Z')
 const nextWake = new Date('2026-09-30T05:40:00Z')
 const signalId = (number: number): string => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`
 
-afterEach(async () => {
-  vi.restoreAllMocks()
-  await Promise.all(databases.splice(0).map(database => database.close()))
-})
-
-async function fixture(count = 2001) {
-  const pg = await PGlite.create({ extensions: { vector } })
-  databases.push(pg)
+beforeEach(async () => {
+  pg = await PGlite.create({ extensions: { vector } })
   const folder = new URL('../../../drizzle/', import.meta.url)
   for (const name of readdirSync(folder).filter(name => name.endsWith('.sql')).sort())
     await pg.exec(readFileSync(new URL(name, folder), 'utf8'))
+})
+
+afterEach(async () => {
+  vi.restoreAllMocks()
+  await pg?.close()
+})
+
+async function fixture(count = 2001) {
   await pg.query(`INSERT INTO link(id,url,first_seen_at,created_at)
     SELECT ('00000000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
       'https://reader-scope.example/story-' || n,'2026-09-30T05:01:00Z','2026-09-30T05:01:00Z'
@@ -34,11 +36,11 @@ async function fixture(count = 2001) {
     SELECT id,id,'2026-09-30T05:01:00Z' FROM link`)
   const database = drizzle(pg, { schema }) as unknown as Database
   const graph = await runIngestion({ sources: [], responses: [], now: () => firstWake })
-  return { pg, database, graph }
+  return { database, graph }
 }
 
 it('reads known identity pages once with one shared four-request bound and keeps bootstrap pagination complete', async () => {
-  const { pg, database, graph } = await fixture()
+  const { database, graph } = await fixture()
   const original = pg.query.bind(pg)
   const queries: string[] = []
   let active = 0
@@ -69,7 +71,7 @@ it('reads known identity pages once with one shared four-request bound and keeps
 })
 
 it('drains in-flight reader requests after failure without dispatching queued reads or replacing the graph', async () => {
-  const { pg, database, graph } = await fixture()
+  const { database, graph } = await fixture()
   const before = structuredClone(graph)
   const original = pg.query.bind(pg)
   const failedRead = Promise.withResolvers<void>()
@@ -115,7 +117,7 @@ it('drains in-flight reader requests after failure without dispatching queued re
 })
 
 it('shrinks the first post-embedding scope after halfvec rematching and retains only recently eligible identities', async () => {
-  const { pg, database, graph } = await fixture(1001)
+  const { database, graph } = await fixture(1001)
   const embedding = `[${Array.from({ length: 384 }, (_, index) => index === 0 ? 1 : 0).join(',')}]`
   await pg.query(`UPDATE signal SET text_basis='slug',embedding_text='Retained topic',embedding=$1::halfvec,
     embedding_model='bge-small-en-v1.5',embedding_dimensions=384,

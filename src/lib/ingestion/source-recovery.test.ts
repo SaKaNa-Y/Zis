@@ -1,27 +1,25 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite-pgvector'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import register from '../../../docs/source-register.json'
 
 const recovery = readFileSync(new URL('../../../scripts/operations/2026-09-30-recover-reviewed-sources.sql', import.meta.url), 'utf8')
 const githubUrls = ['https://github.blog/feed/', 'https://github.blog/changelog/feed/']
 const oldSophieUrl = 'https://www.sophiebits.com/atom.xml'
 const newSophieUrl = 'https://sophiebits.com/atom.xml'
-const databases: PGlite[] = []
+let pg: PGlite
 
-afterEach(async () => {
-  await Promise.all(databases.splice(0).map(database => database.close()))
-})
-
-async function fixture(): Promise<PGlite> {
-  const pg = await PGlite.create({ extensions: { vector } })
-  databases.push(pg)
+beforeEach(async () => {
+  pg = await PGlite.create({ extensions: { vector } })
   const migrations = new URL('../../../drizzle/', import.meta.url)
   for (const name of readdirSync(migrations).filter(name => name.endsWith('.sql')).sort())
     await pg.exec(readFileSync(new URL(name, migrations), 'utf8'))
-  return pg
-}
+})
+
+afterEach(async () => {
+  await pg?.close()
+})
 
 async function state(pg: PGlite): Promise<Record<string, Array<Record<string, unknown>>>> {
   const result: Record<string, Array<Record<string, unknown>>> = {}
@@ -35,7 +33,6 @@ async function state(pg: PGlite): Promise<Record<string, Array<Record<string, un
 
 describe('reviewed Source recovery maintenance', () => {
   it('recovers only the three reviewed automatic failures and preserves Source identities and history on repeat', async () => {
-    const pg = await fixture()
     await pg.query(`UPDATE source SET disabled_at='2026-09-25T00:00:00Z',
       disabled_reason=CASE WHEN endpoint_url=$1
         THEN 'automatically disabled after 10 consecutive robots denials'
@@ -81,7 +78,6 @@ describe('reviewed Source recovery maintenance', () => {
   })
 
   it('preserves manual disable decisions while changing the existing Sophie endpoint', async () => {
-    const pg = await fixture()
     await pg.query(`UPDATE source SET disabled_at='2026-09-25T00:00:00Z', disabled_reason='manual review',
       consecutive_failures=12, retry_after_at='2026-10-01T00:00:00Z' WHERE endpoint_url=ANY($1::text[])`, [[...githubUrls, oldSophieUrl]])
     const before = await state(pg)
@@ -98,7 +94,6 @@ describe('reviewed Source recovery maintenance', () => {
   })
 
   it('brings a fresh immutable seed into agreement with the current RSS register without replacing rows', async () => {
-    const pg = await fixture()
     const before = await state(pg)
     await pg.exec(recovery)
     const after = await state(pg)
