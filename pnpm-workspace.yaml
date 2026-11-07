@@ -41,9 +41,12 @@ trustPolicyExclude:
 # GHSA-2883-xcg3-v3hh: preserve the ESLint dependency's js-yaml 4.x API.
 overrides:
   '@esbuild-kit/core-utils>esbuild': 0.25.12
-  # Additional registry-audit findings: GHSA-q2hr-2g5m-vwhr,
-  # GHSA-qhr7-859c-m2p7 and GHSA-6j4f-fj2g-mc7p. Keep both major APIs.
+  '@typescript-eslint/typescript-estree>minimatch': 11.0.1
   brace-expansion@>=1.0.0 <1.1.21: 1.1.21
   brace-expansion@>=5.0.0 <5.0.12: 5.0.12
   js-yaml@>=4.0.0 <4.3.2: 4.3.2
-  sharp@<0.35.4: 0.35.4
+  micromark-extension-math>katex: 0.18.2
+  postcss-selector-parser@>=7.0.0 <7.1.6: 7.1.6
+  sharp@<0.35.5: 0.35.5
+  source-map-js@>=1.0.0 <1.2.2: 1.2.2
+  vite@>=8.2.0 <8.2.4: 8.2.4
