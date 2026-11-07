@@ -51,3 +51,17 @@ export async function recordRunAction(_previous: CaptureActionState, form: FormD
     return captureActionError(error)
   }
 }
+
+export async function allowBackfillAction(_previous: CaptureActionState, form: FormData): Promise<CaptureActionState> {
+  await verifySession()
+  try {
+    const day = textField(form, 'startDate')
+    const changed = await captureStore.allowBackfill(`${day}T00:00:00+08:00`)
+    revalidatePath('/sources')
+    revalidatePath('/capture')
+    return { success: `Backfill allowed from ${day} 00:00 Beijing time. ${changed} source(s) updated. Collection must still be run separately.` }
+  }
+  catch (error) {
+    return captureActionError(error)
+  }
+}

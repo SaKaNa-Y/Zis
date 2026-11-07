@@ -3,7 +3,7 @@
 import type { CaptureSource } from '@/lib/capture/model'
 import { useActionState } from 'react'
 import { useLocale } from '@/lib/i18n/context'
-import { recordRunAction, saveSourceAction } from './actions'
+import { allowBackfillAction, recordRunAction, saveSourceAction } from './actions'
 
 export function SourceForm({ source }: { source?: CaptureSource }) {
   const { t } = useLocale()
@@ -67,6 +67,25 @@ export function RunForm({ sources }: { sources: CaptureSource[] }) {
         </label>
         <p className="capture-note">{t('Report only an actual collection attempt. Access failure is not a successful check with zero new items.', '仅记录实际采集尝试。访问失败不能记作“成功但没有新内容”。')}</p>
         <button className="capture-button" type="submit" disabled={!sources.length}>{pending ? t('Recording…', '记录中…') : t('Record result', '记录结果')}</button>
+      </fieldset>
+      {state.error && <p role="alert" className="capture-warning">{state.error}</p>}
+      {state.success && <p role="status">{state.success}</p>}
+    </form>
+  )
+}
+
+export function BackfillForm() {
+  const { t } = useLocale()
+  const [state, action, pending] = useActionState(allowBackfillAction, {})
+  return (
+    <form className="capture-form" action={action}>
+      <fieldset disabled={pending}>
+        <label>
+          {t('Start date (00:00 Beijing time)', '起始日期（北京时间零点）')}
+          <input name="startDate" type="date" required />
+        </label>
+        <p className="capture-note">{t('Allow older content for all enabled sources from this date. Earlier tracking dates stay unchanged. This does not collect content automatically; deduplication and seven-day retention from capture still apply.', '允许为所有已启用来源补采此日期起的内容；已有更早起点保持不变。这不会自动采集，去重和从录入起七天留存的规则仍然生效。')}</p>
+        <button className="capture-button" type="submit">{pending ? t('Saving…', '保存中…') : t('Allow backfill', '允许补采')}</button>
       </fieldset>
       {state.error && <p role="alert" className="capture-warning">{state.error}</p>}
       {state.success && <p role="status">{state.success}</p>}

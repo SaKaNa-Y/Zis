@@ -3,7 +3,7 @@ import { verifySession } from '@/lib/auth/dal'
 import { captureStore } from '@/lib/capture/postgres'
 import { readLocale } from '@/lib/i18n/server'
 import { CaptureSchedule, CaptureShell, CaptureTime, RunHistory } from '../capture/shared'
-import { RunForm, SourceForm } from './forms'
+import { BackfillForm, RunForm, SourceForm } from './forms'
 
 export const metadata: Metadata = { title: 'Sources — Zis' }
 export default async function SourcesPage() {
@@ -15,7 +15,7 @@ export default async function SourcesPage() {
       <header className="capture-heading">
         <p className="eyebrow">{t('Follow the source', '从来源开始')}</p>
         <h1 className="page-title">{t('Sources', '来源管理')}</h1>
-        <p>{t('New sources start tracking at activation; no historical backfill. Capture original posts, quotes and author continuations, excluding pure reposts and ordinary replies.', '新来源从启用时开始追踪，不批量补历史。收录原创、引用及作者自我续帖，排除纯转推和普通回复。')}</p>
+        <p>{t('New sources start tracking at activation. Use Allow backfill below to include earlier content. Capture original posts, quotes and author continuations, excluding pure reposts and ordinary replies.', '新来源从启用时开始追踪；如需更早内容，可在下方允许补采。收录原创、引用及作者自我续帖，排除纯转推和普通回复。')}</p>
       </header>
       <CaptureSchedule t={t} />
       <section className="capture-section">
@@ -58,6 +58,10 @@ export default async function SourcesPage() {
       <section className="capture-section">
         <h2>{t('Add a source', '添加来源')}</h2>
         <SourceForm />
+      </section>
+      <section className="capture-section">
+        <h2>{t('Allow historical backfill', '允许历史补采')}</h2>
+        <BackfillForm />
       </section>
       <RunHistory runs={runs} sources={sources} t={t} />
       <section className="capture-section">
