@@ -74,7 +74,7 @@ export function ArticleReader({ article }: { article: Pick<Article, 'title' | 's
   return (
     <article className="publication-article">
       <header>
-        <h1 className="publication-title">{article.title}</h1>
+        <h1 className="page-title">{article.title}</h1>
         {article.standfirst && <p className="standfirst">{article.standfirst}</p>}
         <div className="article-byline">
           {article.publishedAt && <PublicationDate date={article.publishedAt} />}

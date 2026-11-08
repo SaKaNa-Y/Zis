@@ -14,8 +14,8 @@ export function ArticleEditor({ id, initial, saved, showSaved }: { id: string, i
   const serialized = JSON.stringify(content)
   const matchesSaved = saved !== null && serialized === JSON.stringify(saved)
   return (
-    <section className="article-editor">
-      <h1 className="publication-title">{t('Edit article', '编辑文章')}</h1>
+    <section className="workspace-form">
+      <h1 className="page-title">{t('Edit article', '编辑文章')}</h1>
       <p>{t('Readers see the published version until you publish this draft.', '发布草稿前，读者看到的仍是已发布版本。')}</p>
       <form action={save}>
         <fieldset disabled={saving || publishing}>

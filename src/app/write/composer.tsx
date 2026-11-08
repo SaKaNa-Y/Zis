@@ -11,7 +11,7 @@ export function Composer({ id, revision, initial, saved }: { id: string, revisio
   const [content, set] = useState(initial)
   const [error, save, pending] = useActionState(saveWriting.bind(null, id, revision), null)
   return (
-    <form action={save} className="article-editor">
+    <form action={save} className="workspace-form mt-5">
       <fieldset disabled={pending}>
         <ContentFields content={content} set={set} />
         <input type="hidden" name="content" value={JSON.stringify(content)} />
@@ -28,7 +28,7 @@ export function PublishButton({ id, revision }: { id: string, revision: number }
   const { t } = useLocale()
   const [error, publish, pending] = useActionState(publishWriting.bind(null, id, revision), null)
   return (
-    <form action={publish} className="article-editor">
+    <form action={publish} className="workspace-form mt-5">
       <button className="editor-publish" disabled={pending}>{t('Publish article', '发布文章')}</button>
       {error && <p role="alert">{error}</p>}
     </form>

@@ -34,7 +34,7 @@ export default async function WritePage({ searchParams }: { searchParams: Promis
   return (
     <div className="publication-shell">
       <DestinationNavigation role="author" current="/write" />
-      <main className="publication-detail">
+      <main className="page-content">
         {preview && draft
           ? (
               <>
@@ -46,10 +46,10 @@ export default async function WritePage({ searchParams }: { searchParams: Promis
             )
           : (
               <>
-                <h1 className="publication-title">{t('Write article', '写文章')}</h1>
+                <h1 className="page-title">{t('Write article', '写文章')}</h1>
                 {drafts.length > 0 && (
-                  <section className="writing-drafts">
-                    <h2>{t('Saved drafts', '已保存的草稿')}</h2>
+                  <section className="settings-section writing-drafts">
+                    <h2 className="settings-heading">{t('Saved drafts', '已保存的草稿')}</h2>
                     <ul>{drafts.map(d => <li key={d.id}><Link href={`/write?id=${d.id}`}>{d.title || t('Untitled draft', '无标题草稿')}</Link></li>)}</ul>
                   </section>
                 )}

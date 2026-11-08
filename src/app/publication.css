@@ -1,11 +1,4 @@
 .publication-shell {
-  --paper: light-dark(#f8f6ef, #24221e);
-  --surface: light-dark(#fffdf7, #302e28);
-  --ink: light-dark(#27241f, #f4efe4);
-  --ink-dim: light-dark(#615c51, #d1cabb);
-  --rule: light-dark(#c9c3b6, #605b50);
-  --accent: light-dark(#624b28, #e2cda5);
-  --editorial-type: "Iowan Old Style", "Palatino Linotype", "Songti SC", Georgia, serif;
   background: var(--paper);
   color: var(--ink);
   min-height: 100svh;
@@ -18,12 +11,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: min(calc(100% - 2rem), 76rem);
+  width: 100%; max-width: 75rem;
   margin: 0 auto;
-  padding: 1rem 0;
+  padding: 1rem clamp(1.25rem, 4vw, 3.5rem);
   border-bottom: .0625rem solid var(--rule);
 }
-.publication-brand { font: 600 2.3rem/.95 var(--editorial-type); letter-spacing: -.09em; }
+.publication-brand { font: 650 1.625rem/1.1 var(--font-display); letter-spacing: -.09em; }
 .publication-header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .25rem clamp(.5rem, 2vw, 2rem); font-size: .92rem; }
 .publication-header nav > a, .author-menu summary { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .publication-header nav [aria-current] { text-decoration: underline; text-underline-offset: .45em; }
@@ -34,27 +27,23 @@
 .author-menu[open] summary::after { transform: rotate(225deg); }
 .author-menu > div { position: absolute; z-index: 2; top: 100%; right: 0; width: max-content; padding: .4rem; border: .0625rem solid var(--rule); border-radius: .4rem; background: var(--surface); }
 .author-menu > div a { display: block; padding: .65rem 1.3rem; }
-.publication-index, .publication-history { width: min(calc(100% - 2.75rem), 67rem); margin: 0 auto; padding: clamp(2.5rem, 7vw, 6rem) 0; }
-.publication-title, .publication-lead h1 { font: 400 clamp(2.7rem, 6.8vw, 5.8rem)/1.04 var(--editorial-type); letter-spacing: -.045em; text-wrap: balance; }
 .publication-lead { display: grid; align-items: center; gap: 2rem; margin-bottom: clamp(3rem, 9vw, 7rem); }
 .publication-lead time, .publication-list time, .article-byline, .detail-nav { font-size: .88rem; color: var(--ink-dim); }
 .publication-lead h1 { max-width: 18ch; margin: 1rem 0; }
-.publication-lead p, .standfirst { max-width: 51ch; font: 400 clamp(1.2rem, 2.2vw, 1.65rem)/1.45 var(--editorial-type); color: var(--ink-dim); }
+.publication-lead p, .standfirst { max-width: 51ch; font: 400 clamp(1.2rem, 2.2vw, 1.65rem)/1.45 var(--font-display); color: var(--ink-dim); }
 .publication-lead img, .publication-article header img { width: 100%; max-height: 28rem; border-radius: .4rem; object-fit: cover; }
 .index-section { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-.index-section h2, .publication-list h2, .article-section h2, .article-references h2, .publication-history h2, .citation-dialog h3 { font: 400 clamp(1.55rem, 3vw, 2.3rem)/1.18 var(--editorial-type); }
+.index-section h2, .publication-list h2, .article-section h2, .article-references h2, .publication-history h2, .citation-dialog h3 { font: 550 clamp(1.25rem, 2vw, 1.6rem)/1.3 var(--font-display); }
 .index-section a, .detail-nav a, .article-references a, .citation-dialog a, .publication-history a, .publication-state a { text-decoration: underline; }
 .publication-list { margin-top: 1.25rem; }
 .publication-list li { display: grid; gap: .5rem; align-items: baseline; padding: 1.7rem 0; border-top: .0625rem solid var(--rule); }
 .publication-list p { margin-top: .5rem; max-width: 65ch; color: var(--ink-dim); }
-.publication-detail { width: min(calc(100% - 2.75rem), 52rem); margin: auto; padding: clamp(1.5rem, 5vw, 4rem) 0 6rem; }
 .detail-nav { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 2.2rem; }
 .publication-article .standfirst { margin: 1.2rem 0; }
 .article-byline { display: flex; flex-wrap: wrap; align-items: center; gap: 1.3rem; padding: .65rem 0 1.2rem; }
-.article-section, .article-references { max-width: 42rem; margin: 2.3rem auto 0; }
+.article-section, .article-references { max-width: 42rem; margin: 2.3rem 0 0; }
 .article-section h2 { margin-bottom: .85rem; }
-.article-paragraph { margin: 0 0 1.2em; font: 400 calc(1.15rem * var(--reading-scale, 1))/1.7 var(--editorial-type); }
-[data-reading-font="sans"] .article-paragraph, [data-reading-font="serif"] .article-paragraph { font-family: var(--reading-family); }
+.article-paragraph { margin: 0 0 1.2em; font: 400 calc(1.0625rem * var(--reading-scale, 1))/1.7 var(--reading-family); }
 .article-paragraph > span { white-space: pre-line; }
 .article-paragraph sup button { min-width: 1.6rem; color: var(--accent); font: 600 .75rem/1.6 var(--font-sans); }
 .article-references { border-top: .0625rem solid var(--rule); padding-top: 1.4rem; }
@@ -66,8 +55,7 @@
 .citation-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; font-size: .9rem; }
 .citation-tools button { text-decoration: underline; padding: .35rem .15rem; }
 .citation-dialog p { color: var(--ink-dim); margin: .5rem 0 1.2rem; }
-.citation-dialog blockquote { white-space: pre-line; margin: 1rem 0; padding-left: 1rem; border-left: .15rem solid var(--rule); font-family: var(--editorial-type); }
-.publication-history { max-width: 51rem; }
+.citation-dialog blockquote { white-space: pre-line; margin: 1rem 0; padding-left: 1rem; border-left: .15rem solid var(--rule); font-family: var(--font-display); }
 .publication-history section { margin: 2rem 0; }
 .publication-history h2 { margin-bottom: .75rem; font-size: 1.55rem; }
 .publication-history section > p { color: var(--ink-dim); }
@@ -77,18 +65,11 @@
 .history-run > :not(summary) { margin: .75rem 0 0 1.25rem; }
 .history-run dl { display: grid; grid-template-columns: max-content 1fr; gap: .2rem 1rem; }
 .history-run ol time { color: var(--ink-dim); margin-left: .7rem; }
-.article-editor > p, .publication-login > p { margin: 1rem 0 2rem; color: var(--ink-dim); }
-.article-editor label, .publication-login label { display: block; font-size: .9rem; font-weight: 600; margin: .75rem 0; }
-.article-editor input:not([type=hidden]), .article-editor textarea, .publication-login input { display: block; width: 100%; font-weight: 400; background: var(--surface); border: .0625rem solid var(--rule); padding: .65rem; margin-top: .25rem; border-radius: .3rem; }
-.article-editor textarea { resize: vertical; }
 .editor-fields > fieldset { min-width: 0; margin: 1rem 0; padding: .3rem 0 .5rem .8rem; border-left: .1rem solid var(--rule); }
 .editor-fields legend { margin-bottom: .25rem; font-weight: 600; }
-.article-editor button, .publication-login button { border: .0625rem solid var(--rule); border-radius: .3rem; padding: .5rem .75rem; margin: .3rem .3rem .3rem 0; font-size: .9rem; }
-.article-editor button:disabled { opacity: .55; }
-.article-editor .editor-save, .article-editor .editor-publish, .publication-login button { background: var(--ink); color: var(--paper); }
-.publication-login { width: min(calc(100% - 3rem), 28rem); margin: clamp(3rem, 10vh, 8rem) auto; }
 .publication-login button { margin-top: 1.2rem; }
-.publication-state { padding: clamp(2.5rem, 9vw, 8rem); }
+.publication-login form { max-width: 28rem; }
+.publication-login > p { margin-block: 1rem; color: var(--ink-dim); }
 .publication-state a, .publication-state button { display: inline-block; margin: 1rem 1rem 0 0; }
 @media (min-width: 48rem) {
   .publication-lead:has(img) { grid-template-columns: 1.12fr 1fr; }
@@ -99,7 +80,5 @@
   .publication-header { gap: .5rem; }
 }
 
-.writing-drafts { margin: 1.25rem 0; }
-.writing-drafts h2 { font-weight: 600; }
 .writing-drafts ul { max-height: 9rem; overflow: auto; }
 .writing-drafts a { display: inline-block; padding: .35rem 0; text-decoration: underline; }
