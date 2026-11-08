@@ -18,7 +18,7 @@ async function fixture() {
   const pg = await PGlite.create()
   databases.push(pg)
   await pg.exec(`CREATE TABLE "user" (
-    id uuid PRIMARY KEY, passphrase_hash text NOT NULL,
+    id uuid PRIMARY KEY, passphrase_hash text NOT NULL, revoked_at timestamptz,
     session_version integer NOT NULL DEFAULT 0,
     failed_attempts integer NOT NULL DEFAULT 0, locked_until timestamptz
   )`)
@@ -118,5 +118,17 @@ it('requires authentication for both account mutations', async () => {
   })
   await expect(settings.signOutEverywhere()).rejects.toThrow('unauthorized')
   await expect(settings.changePassphrase({ currentPassphrase: OLD, newPassphrase: NEW, confirmation: NEW })).rejects.toThrow('unauthorized')
+  expect(await login(OLD)).toEqual({ userId: USER_ID, sessionVersion: 0 })
+})
+
+it('accepts a separately issued reader passphrase and refuses it after revocation', async () => {
+  const { pg, login, settings } = await fixture()
+  const reader = '00000000-0000-4000-8000-000000000096'
+  await pg.query('INSERT INTO "user" (id, passphrase_hash) VALUES ($1, $2)', [reader, await hash(NEW)])
+  expect(await login(NEW)).toEqual({ userId: reader, sessionVersion: 0 })
+  expect(await login(OLD)).toEqual({ userId: USER_ID, sessionVersion: 0 })
+  await expect(settings.changePassphrase({ currentPassphrase: OLD, newPassphrase: NEW, confirmation: NEW })).rejects.toThrow()
+  await pg.query('UPDATE "user" SET revoked_at = now() WHERE id = $1', [reader])
+  expect(await login(NEW)).toBeNull()
   expect(await login(OLD)).toEqual({ userId: USER_ID, sessionVersion: 0 })
 })

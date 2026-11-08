@@ -99,6 +99,13 @@
       "when": 1794036395330,
       "tag": "0013_information_capture",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794124144852,
+      "tag": "0014_publication_access",
+      "breakpoints": true
     }
   ]
 }

@@ -55,3 +55,10 @@ export function cloudflareApiToken(): string {
 export function githubPat(): string {
   return required('GITHUB_PAT')
 }
+
+/** Optional provider credentials for author-only project storage readings. */
+export function neonStorageCredentials() {
+  const projectId = process.env.NEON_PROJECT_ID
+  const apiKey = process.env.NEON_API_KEY
+  return apiKey && projectId && /^[a-z0-9-]{1,60}$/.test(projectId) ? { projectId, apiKey } : null
+}

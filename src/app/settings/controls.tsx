@@ -40,7 +40,7 @@ export function AccountControls() {
       </details>
       <details className="mt-7">
         <summary className="cursor-pointer text-body underline underline-offset-4"><Text en="Sign out everywhere" zh="退出所有设备" /></summary>
-        <p className="mt-4 text-meta text-ink-dim"><Text en="End every existing session, including this browser. Your Briefs and appearance preference stay as they are." zh="结束包括当前浏览器在内的所有登录会话。你的简报和外观设置保持不变。" /></p>
+        <p className="mt-4 text-meta text-ink-dim"><Text en="End all author sessions, including this browser." zh="退出包括当前浏览器在内的所有作者会话。" /></p>
         <form action={signOutAction} className="mt-4">
           <fieldset disabled={busy}>
             <legend className="sr-only"><Text en="Confirm sign out everywhere" zh="确认退出所有设备" /></legend>

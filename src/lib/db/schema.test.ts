@@ -129,6 +129,8 @@ describe('the ingestion schema', () => {
     expect(getTableConfig(schema.users).name).toBe('user')
     expect(columnNames(schema.users)).toEqual([
       'id',
+      'role',
+      'revoked_at',
       'passphrase_hash',
       'session_version',
       'failed_attempts',
@@ -455,6 +457,7 @@ describe('the ingestion schema', () => {
       '0011_api_sources',
       '0012_reader_preferences_and_translations',
       '0013_information_capture',
+      '0014_publication_access',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')

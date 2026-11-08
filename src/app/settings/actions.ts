@@ -4,17 +4,17 @@ import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { verifySession } from '@/lib/auth/dal'
+import { verifyAuthor } from '@/lib/auth/dal'
 import { CredentialActionError } from '@/lib/auth/postgres'
 import { sessionCookie } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { readLocale } from '@/lib/i18n/server'
-import { isInterfaceLanguage, isLanguage, isReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
+import { isInterfaceLanguage, isReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { accountSettings, appearanceSettings } from '@/lib/settings/server'
 
 export async function saveAppearance(value: unknown): Promise<{ error?: string }> {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   try {
     await appearanceSettings.save(value)
@@ -39,7 +39,7 @@ function textField(form: FormData, name: string): string {
 }
 
 export async function changePassphrase(_previous: { error?: string }, form: FormData): Promise<{ error?: string }> {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   try {
     await accountSettings.changePassphrase({
@@ -55,7 +55,7 @@ export async function changePassphrase(_previous: { error?: string }, form: Form
 }
 
 export async function signOutEverywhere(_previous: { error?: string }, form: FormData): Promise<{ error?: string }> {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   if (form.get('confirm') !== 'yes')
     return { error: t('Confirm that you want to sign out on every device.', '请确认退出所有设备。') }
@@ -69,7 +69,7 @@ export async function signOutEverywhere(_previous: { error?: string }, form: For
 }
 
 export async function saveReadingStyle(value: unknown): Promise<{ error?: string }> {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   if (!isReadingStyle(value))
     return { error: t('Choose a valid reading style.', '请选择有效的阅读样式。') }
@@ -81,13 +81,13 @@ export async function saveReadingStyle(value: unknown): Promise<{ error?: string
   return {}
 }
 
-export async function saveLanguage(field: 'interfaceLanguage' | 'contentLanguage', value: unknown): Promise<{ error?: string }> {
-  const { userId } = await verifySession()
+export async function saveLanguage(value: unknown): Promise<{ error?: string }> {
+  const { userId } = await verifyAuthor()
   const { t } = await readLocale()
-  if ((field !== 'interfaceLanguage' && field !== 'contentLanguage') || !(field === 'interfaceLanguage' ? isInterfaceLanguage(value) : isLanguage(value)))
+  if (!isInterfaceLanguage(value))
     return { error: t('Choose a valid language.', '请选择有效的语言。') }
   try {
-    await db().update(users).set({ [field]: value }).where(eq(users.id, userId))
+    await db().update(users).set({ interfaceLanguage: value }).where(eq(users.id, userId))
   }
   catch { return { error: t('Language could not be saved. Try again.', '语言保存失败，请重试。') } }
   revalidatePath('/', 'layout')

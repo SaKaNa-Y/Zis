@@ -52,11 +52,15 @@ function identityFrom(row: Record<string, unknown> | undefined): CredentialIdent
   return { userId: row.id, sessionVersion: row.session_version as number }
 }
 
-/**
- * Serializes every login against the single reader row. Argon2 intentionally
- * runs while the row lock is held, so a stale success cannot erase failures or
- * a lock created by a later attempt.
- */
+async function matchesHash(verifyHash: HashVerifier, digest: string, passphrase: string) {
+  try {
+    return await verifyHash(digest, passphrase)
+  }
+  catch {
+    return false
+  }
+}
+
 export async function runCredentialAttemptTransaction(
   client: CredentialTransactionClient,
   passphrase: string,
@@ -67,55 +71,66 @@ export async function runCredentialAttemptTransaction(
 
   try {
     const selected = await client.query(`
-      SELECT "id", "passphrase_hash", "session_version"
+      SELECT "id", "passphrase_hash", "session_version",
+        ("locked_until" > CURRENT_TIMESTAMP) IS TRUE AS locked
       FROM "user"
-      WHERE "id" = (SELECT singleton."id" FROM "user" AS singleton)
-        AND ("locked_until" IS NULL OR "locked_until" <= CURRENT_TIMESTAMP)
-      FOR UPDATE
+      WHERE revoked_at IS NULL
+      ORDER BY id FOR UPDATE
     `)
-    const credential = credentialFrom(selected.rows[0])
-
-    if (credential === null) {
+    const eligible: ReservedCredential[] = []
+    for (const row of selected.rows) {
+      const candidate = credentialFrom(row)
+      if (candidate && row.locked !== true && (!replacement || candidate.userId === replacement.identity.userId))
+        eligible.push(candidate)
+    }
+    if (eligible.length === 0) {
       await client.query('COMMIT')
       return null
     }
 
-    if (replacement && (credential.userId !== replacement.identity.userId || credential.sessionVersion !== replacement.identity.sessionVersion))
-      throw new CredentialActionError('Your session has expired. Sign in again.')
-
-    let matches = false
-    try {
-      matches = await verifyHash(credential.passphraseHash, passphrase)
-    }
-    catch {
-      // A malformed stored digest must fail exactly like a wrong credential and
-      // still consume an attempt; the public surface reveals neither condition.
+    const matches: ReservedCredential[] = []
+    for (const candidate of eligible) {
+      if (replacement && candidate.sessionVersion !== replacement.identity.sessionVersion)
+        throw new CredentialActionError('Your session has expired. Sign in again.')
+      if (await matchesHash(verifyHash, candidate.passphraseHash, passphrase))
+        matches.push(candidate)
     }
 
-    if (!matches) {
-      await client.query(`
-        UPDATE "user"
-        SET
-          "failed_attempts" = CASE
-            WHEN "locked_until" IS NOT NULL THEN 1
-            ELSE "failed_attempts" + 1
-          END,
-          "locked_until" = CASE
-            WHEN (
-              CASE
-                WHEN "locked_until" IS NOT NULL THEN 1
-                ELSE "failed_attempts" + 1
-              END
-            ) >= $2
-              THEN CURRENT_TIMESTAMP + make_interval(secs => $3::integer)
-            ELSE NULL
-          END
-        WHERE "id" = $1::uuid
-      `, [credential.userId, MAX_FAILED_ATTEMPTS, LOCKOUT_SECONDS])
+    const [credential] = matches
+    if (!credential || matches.length !== 1) {
+      for (const credential of eligible) {
+        await client.query(`
+          UPDATE "user"
+          SET
+            "failed_attempts" = CASE
+              WHEN "locked_until" IS NOT NULL THEN 1
+              ELSE "failed_attempts" + 1
+            END,
+            "locked_until" = CASE
+              WHEN (
+                CASE
+                  WHEN "locked_until" IS NOT NULL THEN 1
+                  ELSE "failed_attempts" + 1
+                END
+              ) >= $2
+                THEN CURRENT_TIMESTAMP + make_interval(secs => $3::integer)
+              ELSE NULL
+            END
+          WHERE "id" = $1::uuid
+        `, [credential.userId, MAX_FAILED_ATTEMPTS, LOCKOUT_SECONDS])
+      }
       await client.query('COMMIT')
       return null
     }
 
+    if (replacement) {
+      for (const row of selected.rows) {
+        if (row.id !== credential.userId && typeof row.passphrase_hash === 'string'
+          && await verifyHash(row.passphrase_hash, replacement.newPassphrase)) {
+          throw new CredentialActionError('Choose a distinct passphrase.')
+        }
+      }
+    }
     const newHash = replacement
       ? await hash(replacement.newPassphrase, { algorithm: 2, memoryCost: 65_536, timeCost: 3, parallelism: 1, outputLen: 32 })
       : undefined

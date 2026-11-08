@@ -63,6 +63,8 @@ export const briefAdmission = pgEnum('brief_admission', [
 /** The local reader identity that owns an Interest Profile. */
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
+  role: text('role', { enum: ['author', 'reader'] }).notNull().default('reader'),
+  revokedAt: timestampTz('revoked_at'),
   passphraseHash: text('passphrase_hash').notNull(),
   sessionVersion: integer('session_version').notNull().default(0),
   failedAttempts: integer('failed_attempts').notNull().default(0),
@@ -73,6 +75,8 @@ export const users = pgTable('user', {
   cutHour: smallint('cut_hour').notNull().default(6),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
+  unique('user_role_unique').on(table.role),
+  check('user_role_check', sql`${table.role} IN ('author', 'reader')`),
   check(
     'user_passphrase_hash_argon2id_check',
     sql`${table.passphraseHash} LIKE '$argon2id$v=19$m=65536,t=3,p=1$%'`,
@@ -158,6 +162,18 @@ export const links = pgTable('link', {
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
   unique('link_url_unique').on(table.url),
+])
+
+export const archivedBookmarks = pgTable('archived_bookmark', {
+  userId: uuid('user_id').notNull(),
+  legacySignalId: uuid('legacy_signal_id').notNull(),
+  linkId: uuid('link_id').notNull().references(() => links.id),
+  title: text('title').notNull(),
+  body: text('body'),
+  summary: text('summary'),
+  savedAt: timestampTz('saved_at').notNull(),
+}, table => [
+  primaryKey({ columns: [table.userId, table.legacySignalId] }),
 ])
 
 /** One eager Link identity, retained as a tombstone after an alias merge. */

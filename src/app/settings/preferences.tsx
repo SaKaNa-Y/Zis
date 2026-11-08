@@ -1,7 +1,7 @@
 'use client'
 
 import type { Appearance } from '@/lib/settings/appearance'
-import type { InterfaceLanguage, Language, ReadingStyle } from '@/lib/settings/preferences'
+import type { InterfaceLanguage, ReadingStyle } from '@/lib/settings/preferences'
 import { useState, useTransition } from 'react'
 import { useLocale } from '@/lib/i18n/context'
 import { DEFAULT_READING } from '@/lib/settings/preferences'
@@ -31,17 +31,15 @@ function SettingRow({ label, description, children }: { label: string, descripti
     </div>
   )
 }
-export function SettingsPreferences({ initialAppearance, initialReading, initialInterface, initialContent }: {
+export function SettingsPreferences({ initialAppearance, initialReading, initialInterface }: {
   initialAppearance: Appearance
   initialReading: ReadingStyle
   initialInterface: InterfaceLanguage
-  initialContent: Language
 }) {
   const { t } = useLocale()
   const [appearance, setAppearance] = useState(initialAppearance)
   const [reading, setReading] = useState(initialReading)
   const [interfaceLanguage, setInterfaceLanguage] = useState(initialInterface)
-  const [contentLanguage, setContentLanguage] = useState(initialContent)
   const [feedback, setFeedback] = useState('')
   const [pending, startTransition] = useTransition()
   function persist(operation: () => Promise<{ error?: string }>, rollback: () => void) {
@@ -112,28 +110,10 @@ export function SettingsPreferences({ initialAppearance, initialReading, initial
                 const value = event.target.value as InterfaceLanguage
                 const previous = interfaceLanguage
                 setInterfaceLanguage(value)
-                persist(() => saveLanguage('interfaceLanguage', value), () => setInterfaceLanguage(previous))
+                persist(() => saveLanguage(value), () => setInterfaceLanguage(previous))
               }}
             >
               <option value="system">{t('Follow browser', '跟随浏览器')}</option>
-              {languages.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
-        </SettingRow>
-        <SettingRow label={t('Content language', '内容语言')} description={t('Titles, summaries, and why a story appeared. Originals remain available. Saved across devices.', '标题、摘要与入选理由。随时可查看原文，在所有设备上同步。')}>
-          <label>
-            <span className="sr-only">{t('Content language', '内容语言')}</span>
-            <select
-              className="settings-select"
-              disabled={pending}
-              value={contentLanguage}
-              onChange={(event) => {
-                const value = event.target.value as Language
-                const previous = contentLanguage
-                setContentLanguage(value)
-                persist(() => saveLanguage('contentLanguage', value), () => setContentLanguage(previous))
-              }}
-            >
               {languages.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
@@ -173,13 +153,11 @@ export function SettingsPreferences({ initialAppearance, initialReading, initial
           <p className="mb-5 text-meta text-ink-faint">{t('Reading preview', '阅读预览')}</p>
           <div lang="zh-CN">
             <h3 className="reading-title">让技术阅读回到值得关注的事</h3>
-            <p className="reading-body mt-3">一份有边界的每日简报，保留重要的变化，也留出思考的时间。TypeScript、开源工具与新的想法，都从这里开始。</p>
-            <p className="reading-why mt-3 text-ink-dim">入选理由：与你关注的「开发工具」相关。</p>
+            <p className="reading-body mt-3">在文章中打开引文，就能对照原文阅读。</p>
           </div>
           <div lang="en" className="mt-7 border-t border-rule pt-6">
             <h3 className="reading-title">A little less noise. A little more perspective.</h3>
-            <p className="reading-body mt-3">A bounded daily brief of changes worth your attention, with room to read, think, and follow an idea.</p>
-            <p className="reading-why mt-3 text-ink-dim">Why this appeared: matches your Interest in developer tools.</p>
+            <p className="reading-body mt-3">Open a citation in an article to read the original passage.</p>
           </div>
         </div>
         <button type="button" className="mt-4 text-meta underline underline-offset-4 disabled:opacity-40" disabled={pending || (reading.size === DEFAULT_READING.size && reading.font === DEFAULT_READING.font)} onClick={() => chooseReading(DEFAULT_READING)}>{t('Reset reading style', '恢复默认阅读样式')}</button>
