@@ -1,4 +1,3 @@
-import process from 'node:process'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
@@ -51,14 +50,24 @@ it('keeps the PostgreSQL reading when the provider cannot supply project usage',
   expect(storage.project).toBeNull()
 })
 
-it('uses the project reading and reports when the provider measured it', async () => {
+const rootBranch = { id: 'br-root', project_id: 'test-project', logical_size: 250_000_000 }
+
+it('gets project-wide usage from the Free API for a project with one root branch', async () => {
   app.token = await issueSession({ userId: author, sessionVersion: 1 })
-  const measuredAt = new Date(Date.now() - 3_600_000).toISOString()
-  app.fetch.mockImplementation(async (url: string) => {
-    expect(new URL(url).searchParams.get('project_ids')).toBe(process.env.NEON_PROJECT_ID)
-    return { status: 200, text: () => JSON.stringify({ projects: [{ project_id: 'test-project', periods: [{
-      consumption: [{ timeframe_end: measuredAt, logical_size_bytes: 250_000_000 }],
-    }] }] }) }
-  })
-  expect((await readStorage()).project).toEqual({ remainingBytes: 750_000_000, measuredAt })
+  app.fetch.mockResolvedValue({ status: 200, text: () => JSON.stringify({ branches: [rootBranch] }) })
+  expect((await readStorage()).project).toEqual({ remainingBytes: 750_000_000 })
+  expect(app.fetch.mock.lastCall?.[0]).toBe('https://console.neon.tech/api/v2/projects/test-project/branches?limit=2')
+})
+
+it.each([
+  { branches: [rootBranch, { ...rootBranch, parent_id: rootBranch.id }] },
+  { branches: [rootBranch], pagination: { next: 'cursor' } },
+  { branches: [{ ...rootBranch, project_id: 'different-project' }] },
+  { branches: [{ ...rootBranch, logical_size: null }] },
+])('keeps database size when the project total cannot be established', async (payload) => {
+  app.token = await issueSession({ userId: author, sessionVersion: 1 })
+  app.fetch.mockResolvedValue({ status: 200, text: () => JSON.stringify(payload) })
+  const storage = await readStorage()
+  expect(storage.project).toBeNull()
+  expect(storage.databaseBytes).toBeGreaterThan(0)
 })

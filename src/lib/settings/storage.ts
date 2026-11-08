@@ -7,21 +7,12 @@ import 'server-only'
 
 // Neon Free's database storage allowance per project (October 2026).
 const FREE_PROJECT_BYTES = 1_000_000_000
-const SAMPLE_WINDOW_MS = 24 * 60 * 60 * 1000
 
-async function readProjectUsage(now: Date) {
+async function readProjectUsage() {
   const credentials = neonStorageCredentials()
   if (!credentials)
     return null
-  const oldest = now.getTime() - SAMPLE_WINDOW_MS
-  const endpoint = new URL('https://console.neon.tech/api/v2/consumption_history/projects')
-  endpoint.search = new URLSearchParams({
-    project_ids: credentials.projectId,
-    metrics: 'logical_size_bytes',
-    granularity: 'hourly',
-    from: new Date(oldest).toISOString(),
-    to: now.toISOString(),
-  }).toString()
+  const endpoint = new URL(`https://console.neon.tech/api/v2/projects/${credentials.projectId}/branches?limit=2`)
   const response = await safeFetch(endpoint.href, {
     headers: { Authorization: `Bearer ${credentials.apiKey}` },
     timeoutMs: 5000,
@@ -33,26 +24,24 @@ async function readProjectUsage(now: Date) {
   if (response.status !== 200)
     return null
   const payload: unknown = JSON.parse(response.text())
-  if (!payload || typeof payload !== 'object' || !('projects' in payload) || !Array.isArray(payload.projects))
+  // Neon counts root data at its logical size. A child shares some of its
+  // parent's data, so its logical size cannot establish project usage.
+  if (!payload || typeof payload !== 'object' || !('branches' in payload)
+    || !Array.isArray(payload.branches) || payload.branches.length !== 1) {
     return null
-  const project = payload.projects.find(p => p?.project_id === credentials.projectId)
-  if (!Array.isArray(project?.periods))
-    return null
-  let latest: { measuredAt: string, remainingBytes: number } | null = null
-  for (const period of project.periods) {
-    if (!Array.isArray(period?.consumption))
-      continue
-    for (const sample of period.consumption) {
-      const bytes = sample?.logical_size_bytes
-      const time = Date.parse(sample?.timeframe_end)
-      if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isFinite(time) || time < oldest || time > now.getTime())
-        continue
-      const measuredAt = new Date(time).toISOString()
-      if (!latest || latest.measuredAt < measuredAt)
-        latest = { remainingBytes: Math.max(0, FREE_PROJECT_BYTES - bytes), measuredAt }
-    }
   }
-  return latest
+  if ('pagination' in payload && payload.pagination && typeof payload.pagination === 'object'
+    && 'next' in payload.pagination && payload.pagination.next) {
+    return null
+  }
+  const branch: unknown = payload.branches[0]
+  if (!branch || typeof branch !== 'object' || !('project_id' in branch)
+    || branch.project_id !== credentials.projectId || ('parent_id' in branch && branch.parent_id)
+    || !('logical_size' in branch) || typeof branch.logical_size !== 'number'
+    || !Number.isSafeInteger(branch.logical_size) || branch.logical_size < 0) {
+    return null
+  }
+  return { remainingBytes: Math.max(0, FREE_PROJECT_BYTES - branch.logical_size) }
 }
 
 export async function readStorage() {
@@ -60,7 +49,7 @@ export async function readStorage() {
   const now = new Date()
   const [database, project] = await Promise.all([
     db().execute<{ bytes: string }>(sql`SELECT pg_database_size(current_database())::text AS bytes`),
-    readProjectUsage(now).catch(() => null),
+    readProjectUsage().catch(() => null),
   ])
   const row = database.rows[0]
   if (!row)

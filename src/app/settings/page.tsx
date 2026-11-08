@@ -32,13 +32,17 @@ export default async function SettingsPage() {
               MB
             </dd>
             <dt>{t('Remaining Neon Free project storage', 'Neon 项目免费存储余额')}</dt>
-            <dd>{storage.project ? `${megabytes(storage.project.remainingBytes)} MB` : t('Unavailable', '暂时无法获取')}</dd>
-            {storage.project && (
-              <>
-                <dt>{t('Neon measured at', 'Neon 计量时间')}</dt>
-                <dd>{displayTime(new Date(storage.project.measuredAt))}</dd>
-              </>
-            )}
+            <dd>
+              {storage.project
+                ? `${megabytes(storage.project.remainingBytes)} MB`
+                : (
+                    <>
+                      {t('Unavailable', '暂时无法获取')}
+                      {' · '}
+                      <a href="https://console.neon.tech/app/" target="_blank" rel="noreferrer">{t('Check project storage in Neon', '在 Neon 中查看项目用量')}</a>
+                    </>
+                  )}
+            </dd>
           </dl>
           <p>
             {t('Last checked', '最近检查')}
