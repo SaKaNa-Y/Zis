@@ -71,14 +71,15 @@ export async function runCredentialAttemptTransaction(
 
   try {
     const selected = await client.query(`
-      SELECT "id", "passphrase_hash", "session_version",
+      SELECT "id", "passphrase_hash", "session_version", revoked_at IS NOT NULL AS revoked,
         ("locked_until" > CURRENT_TIMESTAMP) IS TRUE AS locked
       FROM "user"
-      WHERE revoked_at IS NULL
       ORDER BY id FOR UPDATE
     `)
     const eligible: ReservedCredential[] = []
     for (const row of selected.rows) {
+      if (row.revoked === true)
+        continue
       const candidate = credentialFrom(row)
       if (candidate && row.locked !== true && (!replacement || candidate.userId === replacement.identity.userId))
         eligible.push(candidate)

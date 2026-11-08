@@ -1,4 +1,5 @@
 import type { CredentialTransactionClient } from './postgres'
+import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it, vi } from 'vitest'
 import {
   LOCKOUT_SECONDS,
@@ -114,4 +115,27 @@ describe('the Postgres credential transaction', () => {
       .toThrow('database unavailable')
     expect(client.commands.at(-1)).toBe('ROLLBACK')
   })
+})
+
+it('reserves a revoked reader passphrase during author rotation without allowing it to sign in', async () => {
+  const pg = new PGlite()
+  const verify = async (digest: string, phrase: string) => digest === phrase
+  const identity = { userId: USER_ID, sessionVersion: 7 }
+  try {
+    await pg.exec(`
+      CREATE TABLE "user"(id uuid PRIMARY KEY, passphrase_hash text, session_version integer,
+        revoked_at timestamptz, locked_until timestamptz, failed_attempts integer DEFAULT 0);
+      INSERT INTO "user"(id,passphrase_hash,session_version,revoked_at) VALUES
+        ('${USER_ID}', 'owner', 7, NULL),
+        (gen_random_uuid(), 'revoked reader', 1, now());
+    `)
+    await expect(runCredentialAttemptTransaction(pg, 'owner', verify, { identity, newPassphrase: 'revoked reader' }))
+      .rejects
+      .toThrow('distinct passphrase')
+    await expect(runCredentialAttemptTransaction(pg, 'revoked reader', verify)).resolves.toBeNull()
+    await expect(runCredentialAttemptTransaction(pg, 'owner', verify)).resolves.toEqual(identity)
+  }
+  finally {
+    await pg.close()
+  }
 })
