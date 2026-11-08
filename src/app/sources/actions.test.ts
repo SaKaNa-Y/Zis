@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ verify: vi.fn(), allow: vi.fn(), revalidate: vi.fn() }))
-vi.mock('@/lib/auth/dal', () => ({ verifySession: mocks.verify }))
+vi.mock('@/lib/auth/dal', () => ({ verifyAuthor: mocks.verify }))
 vi.mock('@/lib/capture/postgres', () => ({ captureStore: { allowBackfill: mocks.allow } }))
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidate }))
 const { allowBackfillAction } = await import('./actions')

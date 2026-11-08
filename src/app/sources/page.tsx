@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { verifySession } from '@/lib/auth/dal'
+import { verifyAuthor } from '@/lib/auth/dal'
 import { captureStore } from '@/lib/capture/postgres'
 import { readLocale } from '@/lib/i18n/server'
 import { CaptureSchedule, CaptureShell, CaptureTime, RunHistory } from '../capture/shared'
@@ -7,11 +7,11 @@ import { BackfillForm, RunForm, SourceForm } from './forms'
 
 export const metadata: Metadata = { title: 'Sources — Zis' }
 export default async function SourcesPage() {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   const [sources, runs] = await Promise.all([captureStore.listSources(), captureStore.listRuns()])
   return (
-    <CaptureShell current="/sources">
+    <CaptureShell>
       <header className="capture-heading">
         <p className="eyebrow">{t('Follow the source', '从来源开始')}</p>
         <h1 className="page-title">{t('Sources', '来源管理')}</h1>

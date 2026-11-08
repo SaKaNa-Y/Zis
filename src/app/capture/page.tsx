@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { verifySession } from '@/lib/auth/dal'
+import { verifyAuthor } from '@/lib/auth/dal'
 import { captureStore } from '@/lib/capture/postgres'
 import { readLocale } from '@/lib/i18n/server'
 import { CaptureForm } from './form'
@@ -9,7 +9,7 @@ import { CaptureShell } from './shared'
 
 export const metadata: Metadata = { title: 'Add information — Zis' }
 export default async function CapturePage({ searchParams }: { searchParams: Promise<{ card?: string }> }) {
-  await verifySession()
+  await verifyAuthor()
   const { t } = await readLocale()
   const { card: cardId } = await searchParams
   const initial = cardId ? await captureStore.getCard(cardId) : undefined
@@ -17,7 +17,7 @@ export default async function CapturePage({ searchParams }: { searchParams: Prom
     notFound()
   const [sources, usage] = await Promise.all([captureStore.listSources(), captureStore.storageUsage()])
   return (
-    <CaptureShell current="/capture">
+    <CaptureShell>
       <header className="capture-heading">
         <p className="eyebrow">{t('Keep the original', '保存原文')}</p>
         <h1 className="page-title">{initial ? t('Update information', '续更／补全信息') : t('Add information', '添加信息')}</h1>

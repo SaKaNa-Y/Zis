@@ -1,15 +1,14 @@
 import type { CaptureRun, CaptureSource } from '@/lib/capture/model'
 import Link from 'next/link'
-import { DestinationNavigation, MobileDestinationFooter } from '../destinations'
+import { DestinationNavigation } from '../destinations'
 
 export type Translate = (en: string, zh: string) => string
 
-export function CaptureShell({ current, children }: { current: '/' | '/capture' | '/sources', children: React.ReactNode }) {
+export function CaptureShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="brief-v2 app-shell capture-shell">
-      <DestinationNavigation current={current} />
+      <DestinationNavigation role="author" />
       <main className="page-content capture-content">{children}</main>
-      <MobileDestinationFooter current={current} />
     </div>
   )
 }
