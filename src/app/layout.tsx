@@ -7,6 +7,7 @@ import { appearanceSettings } from '@/lib/settings/server'
 import './globals.css'
 import './product.css'
 import './capture.css'
+import './publication.css'
 
 export const metadata: Metadata = {
   title: 'Zis',
@@ -18,7 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const reading = parseReadingStyle((await cookies()).get(READING_COOKIE)?.value)
   return (
     <html lang={locale.language === 'zh' ? 'zh-CN' : 'en'} className={appearance} data-reading-size={reading.size} data-reading-font={reading.font}>
-      <body><LocaleProvider language={locale.language} contentLanguage={locale.contentLanguage}>{children}</LocaleProvider></body>
+      <body><LocaleProvider language={locale.language}>{children}</LocaleProvider></body>
     </html>
   )
 }

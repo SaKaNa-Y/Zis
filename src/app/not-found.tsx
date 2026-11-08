@@ -1,17 +1,11 @@
 import Link from 'next/link'
-import { DestinationNavigation, MobileDestinationFooter } from './destinations'
+import { Text } from '@/lib/i18n/context'
 
 export default function NotFound() {
   return (
-    <div className="brief-v2">
-      <DestinationNavigation />
-      <main className="page-content state-content">
-        <p className="eyebrow page-eyebrow">Not here</p>
-        <h1 className="page-title">This page is unavailable.</h1>
-        <p>The link may be incomplete, or the page may no longer be available.</p>
-        <Link href="/" className="entry-action">Return to Today</Link>
-      </main>
-      <MobileDestinationFooter />
-    </div>
+    <main className="publication-shell publication-state">
+      <h1 className="publication-title"><Text en="Page unavailable" zh="页面不可用" /></h1>
+      <Link href="/"><Text en="Return home" zh="返回首页" /></Link>
+    </main>
   )
 }
