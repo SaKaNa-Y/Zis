@@ -24,7 +24,7 @@ export default async function ArticlePage({ params, searchParams }: {
   const href = `/articles/${article.id}`
   return (
     <div className="publication-shell">
-      <DestinationNavigation role={role} />
+      <DestinationNavigation role={role} current="/articles" />
       <main className="page-content">
         <div className="detail-nav">
           <Link href="/articles">{t('Article directory', '文章目录')}</Link>

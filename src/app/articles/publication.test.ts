@@ -23,11 +23,11 @@ it('opens the latest article from its headline and keeps earlier work available'
   expect(html).toContain('href="/articles"')
 })
 
-it('exposes history and the author menu only for an author', () => {
+it('exposes all author destinations only for an author', () => {
   for (const role of ['author', 'reader'] as const) {
     const html = renderToStaticMarkup(createElement(DestinationNavigation, { role, current: '/' }))
     expect(html).toContain('href="/articles"')
-    for (const link of ['/history', '/write', '/saved', '/settings'])
+    for (const link of ['/history', '/write', '/collection', '/capture', '/sources', '/publish', '/saved', '/settings'])
       expect(html.includes(`href="${link}"`)).toBe(role === 'author')
   }
 })

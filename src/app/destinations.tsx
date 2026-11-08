@@ -20,20 +20,19 @@ export function DestinationNavigation({ current, role = 'reader' }: { current?: 
       <nav aria-label={t('Primary navigation', '主导航')}>
         {link('/', 'Home', '首页')}
         {link('/articles', 'Articles', '文章目录')}
-        {role === 'author' && (
-          <>
-            {link('/history', 'History', '发布历史')}
-            <details className="author-menu">
-              <summary>{t('Author', '作者')}</summary>
-              <div>
-                {link('/write', 'Write article', '写文章')}
-                {link('/saved', 'Bookmarks', '收藏')}
-                {link('/settings', 'Settings', '设置')}
-              </div>
-            </details>
-          </>
-        )}
       </nav>
+      {role === 'author' && (
+        <nav className="author-navigation" aria-label={t('Author navigation', '作者工作导航')}>
+          {link('/write', 'Write article', '写文章')}
+          {link('/collection', 'Collected material', '采集资料')}
+          {link('/capture', 'Add information', '添加信息')}
+          {link('/sources', 'Sources', '来源管理')}
+          {link('/publish', 'Publication workspace', '发布工作区')}
+          {link('/history', 'History', '发布历史')}
+          {link('/saved', 'Bookmarks', '收藏')}
+          {link('/settings', 'Settings', '设置')}
+        </nav>
+      )}
     </header>
   )
 }
