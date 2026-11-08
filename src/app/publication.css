@@ -1,25 +1,15 @@
 .publication-shell {
-  --paper: #f8f6ef;
-  --surface: #fffdf7;
-  --ink: #27241f;
-  --ink-dim: #615c51;
-  --rule: #c9c3b6;
-  --accent: #624b28;
+  --paper: light-dark(#f8f6ef, #24221e);
+  --surface: light-dark(#fffdf7, #302e28);
+  --ink: light-dark(#27241f, #f4efe4);
+  --ink-dim: light-dark(#615c51, #d1cabb);
+  --rule: light-dark(#c9c3b6, #605b50);
+  --accent: light-dark(#624b28, #e2cda5);
   --editorial-type: "Iowan Old Style", "Palatino Linotype", "Songti SC", Georgia, serif;
   background: var(--paper);
   color: var(--ink);
-  color-scheme: light;
   min-height: 100svh;
   overflow-wrap: anywhere;
-}
-.dark .publication-shell {
-  --paper: #24221e;
-  --surface: #302e28;
-  --ink: #f4efe4;
-  --ink-dim: #d1cabb;
-  --rule: #605b50;
-  --accent: #e2cda5;
-  color-scheme: dark;
 }
 .publication-shell a { text-underline-offset: .2em; }
 .publication-shell button:not(:disabled):hover, .publication-shell a:hover, .publication-header summary:hover { text-decoration: underline; }
