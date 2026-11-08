@@ -1,6 +1,6 @@
 import process from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
-import { databaseUrl, deepseekApiKey } from './env'
+import { databaseUrl, sessionSecret } from './env'
 
 const original = { ...process.env }
 
@@ -24,10 +24,10 @@ describe('reading the environment', () => {
     expect(() => databaseUrl()).toThrow('DATABASE_URL')
   })
 
-  it('asks only for the variable in hand, so a surface without the AI keys still runs', () => {
+  it('asks only for the variable in hand, so a surface without the session key still runs', () => {
     process.env.DATABASE_URL = 'postgresql://example'
-    delete process.env.DEEPSEEK_API_KEY
+    delete process.env.SESSION_SECRET
     expect(databaseUrl()).toBe('postgresql://example')
-    expect(() => deepseekApiKey()).toThrow('DEEPSEEK_API_KEY')
+    expect(() => sessionSecret()).toThrow('SESSION_SECRET')
   })
 })

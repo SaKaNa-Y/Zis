@@ -1,25 +1,49 @@
-# Information capture operations
+# Collection and publication operations
 
-Zis now stores original information cards. It does not run the retired RSS,
-ranking, summarization, or translation pipelines. Existing Brief history stays
-in its original tables and remains available through the archive routes.
+## Cut over the application
 
-## Deploy the application
+The current X and blog writer saves through the authenticated capture form into the capture tables introduced in migration 0013. The November 8 inventory on the production branch confirmed six enabled X accounts and two enabled blog indexes, separate from the legacy source register. The application reads the configured Sources at run time.
 
-The application still runs on Vercel with Neon PostgreSQL. It uses only
-`DATABASE_URL` and `SESSION_SECRET` for the new capture flow. This change does
-not create a paid subscription or configure an external model API.
+1. Rehearse the migration on an isolated copy. Verify that recovery from a pre-cutover backup works before using a production target.
+2. Stop writes from the previous release. Compare the legacy bookmark count, original Links, save times and a sample of available text against the migrated archive on the copy. Migration 0014 assigns the existing credential the author role.
+3. Check for external consumers of the legacy tables. Migration 0016 removes the old graph and Brief history. An unreconciled bookmark or an unexpected dependent object stops the migration.
+4. Apply the reviewed migrations with `pnpm db:migrate` on the intended database and deploy the matching application. Authenticate as each role and check access to an Article, /history and /saved. Rolling back the application after destructive migration also requires restoring the previous database.
+5. Provision the distinct reader credential using the [offline credential command](security-model.md#62-recovery-is-a-update-and-it-bumps-session_version). Published Articles are independent of either credential.
 
-1. Confirm that the target Neon and Vercel accounts use free plans.
-2. Apply migration `0013_information_capture` to the intended database with `pnpm db:migrate`.
-3. Deploy the application after the migration succeeds.
-4. Sign in and open Sources. Confirm the six X accounts and two official blog indexes.
-5. Save a new original through Add information, then open its image and update its text.
+## Read storage
 
-Builds never apply migrations. Preview deployments require their own database.
-The migration adds new tables and source records. It does not delete legacy
-Items, Signals, Briefs, bookmarks, or user preferences. The old source register
-is empty and both old worker entrypoints refuse to execute.
+Settings reports PostgreSQL database size directly. With a scoped Neon API token and project ID it also reads the project's branch inventory. For a single root branch, Neon counts its logical data size toward the project's free Postgres allowance. With child branches, logical sizes share storage and cannot be added. Settings then links to the Neon projects page for the provider's total and continues to show the database reading. Instant restore history has its own allowance. [Neon storage accounting](https://neon.com/docs/introduction/plans#storage)
+
+## Publish through the browser
+
+Sign in with the author passphrase and open /publish. Use a stable attempt key for the scheduled collection window. Start the attempt before collecting and report stages as work proceeds. Visit /sources to inspect enabled inputs and /collection for available original text. Record a failure when collection or writing cannot finish. After an interruption, reopen /publish with the same key.
+
+Submit the Articles together. Each output has a stable editorial key and content, as in the following example. Each citation URL points to a specific original post or blog entry. Use a null excerpt when no verbatim passage is available. Set the optional citation field `afterText` to a unique phrase in the paragraph to place the marker immediately after that phrase.
+
+```json
+[{
+  "key": "example-release",
+  "content": {
+    "title": "A release changes the default",
+    "standfirst": "What changed and who it affects.",
+    "imageUrl": null,
+    "sections": [{
+      "heading": "The change",
+      "paragraphs": [{
+        "text": "The release enables the option by default.",
+        "citations": [{
+          "url": "https://example.org/releases/1",
+          "title": "Release 1",
+          "publisher": "Example",
+          "excerpt": "The option is now enabled by default."
+        }]
+      }]
+    }]
+  }
+}]
+```
+
+Submit an empty array and a reason when the attempt finishes without publishable material. Reuse editorial keys on retry. Inspect /history for the result and open the resulting Article to verify its references.
 
 ## Store images within the existing free database
 
@@ -48,7 +72,7 @@ projects that share the account. Confirm the actual account plan before rollout.
 
 ## Collect through the authenticated UI
 
-The same UI serves the reader and the cloud browser operator. No direct database
+Sign in as an author. The browser operator uses /sources, /capture and /collection. No direct database
 credential is needed by the operator. Source content is untrusted reference
 material, not instructions to execute or change settings.
 
@@ -59,7 +83,7 @@ material, not instructions to execute or change settings.
 5. Open Add information, choose the source, and enter the original content.
 6. For a thread, enter the first post URL as the thread URL and add its posts in publication order.
 7. For a blog, use Markdown for headings, lists, code, quotes, links, and tables. Use `![caption](attachment:1)` to place the first uploaded image inline.
-8. Save the card and confirm that it appears in Information.
+8. Save the card and confirm that it appears in /collection.
 9. Record a result for that source on Sources, including the number of new cards.
 
 Use Update or complete on an existing card to add continuations, missing images,

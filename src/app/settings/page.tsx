@@ -1,43 +1,64 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
-import { verifySession } from '@/lib/auth/dal'
 import { readLocale } from '@/lib/i18n/server'
 import { parseReadingStyle, READING_COOKIE } from '@/lib/settings/preferences'
 import { appearanceSettings } from '@/lib/settings/server'
-import { DestinationNavigation, MobileDestinationFooter } from '../destinations'
+import { readStorage } from '@/lib/settings/storage'
+import { DestinationNavigation } from '../destinations'
 import { AccountControls } from './controls'
 import { SettingsPreferences } from './preferences'
 
 export const metadata: Metadata = { title: 'Settings — Zis' }
 
 export default async function SettingsPage() {
-  await verifySession()
+  const storage = await readStorage()
   const appearance = await appearanceSettings.read()
-  const locale = await readLocale()
+  const { language, interfaceLanguage, t } = await readLocale()
   const reading = parseReadingStyle((await cookies()).get(READING_COOKIE)?.value)
-  const { t } = locale
+  const megabytes = (bytes: number) => (bytes / 1_000_000).toLocaleString(language, { maximumFractionDigits: 2 })
+  const displayTime = (date: Date) => date.toLocaleString(language, { timeZone: 'Asia/Shanghai', timeZoneName: 'short' })
   return (
-    <div className="brief-v2 app-shell">
-      <DestinationNavigation current="/settings" />
-      <div className="min-w-0">
-        <main className="page-content">
-          <header className="mb-10">
-            <p className="eyebrow page-eyebrow">{t('Your space', '你的空间')}</p>
-            <h1 className="page-title">{t('Settings', '设置')}</h1>
-            <p className="mt-3 text-meta text-ink-dim">{t('Make room for the way you read.', '按你的习惯，安静地阅读。')}</p>
-          </header>
-          <SettingsPreferences initialAppearance={appearance} initialReading={reading} initialInterface={locale.interfaceLanguage} initialContent={locale.contentLanguage} />
-          <section aria-labelledby="account-heading" className="settings-section">
-            <h2 id="account-heading" className="settings-heading">{t('Account security', '账户安全')}</h2>
-            <AccountControls />
-          </section>
-          <footer className="mt-8 border-t border-rule pt-6 text-meta text-ink-dim">
-            <p>{t('Legacy Brief generation and Interest filtering are retired. Earlier Briefs and Saved items remain in the archive.', '旧简报生成与兴趣筛选已停用。以往简报和收藏仍保留在归档中。')}</p>
-            <p className="mt-3">{t('Planned collection starts: 08:00 and 20:00 Asia/Shanghai. An external collector must be configured separately; these are start times, not completion guarantees.', '计划采集开始时间：北京时间 08:00、20:00。需要另行配置外部采集任务；这是开始时间，不保证届时完成。')}</p>
-          </footer>
-        </main>
-        <MobileDestinationFooter current="/settings" />
-      </div>
+    <div className="publication-shell">
+      <DestinationNavigation current="/settings" role="author" />
+      <main className="page-content">
+        <h1 className="page-title">{t('Settings', '设置')}</h1>
+        <section className="settings-section" aria-labelledby="storage-heading">
+          <h2 id="storage-heading" className="settings-heading">{t('Storage', '存储')}</h2>
+          <dl>
+            <dt>{t('PostgreSQL database', 'PostgreSQL 数据库')}</dt>
+            <dd>
+              {megabytes(storage.databaseBytes)}
+              {' '}
+              MB
+            </dd>
+            <dt>{t('Remaining Neon Free project storage', 'Neon 项目免费存储余额')}</dt>
+            <dd>
+              {storage.project
+                ? `${megabytes(storage.project.remainingBytes)} MB`
+                : (
+                    <>
+                      {t('Unavailable', '暂时无法获取')}
+                      {' · '}
+                      <a href="https://console.neon.tech/app/" target="_blank" rel="noreferrer">{t('Check project storage in Neon', '在 Neon 中查看项目用量')}</a>
+                    </>
+                  )}
+            </dd>
+          </dl>
+          <p>
+            {t('Last checked', '最近检查')}
+            {' '}
+            ·
+            {' '}
+            {displayTime(storage.checkedAt)}
+          </p>
+          <form action="/settings" method="get"><button className="underline" type="submit">{t('Refresh storage', '刷新存储数据')}</button></form>
+        </section>
+        <SettingsPreferences initialAppearance={appearance} initialReading={reading} initialInterface={interfaceLanguage} />
+        <section aria-labelledby="account-heading" className="settings-section">
+          <h2 id="account-heading" className="settings-heading">{t('Account security', '账户安全')}</h2>
+          <AccountControls />
+        </section>
+      </main>
     </div>
   )
 }

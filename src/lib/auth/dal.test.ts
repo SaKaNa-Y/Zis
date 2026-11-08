@@ -29,12 +29,12 @@ describe('the authenticated data-access boundary', () => {
       { secret: TEST_SECRET, now: NOW },
     )
     const verifySession = createVerifySession({
-      readSessionVersion: async () => 4,
+      readAccount: async () => ({ sessionVersion: 4, role: 'author' }),
       readToken: async () => token,
       unauthorized: refuse,
     })
 
-    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4 })
+    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4, role: 'author' })
   })
 
   it('invalidates a live token as soon as the stored session version is bumped', async () => {
@@ -47,12 +47,12 @@ describe('the authenticated data-access boundary', () => {
     )
     let storedVersion = 4
     const verifySession = createVerifySession({
-      readSessionVersion: async () => storedVersion,
+      readAccount: async () => ({ sessionVersion: storedVersion, role: 'reader' }),
       readToken: async () => token,
       unauthorized: refuse,
     })
 
-    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4 })
+    await expect(verifySession()).resolves.toEqual({ userId: USER_ID, sessionVersion: 4, role: 'reader' })
     storedVersion = 5
     await expect(verifySession()).rejects.toThrow('redirect:/login')
   })
@@ -82,7 +82,7 @@ describe('the authenticated data-access boundary', () => {
 
     for (const entry of cases) {
       const verifySession = createVerifySession({
-        readSessionVersion: async () => entry.version,
+        readAccount: async () => entry.version === null ? null : { sessionVersion: entry.version, role: 'author' },
         readToken: async () => entry.token,
         unauthorized: refuse,
       })

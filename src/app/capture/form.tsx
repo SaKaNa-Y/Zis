@@ -119,7 +119,7 @@ export function CaptureForm({ sources, initial }: { sources: CaptureSource[], in
         <p role="status">
           {state.success}
           {' '}
-          <a href={state.id ? `/#card-${state.id}` : '/'}>
+          <a href={state.id ? `/collection#card-${state.id}` : '/collection'}>
             {t('View information', '查看信息')}
             {' '}
             →

@@ -18,6 +18,9 @@ export async function hashPassphrase(passphrase: string): Promise<string> {
   if (new TextEncoder().encode(passphrase).byteLength < MINIMUM_PASSPHRASE_BYTES)
     throw new Error('Generated passphrase must contain at least 32 bytes')
 
+  if (new TextEncoder().encode(passphrase).byteLength > 1024)
+    throw new Error('Generated passphrase must contain at most 1024 bytes')
+
   return hash(passphrase, ARGON2_OPTIONS)
 }
 

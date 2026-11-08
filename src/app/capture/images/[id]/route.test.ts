@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET } from './route'
 
-const mocks = vi.hoisted(() => ({ verifySession: vi.fn(), readImage: vi.fn() }))
-vi.mock('@/lib/auth/dal', () => ({ verifySession: mocks.verifySession }))
+const mocks = vi.hoisted(() => ({ verifyAuthor: vi.fn(), readImage: vi.fn() }))
+vi.mock('@/lib/auth/dal', () => ({ verifyAuthor: mocks.verifyAuthor }))
 vi.mock('@/lib/capture/postgres', () => ({ captureStore: { readImage: mocks.readImage } }))
 const id = '00000000-0000-0000-0000-000000000001'
 beforeEach(() => {
   vi.resetAllMocks()
-  mocks.verifySession.mockResolvedValue({ userId: 'reader' })
+  mocks.verifyAuthor.mockResolvedValue({ role: 'author' })
 })
 describe('private capture images', () => {
   it('does not read an image before authentication', async () => {
-    mocks.verifySession.mockRejectedValue(new Error('sign in'))
+    mocks.verifyAuthor.mockRejectedValue(new Error('sign in'))
     await expect(GET(new Request('https://zis.test'), { params: Promise.resolve({ id }) })).rejects.toThrow('sign in')
     expect(mocks.readImage).not.toHaveBeenCalled()
   })

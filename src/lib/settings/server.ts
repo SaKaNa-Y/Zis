@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers'
-import { verifySession } from '@/lib/auth/dal'
+import { verifyAuthor, verifySession } from '@/lib/auth/dal'
 import { withCredentialClient } from '@/lib/auth/postgres'
 import { createAccountSettings } from './account'
 import { APPEARANCE_COOKIE_NAME, createAppearanceSettings } from './appearance'
 import 'server-only'
 
-export const accountSettings = createAccountSettings({ verifySession, withClient: withCredentialClient })
+export const accountSettings = createAccountSettings({ verifySession: verifyAuthor, withClient: withCredentialClient })
 
 export const appearanceSettings = createAppearanceSettings({
   verifySession,

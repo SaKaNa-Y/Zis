@@ -5,10 +5,14 @@ material — read it before writing anything that makes a network request, parse
 a feed, or renders fetched content. The *why* behind each rule is in #7's
 resolution comment; this document is what you check against.
 
-The threat model is one sentence: **Zis fetches arbitrary remote URLs by design
-and feeds the results to an LLM.** Registration is disabled and there is exactly
-one account, which removes signup abuse, enumeration, and reset flows — and none
-of what follows.
+Zis publishes private Articles from untrusted source material. A browser operator
+collects originals through the author workspace. The reader credential opens
+published Articles. The author's credential also permits editing and access to
+collection material, publication history, archived bookmarks, and storage.
+Each protected server request validates the credential in the database.
+
+The former RSS, embedding and translation workers described below are retired.
+Current data lifetimes and role boundaries are in [ADR 0027](adr/0027-private-article-publication.md).
 
 ---
 
@@ -205,9 +209,9 @@ the invariant that makes the whole boundary structural.
   in the same transaction as the password verify. No new infrastructure, survives
   redeploys, and does not tie a security property to a hosting vendor. Argon2id at
   a real cost factor is itself a throttle, but a public login route with no
-  lockout is the one thing a scanner will find. The transaction holds the sole
-  reader row `FOR UPDATE` through Argon2 verification, so a stale success cannot
-  clear failures recorded by a later request. Five consecutive failures lock the
+  lockout is the one thing a scanner will find. Login locks all active credential rows in ID order through Argon2 verification.
+  A successful login resets only the matching account. Failed login proofs count
+  against each eligible account because the form has no username. Five consecutive failures lock the
   row for 15 minutes; the first attempt after expiry starts the count at one.
 - `verifySession()` in the DAL is the auth boundary, **not `proxy.ts`** — Server
   Actions POST to the route they are used on, so a proxy matcher that excludes a
@@ -273,12 +277,23 @@ SET
   "session_version" = "session_version" + 1,
   "failed_attempts" = 0,
   "locked_until" = NULL
-WHERE "id" = (SELECT singleton."id" FROM "user" AS singleton);
+WHERE role = 'author';
 ```
 
-The scalar subquery deliberately fails if the one-reader invariant has been
-broken; a successful recovery must report exactly one updated row. The new
-plaintext stays in the password manager, while only its digest reaches Neon.
+Recovery targets the unique author row and must report exactly one updated row.
+Choose a fresh generated passphrase distinct from the reader passphrase.
+
+Provision or rotate the reader credential using the database operator's connection:
+
+```powershell
+(Read-Host 'Generated reader passphrase' -AsSecureString |
+  ConvertFrom-SecureString -AsPlainText) |
+  pnpm exec tsx scripts/auth/reader.ts issue
+```
+
+To revoke it, run `pnpm exec tsx scripts/auth/reader.ts revoke`. Both commands
+invalidate existing reader sessions. The author's passphrase and sessions stay
+valid.
 
 **The same statement must bump `session_version`.** This is required, not
 optional. A re-seed cannot distinguish "I forgot the passphrase" from "someone
@@ -305,10 +320,10 @@ route. That is a password-manager habit, not a Zis feature.
 Agreed and confirmed before implementation during
 [#95](https://github.com/SaKaNa-Y/Zis/issues/95).
 
-Changing the passphrase requires a valid session and proof of the current
-passphrase. The reader enters the new passphrase twice; both fields allow password
+Changing the author passphrase requires an author session and proof of the current
+passphrase. The author enters the new passphrase twice; both fields allow password
 manager filling and pasting, and must match. The new secret remains generated and
-stored by the reader's password manager, as required by §6.1.
+stored by the author's password manager, as required by §6.1.
 
 The new passphrase must contain 32–1024 UTF-8 bytes: the lower bound matches the
 existing local generation helper, and the upper bound keeps the result usable by

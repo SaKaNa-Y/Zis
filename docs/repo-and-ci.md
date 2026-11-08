@@ -1,4 +1,4 @@
-> **2026-11-07 retirement update:** Legacy ingestion, Brief generation, Interest filtering and paid translation are retired. Ingest and Translate workflows are manual notice-only placeholders with no secrets, worker execution or automatic triggers. The former cadence and pipeline details below are historical. Planned capture starts are 08:00 and 20:00 Asia/Shanghai, requiring a separately configured external collector; this repository does not schedule it. This supersedes the legacy execution guidance in ADR-0008.
+> The Article publication cutover removes the legacy ingest and translation workflows. The hourly retention job deletes expired collection material and publication attempts. The external browser writer signs in with the author credential. See [current operations](capture-operations.md) for the deployment sequence. The legacy worker, cadence and environment descriptions below are historical.
 
 # Zis repository and CI
 

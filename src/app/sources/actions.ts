@@ -2,13 +2,13 @@
 
 import type { CaptureActionState } from '@/lib/capture/action-service'
 import { revalidatePath } from 'next/cache'
-import { verifySession } from '@/lib/auth/dal'
+import { verifyAuthor } from '@/lib/auth/dal'
 import { captureActionError, textField } from '@/lib/capture/action-service'
 import { CaptureValidationError } from '@/lib/capture/model'
 import { captureStore } from '@/lib/capture/postgres'
 
 export async function saveSourceAction(_previous: CaptureActionState, form: FormData): Promise<CaptureActionState> {
-  await verifySession()
+  await verifyAuthor()
   try {
     const kind = textField(form, 'kind')
     if (kind !== 'x' && kind !== 'blog')
@@ -30,7 +30,7 @@ export async function saveSourceAction(_previous: CaptureActionState, form: Form
 }
 
 export async function recordRunAction(_previous: CaptureActionState, form: FormData): Promise<CaptureActionState> {
-  await verifySession()
+  await verifyAuthor()
   try {
     const status = textField(form, 'status')
     const countText = textField(form, 'addedCount')
@@ -43,7 +43,7 @@ export async function recordRunAction(_previous: CaptureActionState, form: FormD
       addedCount,
       message: textField(form, 'message') || undefined,
     })
-    revalidatePath('/')
+    revalidatePath('/collection')
     revalidatePath('/sources')
     return { success: 'Collection result saved.' }
   }
@@ -53,7 +53,7 @@ export async function recordRunAction(_previous: CaptureActionState, form: FormD
 }
 
 export async function allowBackfillAction(_previous: CaptureActionState, form: FormData): Promise<CaptureActionState> {
-  await verifySession()
+  await verifyAuthor()
   try {
     const day = textField(form, 'startDate')
     const changed = await captureStore.allowBackfill(`${day}T00:00:00+08:00`)

@@ -15,7 +15,7 @@ const state = vi.hoisted(() => ({
 const id = '00000000-0000-4000-8000-000000000001'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/db', () => ({ db: () => state.database }))
-vi.mock('@/lib/auth/dal', () => ({ verifySession: async () => {
+vi.mock('@/lib/auth/dal', () => ({ verifyAuthor: async () => {
   if (!state.authenticated)
     throw new Error('unauthorized')
   return { userId: id, sessionVersion: state.sessionVersion }
@@ -44,21 +44,19 @@ beforeEach(async () => {
   state.authenticated = true
   state.sessionVersion = 0
   state.cookieJar = new Map()
-  await pg.exec('CREATE TABLE "user" (id uuid PRIMARY KEY, session_version int, interface_language text, content_language text)')
-  await pg.query('INSERT INTO "user" VALUES ($1,0,$2,$3)', [id, 'system', 'zh'])
+  await pg.exec('CREATE TABLE "user" (id uuid PRIMARY KEY, session_version int, interface_language text, revoked_at timestamptz)')
+  await pg.query('INSERT INTO "user" VALUES ($1,0,$2,NULL)', [id, 'system'])
 })
 afterEach(async () => {
   await pg.close()
 })
 
-it('persists languages independently and resolves them in a second browser session', async () => {
-  expect(await saveLanguage('interfaceLanguage', 'zh')).toEqual({})
+it('persists interface language and resolves them in a second browser session', async () => {
+  expect(await saveLanguage('zh')).toEqual({})
   expect((await readLocale()).language).toBe('zh')
-  expect(await saveLanguage('contentLanguage', 'en')).toEqual({})
   state.cookieJar = new Map()
   const secondBrowser = await readLocale()
   expect(secondBrowser.language).toBe('zh')
-  expect(secondBrowser.contentLanguage).toBe('en')
   expect(secondBrowser.t('Saved', '已保存')).toBe('已保存')
 })
 it('keeps reading style browser-local and requires authentication', async () => {
@@ -74,10 +72,10 @@ it('keeps reading style browser-local and requires authentication', async () => 
   expect(firstBrowser.get(READING_COOKIE)).toBe(JSON.stringify(style))
 })
 it('does not load preferences from a revoked session or write invalid values', async () => {
-  await saveLanguage('interfaceLanguage', 'zh')
+  await saveLanguage('zh')
   state.sessionVersion = 1
   expect((await readLocale()).language).toBe('en')
-  expect(await saveLanguage('contentLanguage', 'system')).toHaveProperty('error')
+  expect(await saveLanguage('bad')).toHaveProperty('error')
   expect(await saveReadingStyle({ size: ['large'], font: 'serif' })).toHaveProperty('error')
-  expect((await pg.query('SELECT content_language FROM "user"')).rows).toEqual([{ content_language: 'zh' }])
+  expect((await pg.query('SELECT interface_language FROM "user"')).rows).toEqual([{ interface_language: 'zh' }])
 })

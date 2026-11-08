@@ -166,11 +166,11 @@ describe('deny-by-default routing', () => {
     }
   })
 
-  it('keeps the Signal provenance page inside the authenticated route surface', async () => {
+  it('keeps the Article detail page inside the authenticated route surface', async () => {
     const routes = routeFiles(join(ROOT, 'src', 'app')).map(routePath)
 
-    expect(routes).toContain('/signals/fixture')
-    const response = await proxy(request('/signals/fixture', { headers: { accept: 'text/html' } }))
+    expect(routes).toContain('/articles/fixture')
+    const response = await proxy(request('/articles/fixture', { headers: { accept: 'text/html' } }))
     expect(response.status).toBe(307)
     expect(getRedirectUrl(response)).toBe('https://zis.example/login')
   })

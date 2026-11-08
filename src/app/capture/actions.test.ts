@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { saveCaptureAction } from './actions'
 
-const mocks = vi.hoisted(() => ({ verifySession: vi.fn(), saveCapture: vi.fn(), revalidatePath: vi.fn() }))
-vi.mock('@/lib/auth/dal', () => ({ verifySession: mocks.verifySession }))
+const mocks = vi.hoisted(() => ({ verifyAuthor: vi.fn(), saveCapture: vi.fn(), revalidatePath: vi.fn() }))
+vi.mock('@/lib/auth/dal', () => ({ verifyAuthor: mocks.verifyAuthor }))
 vi.mock('@/lib/capture/postgres', () => ({ captureStore: { saveCapture: mocks.saveCapture } }))
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }))
 
 beforeEach(() => {
   vi.resetAllMocks()
-  mocks.verifySession.mockResolvedValue({ userId: 'reader' })
+  mocks.verifyAuthor.mockResolvedValue({ role: 'author' })
 })
 
 describe('capture action', () => {
   it('authenticates before reading or writing a submission', async () => {
-    mocks.verifySession.mockRejectedValue(new Error('sign in'))
+    mocks.verifyAuthor.mockRejectedValue(new Error('sign in'))
     await expect(saveCaptureAction({}, new FormData())).rejects.toThrow('sign in')
     expect(mocks.saveCapture).not.toHaveBeenCalled()
   })
@@ -25,6 +25,6 @@ describe('capture action', () => {
     mocks.saveCapture.mockResolvedValue({ id: 'card', created: true })
     expect(await saveCaptureAction({}, form)).toEqual({ id: 'card', success: 'Information saved.' })
     expect(mocks.saveCapture).toHaveBeenCalledOnce()
-    expect(mocks.revalidatePath).toHaveBeenCalledWith('/')
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/collection')
   })
 })

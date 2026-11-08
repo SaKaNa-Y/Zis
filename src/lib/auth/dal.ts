@@ -1,19 +1,20 @@
 import { sql } from 'drizzle-orm'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { cache } from 'react'
 import { db } from '@/lib/db'
 import { SESSION_COOKIE_NAME, verifySessionToken } from './session'
 import 'server-only'
 
 export interface VerifiedSession {
+  role: 'reader' | 'author'
   userId: string
   sessionVersion: number
 }
 
 export interface VerifySessionDependencies {
   readToken: () => Promise<string | undefined>
-  readSessionVersion: (userId: string) => Promise<number | null>
+  readAccount: (userId: string) => Promise<Omit<VerifiedSession, 'userId'> | null>
   unauthorized: () => never
 }
 
@@ -26,26 +27,32 @@ export function createVerifySession(
     if (session === null)
       return dependencies.unauthorized()
 
-    const storedVersion = await dependencies.readSessionVersion(session.userId)
-    if (storedVersion === null || storedVersion !== session.sessionVersion)
+    const account = await dependencies.readAccount(session.userId)
+    if (account === null || account.sessionVersion !== session.sessionVersion)
       return dependencies.unauthorized()
 
-    return { userId: session.userId, sessionVersion: session.sessionVersion }
+    return { userId: session.userId, ...account }
   }
 }
 
-async function readSessionVersion(userId: string): Promise<number | null> {
-  const result = await db().execute<{ session_version: number }>(sql`
-    SELECT "session_version"
+async function readAccount(userId: string) {
+  const result = await db().execute<{ sessionVersion: number, role: VerifiedSession['role'] }>(sql`
+    SELECT session_version AS "sessionVersion", role
     FROM "user"
-    WHERE "id" = ${userId}::uuid
-    LIMIT 1
+    WHERE id = ${userId}::uuid AND revoked_at IS NULL
   `)
-  return result.rows[0]?.session_version ?? null
+  return result.rows[0] ?? null
 }
 
 export const verifySession = cache(createVerifySession({
-  readSessionVersion,
+  readAccount,
   readToken: async () => (await cookies()).get(SESSION_COOKIE_NAME)?.value,
   unauthorized: () => redirect('/login'),
 }))
+
+export async function verifyAuthor() {
+  const identity = await verifySession()
+  if (identity.role !== 'author')
+    notFound()
+  return identity
+}
