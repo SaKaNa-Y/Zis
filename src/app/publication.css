@@ -98,3 +98,8 @@
   .publication-header nav { font-size: .83rem; gap: .55rem; }
   .publication-header { gap: .5rem; }
 }
+
+.writing-drafts { margin: 1.25rem 0; }
+.writing-drafts h2 { font-weight: 600; }
+.writing-drafts ul { max-height: 9rem; overflow: auto; }
+.writing-drafts a { display: inline-block; padding: .35rem 0; text-decoration: underline; }

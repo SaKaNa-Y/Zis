@@ -118,3 +118,25 @@ it('rolls back all outputs when a stable Article key is accidentally reused for 
   expect((await store.listArticles()).some(row => row.title === 'Rollback me')).toBe(false)
   expect((await store.listPublicationRuns()).find(row => row.id === collision)).toMatchObject({ status: 'running', articles: [] })
 })
+
+it('keeps unfinished writing private and publishes only the previewed revision with its references', async () => {
+  const id = 'c77f22bf-8242-4a67-8820-b1b19e9bd755'
+  const title = 'Writing fixture'
+  const partial = { ...content, title, standfirst: '', sections: [{ heading: '', paragraphs: [{ text: '', citations: [{ ...citation, url: '', excerpt: ' ', afterText: ' ' }] }] }] }
+  const v1 = await store.saveWritingDraft(id, 0, partial)
+  expect(await store.getWritingDraft(id)).toMatchObject({ content: partial, revision: v1 })
+  expect(await store.listWritingDrafts()).toContainEqual({ id, title })
+  await expect(store.publishWritingDraft(id, v1)).rejects.toThrow()
+  const complete = { ...content, title, standfirst: '' }
+  const v2 = await store.saveWritingDraft(id, v1, complete)
+  await expect(store.saveWritingDraft(id, v1, partial)).rejects.toThrow()
+  await expect(store.publishWritingDraft(id, v1)).rejects.toThrow()
+  expect((await store.listArticles()).some(a => a.title === title)).toBe(false)
+  const published = await store.publishWritingDraft(id, v2)
+  expect(await store.publishWritingDraft(id, v2)).toBe(published)
+  expect(await store.getArticle(published)).toMatchObject({ ...complete, sourceCount: 1 })
+  expect(await store.listPublicationRuns()).toContainEqual(expect.objectContaining({ articles: [{ id: published, title }] }))
+  expect(await store.listWritingDrafts()).not.toContainEqual({ id, title })
+  await expect(store.saveWritingDraft(id, v2, partial)).rejects.toThrow()
+  await expect(store.saveWritingDraft(id, 0, partial)).rejects.toThrow()
+})

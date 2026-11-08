@@ -26,6 +26,7 @@ export function DestinationNavigation({ current, role = 'reader' }: { current?: 
             <details className="author-menu">
               <summary>{t('Author', '作者')}</summary>
               <div>
+                {link('/write', 'Write article', '写文章')}
                 {link('/saved', 'Bookmarks', '收藏')}
                 {link('/settings', 'Settings', '设置')}
               </div>
