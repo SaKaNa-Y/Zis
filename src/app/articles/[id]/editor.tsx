@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { ArticleContent } from '@/lib/articles/types'
+import type { ArticleCitation, ArticleContent } from '@/lib/articles/types'
 import { useActionState, useState } from 'react'
 import { useLocale } from '@/lib/i18n/context'
 import { releaseChanges, saveChanges } from './actions'
@@ -68,9 +68,13 @@ export function ArticleEditor({ id, initial, saved, showSaved }: { id: string, i
                         {t(`Paragraph ${position + 1}`, `第 ${position + 1} 段`)}
                         <textarea required rows={4} value={paragraph.text} onChange={e => updateParagraph({ ...paragraph, text: e.target.value })} />
                       </label>
-                      <Fields values={paragraph.citations} change={citations => updateParagraph({ ...paragraph, citations })} blank={() => ({ title: '', url: '', publisher: '', excerpt: null })} addLabel={t('Add citation', '添加引用')} removeLabel={t('Remove citation', '移除引用')}>
+                      <Fields values={paragraph.citations} change={citations => updateParagraph({ ...paragraph, citations })} blank={(): ArticleCitation => ({ title: '', url: '', publisher: '', excerpt: null })} addLabel={t('Add citation', '添加引用')} removeLabel={t('Remove citation', '移除引用')}>
                         {(citation, updateCitation) => (
                           <>
+                            <label>
+                              {t('Place after these exact words (leave blank for paragraph end)', '将引用放在这些原词之后（留空放在段末）')}
+                              <input value={citation.afterText ?? ''} onChange={e => updateCitation({ ...citation, afterText: e.target.value || undefined })} />
+                            </label>
                             <label>
                               {t('Source title', '来源标题')}
                               <input required value={citation.title} onChange={e => updateCitation({ ...citation, title: e.target.value })} />

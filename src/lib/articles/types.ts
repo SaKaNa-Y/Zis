@@ -5,6 +5,7 @@ export interface ArticleCitation {
   title: string
   publisher: string
   excerpt: string | null
+  afterText?: string
 }
 
 export interface ArticleContent {
@@ -53,12 +54,19 @@ function text(value: unknown, field: string, allowEmpty = false): string {
   return value
 }
 
-function parseCitation(value: unknown): ArticleCitation {
+function parseCitation(value: unknown, paragraph: string): ArticleCitation {
   const source = record(value)
   const url = canonicalizeLink(text(source.url, 'citation URL'))
   if (!url)
     throw new Error('Expected a public HTTP(S) citation URL')
+  const afterText = source.afterText === undefined ? undefined : text(source.afterText, 'citation phrase')
+  if (afterText !== undefined) {
+    const position = paragraph.indexOf(afterText)
+    if (position < 0 || paragraph.includes(afterText, position + 1))
+      throw new Error('The citation phrase must appear exactly once in its paragraph')
+  }
   return {
+    ...(afterText === undefined ? {} : { afterText }),
     url,
     title: text(source.title, 'citation title'),
     publisher: text(source.publisher, 'publisher'),
@@ -75,7 +83,8 @@ export function parseArticleContent(value: unknown): ArticleContent {
     const section = record(input)
     const paragraphs = list(section.paragraphs).map((input) => {
       const paragraph = record(input)
-      return { text: text(paragraph.text, 'paragraph'), citations: list(paragraph.citations).map(parseCitation) }
+      const body = text(paragraph.text, 'paragraph')
+      return { text: body, citations: list(paragraph.citations).map(citation => parseCitation(citation, body)) }
     })
     if (!paragraphs.length)
       throw new Error('Expected a paragraph')

@@ -47,3 +47,23 @@ it('numbers one reference across multiple citation occurrences and retains each 
   expect(html.match(/<dialog/g)).toHaveLength(3)
   expect(html.match(/href="https:\/\/lab.example.test\/measurements"/g)).toHaveLength(4)
 })
+
+it('places each inline reference after its own claim within a shared paragraph', async () => {
+  const { ArticleReader } = await import('./reader')
+  const { parseArticleContent } = await import('@/lib/articles/types')
+  const source = { url: 'https://lab.example.test/log', title: 'Lab log', publisher: 'Lab' }
+  const paragraph = {
+    text: 'Usage fell. Production rose. Both persisted.',
+    citations: [
+      { ...source, excerpt: 'More units', afterText: 'Production rose.' },
+      { ...source, excerpt: 'Less power', afterText: 'Usage fell.' },
+    ],
+  }
+  const content = { ...newest, sections: [{ heading: '', paragraphs: [paragraph] }] }
+  const article = { ...newest, ...parseArticleContent(content) }
+  const html = renderToStaticMarkup(createElement(ArticleReader, { article }))
+  expect(html).toMatch(/Usage fell\.[\s\S]*Less power[\s\S]*Production rose\.[\s\S]*More units[\s\S]*Both persisted\./)
+  for (const text of ['Usage fell. Usage fell. Production rose.', 'Production rose.']) {
+    expect(() => parseArticleContent({ ...content, sections: [{ heading: '', paragraphs: [{ ...paragraph, text }] }] })).toThrow(/phrase/)
+  }
+})

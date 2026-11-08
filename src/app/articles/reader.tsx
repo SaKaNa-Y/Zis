@@ -1,7 +1,7 @@
 'use client'
 
 import type { Article } from '@/lib/articles/types'
-import { useId, useRef } from 'react'
+import { Fragment, useId, useRef } from 'react'
 import { useLocale } from '@/lib/i18n/context'
 import { PublicationDate } from './directory'
 
@@ -45,16 +45,30 @@ export function ArticleReader({ article }: { article: Article }) {
   const sections = article.sections.map((section, sectionIndex) => (
     <section key={sectionIndex} className="article-section">
       {section.heading && <h2>{section.heading}</h2>}
-      {section.paragraphs.map((paragraph, paragraphIndex) => (
-        <div key={paragraphIndex} className="article-paragraph">
-          <span>{paragraph.text}</span>
-          {paragraph.citations.map((citation, occurrence) => {
-            const reference = references.get(citation.url) ?? { citation, number: references.size + 1 }
-            references.set(citation.url, reference)
-            return <CitationPreview key={occurrence} citation={citation} number={reference.number} />
-          })}
-        </div>
-      ))}
+      {section.paragraphs.map((paragraph, paragraphIndex) => {
+        const occurrences = paragraph.citations.map(citation => ({
+          citation,
+          end: citation.afterText ? paragraph.text.indexOf(citation.afterText) + citation.afterText.length : paragraph.text.length,
+        })).sort((a, b) => a.end - b.end)
+        let start = 0
+        return (
+          <div key={paragraphIndex} className="article-paragraph">
+            {occurrences.map(({ citation, end }, index) => {
+              const reference = references.get(citation.url) ?? { citation, number: references.size + 1 }
+              references.set(citation.url, reference)
+              const passage = paragraph.text.slice(start, end)
+              start = end
+              return (
+                <Fragment key={index}>
+                  <span>{passage}</span>
+                  <CitationPreview citation={citation} number={reference.number} />
+                </Fragment>
+              )
+            })}
+            <span>{paragraph.text.slice(start)}</span>
+          </div>
+        )
+      })}
     </section>
   ))
   return (
