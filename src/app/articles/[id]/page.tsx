@@ -25,7 +25,7 @@ export default async function ArticlePage({ params, searchParams }: {
   return (
     <div className="publication-shell">
       <DestinationNavigation role={role} />
-      <main className="publication-detail">
+      <main className="page-content">
         <div className="detail-nav">
           <Link href="/articles">{t('Article directory', '文章目录')}</Link>
           {role === 'author' && <Link href={editing ? href : `${href}?edit=1`}>{editing ? t('View published article', '查看已发布文章') : t('Edit article', '编辑文章')}</Link>}

@@ -154,3 +154,11 @@ export const publicationResults = pgTable('publication_result', {
   articleId: uuid('article_id').notNull().references(() => articles.id),
   title: text('title').notNull(),
 }, table => [primaryKey({ columns: [table.runId, table.articleId] })])
+
+export const writingDrafts = pgTable('writing_draft', {
+  id: uuid('id').primaryKey(),
+  revision: integer('revision').notNull(),
+  content: jsonb('content'),
+  articleId: uuid('article_id').references(() => articles.id),
+  updatedAt: timestampTz('updated_at').defaultNow().notNull(),
+})

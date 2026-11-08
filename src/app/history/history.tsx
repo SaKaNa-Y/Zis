@@ -31,8 +31,8 @@ export function PublicationHistory({ runs, now }: { runs: PublicationRun[], now:
   }
   const ids = new Set(runs.map(run => run.id))
   return (
-    <main className="publication-history">
-      <h1 className="publication-title">{t('Publication history', '发布历史')}</h1>
+    <main className="page-content publication-history">
+      <h1 className="page-title">{t('Publication history', '发布历史')}</h1>
       {Array.from(groups, ([day, group]) => (
         <section key={day}>
           <h2>{date.format(group.date)}</h2>

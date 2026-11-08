@@ -6,7 +6,7 @@ export type Translate = (en: string, zh: string) => string
 
 export function CaptureShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="brief-v2 app-shell capture-shell">
+    <div className="publication-shell">
       <DestinationNavigation role="author" />
       <main className="page-content capture-content">{children}</main>
     </div>

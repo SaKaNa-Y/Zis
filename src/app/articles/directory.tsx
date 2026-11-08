@@ -14,19 +14,19 @@ export function ArticleDirectory({ articles, home }: { articles: ArticleSummary[
   const lead = home ? articles[0] : undefined
   const remaining = lead ? articles.slice(1, 7) : articles
   return (
-    <main className="publication-index">
+    <main className="page-content publication-index">
       {lead
         ? (
             <article className="publication-lead">
               <div>
                 <PublicationDate date={lead.publishedAt} />
-                <h1><Link href={`/articles/${lead.id}`}>{lead.title}</Link></h1>
+                <h1 className="page-title"><Link href={`/articles/${lead.id}`}>{lead.title}</Link></h1>
                 <p>{lead.standfirst}</p>
               </div>
               {lead.imageUrl && <img src={lead.imageUrl} alt="" referrerPolicy="no-referrer" />}
             </article>
           )
-        : <h1 className="publication-title">{t('Articles', '文章目录')}</h1>}
+        : <h1 className="page-title">{t('Articles', '文章目录')}</h1>}
       {home && lead && (
         <header className="index-section">
           <h2>{t('Recent articles', '近期文章')}</h2>

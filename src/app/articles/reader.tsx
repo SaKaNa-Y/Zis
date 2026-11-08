@@ -39,7 +39,7 @@ function CitationPreview({ citation, number }: { citation: Citation, number: num
   )
 }
 
-export function ArticleReader({ article }: { article: Article }) {
+export function ArticleReader({ article }: { article: Pick<Article, 'title' | 'standfirst' | 'imageUrl' | 'sections'> & { publishedAt?: Date } }) {
   const { t } = useLocale()
   const references = new Map<string, { citation: Citation, number: number }>()
   const sections = article.sections.map((section, sectionIndex) => (
@@ -74,11 +74,11 @@ export function ArticleReader({ article }: { article: Article }) {
   return (
     <article className="publication-article">
       <header>
-        <h1 className="publication-title">{article.title}</h1>
-        <p className="standfirst">{article.standfirst}</p>
+        <h1 className="page-title">{article.title}</h1>
+        {article.standfirst && <p className="standfirst">{article.standfirst}</p>}
         <div className="article-byline">
-          <PublicationDate date={article.publishedAt} />
-          <span>{t(`${article.sourceCount} ${article.sourceCount === 1 ? 'source' : 'sources'}`, `${article.sourceCount} 个来源`)}</span>
+          {article.publishedAt && <PublicationDate date={article.publishedAt} />}
+          <span>{t(`${references.size} ${references.size === 1 ? 'source' : 'sources'}`, `${references.size} 个来源`)}</span>
         </div>
         {article.imageUrl && <img src={article.imageUrl} alt="" referrerPolicy="no-referrer" />}
       </header>

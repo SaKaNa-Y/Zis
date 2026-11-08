@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { Text, useLocale } from '@/lib/i18n/context'
 import { changePassphrase, signOutEverywhere } from './actions'
 
-const inputClass = 'mt-2 block w-full rounded-sm border border-rule bg-paper px-3 py-2 text-body text-ink'
+const inputClass = 'mt-2 block w-full rounded-sm border border-ink-faint bg-paper px-3 py-2 text-body text-ink'
 const buttonClass = 'rounded-sm border border-ink bg-paper px-4 py-2 text-meta text-ink disabled:opacity-40'
 
 export function AccountControls() {

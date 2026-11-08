@@ -2,7 +2,7 @@ import type { SQL } from 'drizzle-orm'
 import type { Article, ArticleContent, ArticleSummary, PublicationRun } from './types'
 import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { parseArticleContent, parseOutputs } from './types'
+import { parseArticleContent, parseOutputs, parseWritingDraft } from './types'
 
 interface ArticleDatabase {
   execute: <T extends Record<string, unknown>>(query: SQL) => PromiseLike<{ rows: T[] }>
@@ -61,6 +61,40 @@ export function articleStore(database: ArticleDatabase) {
       const outputs = parseOutputs(input)
       await database.execute(sql`SELECT complete_publication(${runId}, ${JSON.stringify(outputs)}::jsonb, ${emptyReason})`)
     },
+    async listWritingDrafts() {
+      const { rows } = await database.execute<{ id: string, title: string }>(sql`
+        SELECT id, content->>'title' AS title FROM writing_draft WHERE article_id IS NULL ORDER BY updated_at DESC, id`)
+      return rows
+    },
+    async getWritingDraft(id: string) {
+      const { rows } = await database.execute<{ content: unknown, revision: number, articleId: string | null }>(sql`
+        SELECT content, revision, article_id AS "articleId" FROM writing_draft WHERE id::text = ${id}`)
+      const row = rows[0]
+      return row ? { ...row, content: row.content === null ? null : parseWritingDraft(row.content) } : null
+    },
+    async saveWritingDraft(id: string, revision: number, input: ArticleContent) {
+      const content = JSON.stringify(parseWritingDraft(input))
+      const query = revision === 0
+        ? sql`INSERT INTO writing_draft (id, revision, content) VALUES (${id}, 1, ${content}::jsonb)
+              ON CONFLICT DO NOTHING RETURNING revision`
+        : sql`UPDATE writing_draft SET content = ${content}::jsonb, revision = revision + 1, updated_at = now()
+              WHERE id = ${id} AND revision = ${revision} AND article_id IS NULL RETURNING revision`
+      const { rows } = await database.execute<{ revision: number }>(query)
+      if (!rows.length)
+        throw new Error('Draft changed')
+      return rows[0]!.revision
+    },
+    async publishWritingDraft(id: string, revision: number) {
+      const draft = await this.getWritingDraft(id)
+      if (!draft || draft.revision !== revision)
+        throw new Error('Draft changed')
+      if (draft.articleId)
+        return draft.articleId
+      const content = JSON.stringify(parseArticleContent(draft.content))
+      const { rows } = await database.execute<{ id: string }>(sql`
+        SELECT publish_writing_draft(${id}, ${revision}, ${content}::jsonb) AS id`)
+      return rows[0]!.id
+    },
     async getDraft(id: string): Promise<ArticleContent | null> {
       const { rows } = await database.execute<{ draft: unknown }>(sql`
         SELECT draft FROM article WHERE id::text = ${id}`)
@@ -105,3 +139,5 @@ export const reportStage = (runId: string, name: string) => articleStore(db()).r
 export const failRun = (runId: string, reason: string) => articleStore(db()).failRun(runId, reason)
 export const completeRun = (runId: string, outputs: unknown, emptyReason?: string) => articleStore(db()).completeRun(runId, outputs, emptyReason)
 export const prunePublicationRuns = () => articleStore(db()).prunePublicationRuns()
+
+export const writingStore = () => articleStore(db())

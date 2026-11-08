@@ -27,7 +27,7 @@ it('exposes history and the author menu only for an author', () => {
   for (const role of ['author', 'reader'] as const) {
     const html = renderToStaticMarkup(createElement(DestinationNavigation, { role, current: '/' }))
     expect(html).toContain('href="/articles"')
-    for (const link of ['/history', '/saved', '/settings'])
+    for (const link of ['/history', '/write', '/saved', '/settings'])
       expect(html.includes(`href="${link}"`)).toBe(role === 'author')
   }
 })

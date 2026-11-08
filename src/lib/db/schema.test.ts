@@ -186,6 +186,7 @@ describe('migration history', () => {
       '0014_publication_access',
       '0015_article_publication',
       '0016_retire_brief',
+      '0017_author_writing',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')
