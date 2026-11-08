@@ -18,8 +18,9 @@ ALTER TABLE "user" ADD CONSTRAINT "user_role_check" CHECK ("user"."role" IN ('au
 -- The unique role constraint above also rejects an ambiguous multi-user legacy DB.
 UPDATE "user" SET role = 'author';
 --> statement-breakpoint
-LOCK TABLE bookmark, signal, citation, item IN SHARE MODE;
+LOCK TABLE bookmark, signal, link, citation, item, source IN SHARE MODE;
 --> statement-breakpoint
+CREATE VIEW legacy_bookmark_snapshot AS
 WITH RECURSIVE ancestry(saved_signal, member) AS (
   SELECT signal_id, signal_id FROM bookmark
   UNION
@@ -33,25 +34,29 @@ WITH RECURSIVE ancestry(saved_signal, member) AS (
   UNION
   SELECT m.root_id, s.id FROM members m JOIN signal s ON s.merged_into_id = m.member
 ), evidence AS (
-  SELECT m.root_id, c.kind, i.id, i.title, NULLIF(btrim(i.text), '') AS body,
-    NULLIF(btrim(i.summary), '') AS summary, c.anchor_text, source.is_aggregator
+  SELECT m.root_id, c.kind, c.id AS citation_id, i.id AS item_id, i.title,
+    CASE WHEN btrim(i.text) <> '' AND i.text IS DISTINCT FROM i.summary THEN i.text END AS body,
+    i.summary, c.anchor_text, source.is_aggregator
   FROM members m JOIN signal s ON s.id = m.member
   JOIN citation c ON c.link_id = s.target_link_id JOIN item i ON i.id = c.item_id
   LEFT JOIN source ON source.id = i.source_id
 ), snapshot AS (
   SELECT root_id,
-    (array_agg(title ORDER BY length(coalesce(summary,'')) DESC, id) FILTER (WHERE kind = 'self'))[1] AS own_title,
-    (array_agg(body ORDER BY length(body) DESC, id) FILTER (WHERE kind = 'self' AND body IS NOT NULL))[1] AS body,
-    (array_agg(summary ORDER BY length(summary) DESC, id) FILTER (WHERE kind = 'self' AND summary IS NOT NULL))[1] AS summary,
-    (array_agg(anchor_text ORDER BY length(anchor_text) DESC, id) FILTER (WHERE kind = 'outbound' AND anchor_text IS NOT NULL))[1] AS anchor,
-    (array_agg(title ORDER BY length(title) DESC, id) FILTER (WHERE kind = 'outbound' AND NOT is_aggregator))[1] AS citing_title
+    (array_agg(title ORDER BY length(coalesce(summary,'')) DESC, item_id) FILTER (WHERE kind = 'self'))[1] AS own_title,
+    (array_agg(body ORDER BY length(body) DESC, item_id) FILTER (WHERE kind = 'self' AND body IS NOT NULL))[1] AS body,
+    (array_agg(summary ORDER BY length(summary) DESC, item_id) FILTER (WHERE kind = 'self' AND btrim(summary) <> ''))[1] AS summary,
+    (array_agg(anchor_text ORDER BY length(anchor_text) DESC, citation_id) FILTER (WHERE kind = 'outbound' AND anchor_text IS NOT NULL))[1] AS anchor,
+    (array_agg(title ORDER BY length(title) DESC, item_id) FILTER (WHERE kind = 'outbound' AND NOT is_aggregator))[1] AS citing_title
   FROM evidence GROUP BY root_id
 )
-INSERT INTO archived_bookmark (user_id, legacy_signal_id, link_id, title, body, summary, saved_at)
-SELECT b.user_id, b.signal_id, l.id, coalesce(snap.own_title, snap.anchor, snap.citing_title, r.embedding_text, l.url),
+SELECT b.user_id, b.signal_id AS legacy_signal_id, l.id AS link_id,
+  coalesce(snap.own_title, snap.anchor, snap.citing_title, r.embedding_text, l.url) AS title,
   snap.body, snap.summary, b.saved_at
-FROM bookmark b JOIN roots r ON r.saved_signal = b.signal_id
-JOIN link l ON l.id = r.target_link_id LEFT JOIN snapshot snap ON snap.root_id = r.root_id;
+FROM bookmark b LEFT JOIN roots r ON r.saved_signal = b.signal_id
+LEFT JOIN link l ON l.id = r.target_link_id LEFT JOIN snapshot snap ON snap.root_id = r.root_id;
+--> statement-breakpoint
+INSERT INTO archived_bookmark (user_id, legacy_signal_id, link_id, title, body, summary, saved_at)
+SELECT user_id, legacy_signal_id, link_id, title, body, summary, saved_at FROM legacy_bookmark_snapshot;
 --> statement-breakpoint
 DO $reconcile$
 BEGIN
