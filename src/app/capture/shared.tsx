@@ -4,10 +4,10 @@ import { DestinationNavigation } from '../destinations'
 
 export type Translate = (en: string, zh: string) => string
 
-export function CaptureShell({ children }: { children: React.ReactNode }) {
+export function CaptureShell({ children, current }: { children: React.ReactNode, current: string }) {
   return (
     <div className="publication-shell">
-      <DestinationNavigation role="author" />
+      <DestinationNavigation role="author" current={current} />
       <main className="page-content capture-content">{children}</main>
     </div>
   )

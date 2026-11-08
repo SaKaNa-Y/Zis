@@ -5,9 +5,10 @@
   overflow-wrap: anywhere;
 }
 .publication-shell a { text-underline-offset: .2em; }
-.publication-shell button:not(:disabled):hover, .publication-shell a:hover, .publication-header summary:hover { text-decoration: underline; }
+.publication-shell button:not(:disabled):hover, .publication-shell a:hover { text-decoration: underline; }
 .publication-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -18,15 +19,9 @@
 }
 .publication-brand { font: 650 1.625rem/1.1 var(--font-display); letter-spacing: -.09em; }
 .publication-header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .25rem clamp(.5rem, 2vw, 2rem); font-size: .92rem; }
-.publication-header nav > a, .author-menu summary { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.publication-header nav > a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .publication-header nav [aria-current] { text-decoration: underline; text-underline-offset: .45em; }
-.author-menu { position: relative; }
-.author-menu summary { list-style: none; gap: .45rem; }
-.author-menu summary::-webkit-details-marker { display: none; }
-.author-menu summary::after { content: ''; width: .45rem; height: .45rem; border-right: .1rem solid; border-bottom: .1rem solid; transform: rotate(45deg) translateY(-.15rem); }
-.author-menu[open] summary::after { transform: rotate(225deg); }
-.author-menu > div { position: absolute; z-index: 2; top: 100%; right: 0; width: max-content; padding: .4rem; border: .0625rem solid var(--rule); border-radius: .4rem; background: var(--surface); }
-.author-menu > div a { display: block; padding: .65rem 1.3rem; }
+.publication-header .author-navigation { flex-basis: 100%; justify-content: flex-start; padding-top: .5rem; border-top: .0625rem solid var(--rule); }
 .publication-lead { display: grid; align-items: center; gap: 2rem; margin-bottom: clamp(3rem, 9vw, 7rem); }
 .publication-lead time, .publication-list time, .article-byline, .detail-nav { font-size: .88rem; color: var(--ink-dim); }
 .publication-lead h1 { max-width: 18ch; margin: 1rem 0; }

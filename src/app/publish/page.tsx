@@ -14,7 +14,7 @@ export default async function ProducerPage({ searchParams }: { searchParams: Pro
   if (id && !run)
     notFound()
   return (
-    <CaptureShell>
+    <CaptureShell current="/publish">
       <h1 className="page-title">{t('Publication workspace', '发布工作区')}</h1>
       <p>
         <Link href="/collection">{t('Collected material', '采集资料')}</Link>

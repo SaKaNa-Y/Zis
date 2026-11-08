@@ -17,7 +17,7 @@ export default async function CapturePage({ searchParams }: { searchParams: Prom
     notFound()
   const [sources, usage] = await Promise.all([captureStore.listSources(), captureStore.storageUsage()])
   return (
-    <CaptureShell>
+    <CaptureShell current="/capture">
       <header className="capture-heading">
         <p className="eyebrow">{t('Keep the original', '保存原文')}</p>
         <h1 className="page-title">{initial ? t('Update information', '续更／补全信息') : t('Add information', '添加信息')}</h1>

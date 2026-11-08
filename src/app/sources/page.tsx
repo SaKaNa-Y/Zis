@@ -11,7 +11,7 @@ export default async function SourcesPage() {
   const { t } = await readLocale()
   const [sources, runs] = await Promise.all([captureStore.listSources(), captureStore.listRuns()])
   return (
-    <CaptureShell>
+    <CaptureShell current="/sources">
       <header className="capture-heading">
         <p className="eyebrow">{t('Follow the source', '从来源开始')}</p>
         <h1 className="page-title">{t('Sources', '来源管理')}</h1>

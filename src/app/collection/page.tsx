@@ -6,7 +6,7 @@ import { readLocale } from '@/lib/i18n/server'
 import { InformationCard } from '../capture/card'
 import { CaptureSchedule, CaptureShell, RunHistory } from '../capture/shared'
 
-export const metadata: Metadata = { title: 'Information — Zis' }
+export const metadata: Metadata = { title: 'Collected material — Zis' }
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ before?: string }> }) {
   await verifyAuthor()
@@ -16,10 +16,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ b
   const visible = cards.slice(0, 30)
   const last = visible.at(-1)
   return (
-    <CaptureShell>
+    <CaptureShell current="/collection">
       <header className="capture-heading">
         <p className="eyebrow">{t('Original words. In order.', '原文，按时间呈现。')}</p>
-        <h1 className="page-title">{t('Information', '信息流')}</h1>
+        <h1 className="page-title">{t('Collected material', '采集资料')}</h1>
         <p>{t('Full original content, newest publication first. Thread updates keep their original position. Text and images expire seven days after first capture.', '完整原文，按原文发布时间倒序排列。推文串续更保持原位置；正文和图片自首次录入起七天后删除。')}</p>
         <Link className="capture-button" href="/capture">
           {t('Add information', '添加信息')}
