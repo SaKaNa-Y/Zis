@@ -5,10 +5,14 @@ material — read it before writing anything that makes a network request, parse
 a feed, or renders fetched content. The *why* behind each rule is in #7's
 resolution comment; this document is what you check against.
 
-The threat model is one sentence: **Zis fetches arbitrary remote URLs by design
-and feeds the results to an LLM.** Registration is disabled and there is exactly
-one account, which removes signup abuse, enumeration, and reset flows — and none
-of what follows.
+Zis publishes private Articles from untrusted source material. A browser operator
+collects originals through the author workspace. The reader credential opens
+published Articles. The author's credential also permits editing and access to
+collection material, publication history, archived bookmarks, and storage.
+Each protected server request validates the credential in the database.
+
+The former RSS, embedding and translation workers described below are retired.
+Current data lifetimes and role boundaries are in [ADR 0027](adr/0027-private-article-publication.md).
 
 ---
 

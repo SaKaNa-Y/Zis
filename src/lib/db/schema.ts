@@ -1,21 +1,14 @@
 import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 import {
-  bigserial,
   boolean,
   check,
   customType,
-  date,
-  doublePrecision,
-  foreignKey,
-  halfvec,
   index,
   integer,
   jsonb,
-  pgEnum,
   pgTable,
   primaryKey,
-  smallint,
   text,
   timestamp,
   unique,
@@ -25,42 +18,6 @@ import {
 
 const timestampTz = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' })
 
-export const sourceTransport = pgEnum('source_transport', [
-  'rss',
-  'atom',
-  'hn_firebase',
-  'hn_algolia',
-  'github_graphql',
-  'bluesky_feed',
-])
-
-export const sourceFetchOutcome = pgEnum('source_fetch_outcome', [
-  'ok',
-  'not_modified',
-  'http_error',
-  'timeout',
-  'robots_denied',
-  'parse_error',
-  'too_large',
-])
-
-export const citationKind = pgEnum('citation_kind', [
-  'self',
-  'outbound',
-])
-
-export const signalTextBasis = pgEnum('signal_text_basis', [
-  'own',
-  'citing',
-  'slug',
-])
-
-export const briefAdmission = pgEnum('brief_admission', [
-  'interest',
-  'convergence',
-])
-
-/** The local reader identity that owns an Interest Profile. */
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
   role: text('role', { enum: ['author', 'reader'] }).notNull().default('reader'),
@@ -70,9 +27,7 @@ export const users = pgTable('user', {
   failedAttempts: integer('failed_attempts').notNull().default(0),
   lockedUntil: timestampTz('locked_until'),
   interfaceLanguage: text('interface_language').notNull().default('system'),
-  contentLanguage: text('content_language').notNull().default('zh'),
   timezone: text('timezone').notNull().default('Asia/Shanghai'),
-  cutHour: smallint('cut_hour').notNull().default(6),
   createdAt: timestampTz('created_at').notNull().defaultNow(),
 }, table => [
   unique('user_role_unique').on(table.role),
@@ -84,74 +39,7 @@ export const users = pgTable('user', {
   check('user_session_version_nonnegative_check', sql`${table.sessionVersion} >= 0`),
   check('user_failed_attempts_nonnegative_check', sql`${table.failedAttempts} >= 0`),
   check('user_interface_language_check', sql`${table.interfaceLanguage} IN ('system', 'en', 'zh')`),
-  check('user_content_language_check', sql`${table.contentLanguage} IN ('en', 'zh')`),
   check('user_timezone_nonempty_check', sql`length(btrim(${table.timezone})) > 0`),
-  check('user_cut_hour_range_check', sql`${table.cutHour} BETWEEN 0 AND 23`),
-])
-
-/** One owning voice, independently of how many hosts or Sources it uses. */
-export const publishers = pgTable('publisher', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  slug: text('slug').notNull().unique(),
-  name: text('name').notNull(),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-})
-
-/**
- * The schema-level `host -> publisher_id` uniqueness guard.
- *
- * Host ownership is a relation rather than an array column because a Publisher
- * may own several hosts while a host must have exactly one owner. Making `host`
- * the key enforces the latter without duplicating Publisher identities.
- */
-export const publisherHosts = pgTable('publisher_host', {
-  host: text('host').primaryKey(),
-  publisherId: uuid('publisher_id').notNull().references(() => publishers.id, { onDelete: 'cascade' }),
-})
-
-export const sources = pgTable('source', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  publisherId: uuid('publisher_id').notNull().references(() => publishers.id),
-  transport: sourceTransport('transport').notNull(),
-  endpointUrl: text('endpoint_url').notNull().unique(),
-  isAggregator: boolean('is_aggregator').notNull().default(false),
-  disabledAt: timestampTz('disabled_at'),
-  disabledReason: text('disabled_reason'),
-  consecutiveFailures: integer('consecutive_failures').notNull().default(0),
-  retryAfterAt: timestampTz('retry_after_at'),
-  lastPolledAt: timestampTz('last_polled_at'),
-  newestItemAt: timestampTz('newest_item_at'),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-})
-
-export const items = pgTable('item', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
-  externalId: text('external_id').notNull(),
-  url: text('url'),
-  title: text('title').notNull(),
-  summary: text('summary'),
-  /** Bounded publisher plain text; stage 14 clears it after the retention window. */
-  text: text('text'),
-  rawFeedDate: text('raw_feed_date'),
-  publishedAt: timestampTz('published_at').notNull(),
-  fetchedAt: timestampTz('fetched_at').notNull(),
-  issueHydratedAt: timestampTz('issue_hydrated_at'),
-  ingestionInputHash: text('ingestion_input_hash'),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
-}, table => [
-  unique('item_source_external_id_unique').on(table.sourceId, table.externalId),
-  index('item_published_at_idx').on(table.publishedAt),
-  index('item_updated_at_idx').on(table.updatedAt),
-  check(
-    'item_summary_length_check',
-    sql`${table.summary} IS NULL OR length(${table.summary}) <= 1200`,
-  ),
-  check(
-    'item_text_length_check',
-    sql`${table.text} IS NULL OR length(${table.text}) <= 1200`,
-  ),
 ])
 
 /** A canonical web address, whether or not Zis ingested an Item from it. */
@@ -174,273 +62,6 @@ export const archivedBookmarks = pgTable('archived_bookmark', {
   savedAt: timestampTz('saved_at').notNull(),
 }, table => [
   primaryKey({ columns: [table.userId, table.legacySignalId] }),
-])
-
-/** One eager Link identity, retained as a tombstone after an alias merge. */
-export const signals = pgTable('signal', {
-  id: uuid('id').primaryKey(),
-  targetLinkId: uuid('target_link_id').notNull().references(() => links.id),
-  mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => signals.id),
-  strength: integer('strength').notNull().default(0),
-  originPublisherId: uuid('origin_publisher_id').references(() => publishers.id),
-  textBasis: signalTextBasis('text_basis'),
-  /** Exact bounded input, cleared when an own-body retention window expires. */
-  embeddingText: text('embedding_text'),
-  embeddingTextExpiresAt: timestampTz('embedding_text_expires_at'),
-  embedding: halfvec('embedding', { dimensions: 384 }),
-  embeddingModel: text('embedding_model'),
-  embeddingDimensions: integer('embedding_dimensions'),
-  embeddingVersion: text('embedding_version'),
-  embeddedAt: timestampTz('embedded_at'),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-}, table => [
-  unique('signal_target_link_id_unique').on(table.targetLinkId),
-  index('signal_merged_into_id_idx').on(table.mergedIntoId),
-  check(
-    'signal_embedding_complete_check',
-    sql`(${table.embedding} IS NULL
-      AND ${table.textBasis} IS NULL
-      AND ${table.embeddingText} IS NULL
-      AND ${table.embeddingTextExpiresAt} IS NULL
-      AND ${table.embeddingModel} IS NULL
-      AND ${table.embeddingDimensions} IS NULL
-      AND ${table.embeddingVersion} IS NULL
-      AND ${table.embeddedAt} IS NULL)
-      OR (${table.embedding} IS NOT NULL
-        AND ${table.textBasis} IS NOT NULL
-        AND ((${table.textBasis} = 'own'
-            AND (${table.embeddingText} IS NOT NULL OR ${table.embeddingTextExpiresAt} IS NOT NULL))
-          OR (${table.textBasis} IN ('citing', 'slug')
-            AND ${table.embeddingText} IS NOT NULL
-            AND ${table.embeddingTextExpiresAt} IS NULL))
-        AND ${table.embeddingModel} IS NOT NULL
-        AND ${table.embeddingDimensions} = 384
-        AND ${table.embeddingVersion} IS NOT NULL
-        AND ${table.embeddedAt} IS NOT NULL)`,
-  ),
-  check(
-    'signal_embedding_text_length_check',
-    sql`${table.embeddingText} IS NULL OR length(${table.embeddingText}) BETWEEN 1 AND 1200`,
-  ),
-])
-
-/** Item-to-Link provenance. The raw address survives canonicalization. */
-export const citations = pgTable('citation', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
-  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
-  linkId: uuid('link_id').notNull().references(() => links.id),
-  kind: citationKind('kind').notNull(),
-  rawUrl: text('raw_url').notNull(),
-  anchorText: text('anchor_text'),
-  firstSeenAt: timestampTz('first_seen_at').notNull(),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-}, table => [
-  unique('citation_item_kind_raw_url_unique').on(table.itemId, table.kind, table.rawUrl),
-  index('citation_link_id_idx').on(table.linkId),
-  index('citation_source_id_idx').on(table.sourceId),
-])
-
-/** One positive Interest statement and its independently-computed embedding. */
-export const interests = pgTable('interest', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  statement: text('statement').notNull(),
-  embedding: halfvec('embedding', { dimensions: 384 }),
-  embeddingInputHash: text('embedding_input_hash'),
-  embeddingModel: text('embedding_model'),
-  embeddingDimensions: integer('embedding_dimensions'),
-  embeddingVersion: text('embedding_version'),
-  embeddedAt: timestampTz('embedded_at'),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
-}, table => [
-  unique('interest_id_user_id_unique').on(table.id, table.userId),
-  index('interest_user_id_idx').on(table.userId),
-  check('interest_statement_nonempty_check', sql`length(btrim(${table.statement})) > 0`),
-  check(
-    'interest_embedding_complete_check',
-    sql`(${table.embedding} IS NULL
-      AND ${table.embeddingInputHash} IS NULL
-      AND ${table.embeddingModel} IS NULL
-      AND ${table.embeddingDimensions} IS NULL
-      AND ${table.embeddingVersion} IS NULL
-      AND ${table.embeddedAt} IS NULL)
-      OR (${table.embedding} IS NOT NULL
-        AND ${table.embeddingInputHash} IS NOT NULL
-        AND ${table.embeddingModel} IS NOT NULL
-        AND ${table.embeddingDimensions} = 384
-        AND ${table.embeddingVersion} IS NOT NULL
-        AND ${table.embeddedAt} IS NOT NULL)`,
-  ),
-])
-
-/** The latest MAX-cosine Interest match for one reader and one Signal. */
-export const readerSignalMatches = pgTable('reader_signal_match', {
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
-  matchedInterestId: uuid('matched_interest_id'),
-  relevance: doublePrecision('relevance'),
-  gap: doublePrecision('gap'),
-  matchedAt: timestampTz('matched_at').notNull(),
-}, table => [
-  primaryKey({
-    name: 'reader_signal_match_user_id_signal_id_pk',
-    columns: [table.userId, table.signalId],
-  }),
-  foreignKey({
-    name: 'reader_signal_match_interest_owner_fk',
-    columns: [table.matchedInterestId, table.userId],
-    foreignColumns: [interests.id, interests.userId],
-  }).onDelete('cascade'),
-  index('reader_signal_match_signal_id_idx').on(table.signalId),
-  check(
-    'reader_signal_match_winner_check',
-    sql`(${table.matchedInterestId} IS NULL AND ${table.relevance} IS NULL AND ${table.gap} IS NULL)
-      OR (${table.matchedInterestId} IS NOT NULL AND ${table.relevance} IS NOT NULL)`,
-  ),
-  check(
-    'reader_signal_match_relevance_range_check',
-    sql`${table.relevance} IS NULL OR ${table.relevance} BETWEEN -1 AND 1`,
-  ),
-  check(
-    'reader_signal_match_gap_range_check',
-    sql`${table.gap} IS NULL OR ${table.gap} BETWEEN 0 AND 2`,
-  ),
-])
-
-/** Start-time cursor of the last atomically committed graph computation. */
-export const ingestionCheckpoints = pgTable('ingestion_checkpoint', {
-  id: smallint('id').primaryKey(),
-  processedThrough: timestampTz('processed_through').notNull(),
-  configurationHash: text('configuration_hash').notNull(),
-}, table => [check('ingestion_checkpoint_singleton_check', sql`${table.id} = 1`)])
-
-/** The exact Profile whose matches were atomically committed by ingestion. */
-export const readerMatchProfiles = pgTable('reader_match_profile', {
-  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
-  fingerprint: text('fingerprint').notNull(),
-}, table => [
-  check('reader_match_profile_fingerprint_check', sql`${table.fingerprint} ~ '^[0-9a-f]{64}$'`),
-])
-
-/** One reader's persisted selection for one local calendar day. */
-export const briefs = pgTable('brief', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  localDate: date('local_date', { mode: 'string' }).notNull(),
-  cutAt: timestampTz('cut_at').notNull(),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-}, table => [
-  unique('brief_id_user_id_unique').on(table.id, table.userId),
-  unique('brief_user_id_local_date_unique').on(table.userId, table.localDate),
-])
-
-/** One Signal's frozen place and explanation inside a Brief. */
-export const briefEntries = pgTable('brief_entry', {
-  briefId: uuid('brief_id').notNull(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
-  position: integer('position').notNull(),
-  admittedBy: briefAdmission('admitted_by').notNull(),
-  whyText: text('why_text').notNull(),
-  createdAt: timestampTz('created_at').notNull().defaultNow(),
-}, table => [
-  primaryKey({
-    name: 'brief_entry_brief_id_signal_id_pk',
-    columns: [table.briefId, table.signalId],
-  }),
-  foreignKey({
-    name: 'brief_entry_brief_owner_fk',
-    columns: [table.briefId, table.userId],
-    foreignColumns: [briefs.id, briefs.userId],
-  }).onDelete('cascade'),
-  unique('brief_entry_user_id_signal_id_unique').on(table.userId, table.signalId),
-  unique('brief_entry_brief_id_position_unique').on(table.briefId, table.position),
-  check('brief_entry_position_positive_check', sql`${table.position} >= 1`),
-  check('brief_entry_why_text_nonempty_check', sql`length(btrim(${table.whyText})) > 0`),
-])
-
-/** A Signal the reader has already met outside a Brief. */
-export const readStates = pgTable('read_state', {
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
-  readAt: timestampTz('read_at').notNull(),
-}, table => [
-  primaryKey({
-    name: 'read_state_user_id_signal_id_pk',
-    columns: [table.userId, table.signalId],
-  }),
-  index('read_state_signal_id_idx').on(table.signalId),
-])
-
-/** A Signal the reader kept to return to outside its Brief. */
-export const bookmarks = pgTable('bookmark', {
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  signalId: uuid('signal_id').notNull().references(() => signals.id, { onDelete: 'cascade' }),
-  savedAt: timestampTz('saved_at').notNull().defaultNow(),
-}, table => [
-  primaryKey({
-    name: 'bookmark_user_id_signal_id_pk',
-    columns: [table.userId, table.signalId],
-  }),
-  index('bookmark_signal_id_idx').on(table.signalId),
-])
-
-export const sourceFetchLogs = pgTable('source_fetch_log', {
-  id: bigserial('id', { mode: 'number' }).primaryKey(),
-  sourceId: uuid('source_id').notNull().references(() => sources.id, { onDelete: 'cascade' }),
-  startedAt: timestampTz('started_at').notNull(),
-  durationMs: integer('duration_ms').notNull(),
-  outcome: sourceFetchOutcome('outcome').notNull(),
-  httpStatus: integer('http_status'),
-  itemsSeen: integer('items_seen').notNull().default(0),
-  itemsNew: integer('items_new').notNull().default(0),
-  bytes: integer('bytes').notNull().default(0),
-  errorMessage: text('error_message'),
-}, table => [
-  index('source_fetch_log_source_started_idx').on(table.sourceId, table.startedAt.desc()),
-])
-
-/** Validators only. A body column here would violate ADR-0005. */
-export const httpCache = pgTable('http_cache', {
-  url: text('url').primaryKey(),
-  etag: text('etag'),
-  lastModified: text('last_modified'),
-  lastStatus: integer('last_status'),
-  fetchedAt: timestampTz('fetched_at').notNull(),
-})
-
-export const robotsCache = pgTable('robots_cache', {
-  host: text('host').primaryKey(),
-  verdict: text('verdict').notNull(),
-  directives: jsonb('directives').notNull(),
-  status: integer('status').notNull(),
-  contentType: text('content_type'),
-  wafAction: text('waf_action'),
-  authoritative: boolean('authoritative').notNull(),
-  fetchedAt: timestampTz('fetched_at').notNull(),
-  expiresAt: timestampTz('expires_at').notNull(),
-}, table => [
-  index('robots_cache_expires_at_idx').on(table.expiresAt),
-])
-
-/** Private translated views. Original Brief entries are never updated. */
-export const readingTranslations = pgTable('reading_translation', {
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  sourceKey: text('source_key').notNull(),
-  language: text('language').notNull(),
-  original: jsonb('original').notNull(),
-  translated: jsonb('translated'),
-  state: text('state').notNull().default('queued'),
-  requestedAt: timestampTz('requested_at').notNull().defaultNow(),
-  updatedAt: timestampTz('updated_at').notNull().defaultNow(),
-  attempts: integer('attempts').notNull().default(0),
-}, table => [
-  primaryKey({ columns: [table.userId, table.sourceKey, table.language] }),
-  check('reading_translation_language_check', sql`${table.language} IN ('en', 'zh')`),
-  check('reading_translation_state_check', sql`${table.state} IN ('queued', 'processing', 'ready', 'failed')`),
-  index('reading_translation_queue_idx').on(table.state, table.requestedAt),
 ])
 
 /** Original captures are independent of legacy Items and their text limits. */

@@ -1,7 +1,5 @@
-import { execFileSync, spawnSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
@@ -62,19 +60,10 @@ describe('the runtime is pinned in three places', () => {
 })
 
 describe('legacy automated execution is retired', () => {
-  it('has no automatic ingestion or translation triggers and no executable worker steps', () => {
-    for (const file of ['ingest.yml', 'translate.yml']) {
-      const source = readFileSync(join(workflowsDirectory, file), 'utf8')
-      const workflow = parse(source) as Workflow
-      expect(Object.keys(workflow.on ?? {})).toEqual(['workflow_dispatch'])
-      expect(Object.keys(workflow.jobs ?? {})).toEqual(['retired'])
-      const steps = Object.values(workflow.jobs ?? {}).flatMap(job => job.steps ?? [])
-      expect(steps).toHaveLength(1)
-      expect(steps[0]?.run).toMatch(/^echo '::notice::.* is retired/)
-      expect(steps[0]?.uses).toBeUndefined()
-      expect(steps[0]?.env).toBeUndefined()
-      expect(source).not.toContain('secrets.')
-    }
+  it('removes the retired ingestion and translation jobs', () => {
+    const files = readWorkflows().map(({ file }) => file)
+    expect(files).not.toContain('ingest.yml')
+    expect(files).not.toContain('translate.yml')
   })
 
   it('contains no current legacy Source configuration, including disabled RSS entries', () => {
@@ -128,28 +117,6 @@ describe('ci is one sequential job, cheapest first', () => {
   it('runs the .env.example drift check', () => {
     const commands = Object.values(ci.jobs ?? {}).flatMap(job => job.steps ?? []).map(step => step.run)
     expect(commands).toContain('pnpm check:env')
-  })
-})
-
-describe('retired CLI entrypoints fail closed', () => {
-  it.each(['run', 'translate'])('%s permits only a side-effect-free dry-run', (name) => {
-    const script = join(root, 'scripts', 'pipeline', `${name}.ts`)
-    const output = execFileSync(process.execPath, [join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'), script, '--dry-run'], { cwd: root, encoding: 'utf8' })
-    expect(output).toContain('retired; dry-run only; no work performed')
-    // No database, model, cache, network or worker module can initialize at import time.
-    const source = readFileSync(script, 'utf8')
-    expect(source.match(/^import .*$/gm)).toEqual(['import process from \'node:process\''])
-  })
-
-  it.each(['run', 'translate'])('%s refuses real execution even with credentials supplied', (name) => {
-    const result = spawnSync(process.execPath, [join(root, 'node_modules', 'tsx', 'dist', 'cli.mjs'), join(root, 'scripts', 'pipeline', `${name}.ts`)], {
-      cwd: root,
-      encoding: 'utf8',
-      env: { ...process.env, DATABASE_URL: 'postgresql://retired:retired@127.0.0.1:1/retired', DEEPSEEK_API_KEY: 'test-retired-key', GITHUB_PAT: 'test-retired-token' },
-    })
-    expect(result.status).toBe(1)
-    expect(result.stderr).toContain('is retired. Use the capture flow; historical data is retained.')
-    expect(result.stdout).toBe('')
   })
 })
 
