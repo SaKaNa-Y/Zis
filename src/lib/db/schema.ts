@@ -498,3 +498,38 @@ export const captureRuns = pgTable('capture_run', {
   addedCount: integer('added_count').notNull().default(0),
   message: text('message'),
 }, table => [check('capture_run_status_check', sql`${table.status} IN ('running','success','partial','failed')`), check('capture_run_added_count_check', sql`${table.addedCount} >= 0`)])
+
+export const articles = pgTable('article', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  publicationKey: text('publication_key').notNull().unique(),
+  initialDigest: text('initial_digest').notNull(),
+  content: jsonb('content').notNull(),
+  draft: jsonb('draft'),
+  publishedAt: timestampTz('published_at').notNull().defaultNow(),
+}, table => [index('article_published_at_idx').on(table.publishedAt)])
+
+export const articleReferences = pgTable('article_reference', {
+  articleId: uuid('article_id').notNull().references(() => articles.id, { onDelete: 'cascade' }),
+  linkId: uuid('link_id').notNull().references(() => links.id),
+}, table => [primaryKey({ columns: [table.articleId, table.linkId] })])
+
+export const publicationRuns = pgTable('publication_run', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  attemptKey: text('attempt_key').notNull().unique(),
+  retryOf: uuid('retry_of').references((): AnyPgColumn => publicationRuns.id, { onDelete: 'set null' }),
+  startedAt: timestampTz('started_at').notNull().defaultNow(),
+  finishedAt: timestampTz('finished_at'),
+  status: text('status', { enum: ['running', 'published', 'empty', 'failed'] }).notNull().default('running'),
+  stages: jsonb('stages').notNull().default([]),
+  reason: text('reason'),
+  outputDigest: text('output_digest'),
+}, table => [
+  index('publication_run_started_at_idx').on(table.startedAt),
+  check('publication_run_status_check', sql`${table.status} IN ('running','published','empty','failed')`),
+])
+
+export const publicationResults = pgTable('publication_result', {
+  runId: uuid('run_id').notNull().references(() => publicationRuns.id, { onDelete: 'cascade' }),
+  articleId: uuid('article_id').notNull().references(() => articles.id),
+  title: text('title').notNull(),
+}, table => [primaryKey({ columns: [table.runId, table.articleId] })])

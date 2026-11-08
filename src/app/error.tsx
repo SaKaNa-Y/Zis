@@ -1,22 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { DestinationNavigation, MobileDestinationFooter } from './destinations'
+import { Text } from '@/lib/i18n/context'
 
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
-    <div className="brief-v2">
-      <DestinationNavigation />
-      <main className="page-content state-content">
-        <p className="eyebrow page-eyebrow">An interruption</p>
-        <h1 className="page-title">This page could not load.</h1>
-        <p role="alert">Please try again. If this continues, return to Today and come back later.</p>
-        <div className="flex flex-wrap gap-3">
-          <button type="button" onClick={reset} className="entry-action">Try again</button>
-          <Link href="/" className="entry-action">Return to Today</Link>
-        </div>
-      </main>
-      <MobileDestinationFooter />
-    </div>
+    <main className="publication-shell publication-state">
+      <h1 className="publication-title"><Text en="This page could not load." zh="页面加载失败。" /></h1>
+      <button onClick={reset}><Text en="Try again" zh="重试" /></button>
+      <Link href="/"><Text en="Return home" zh="返回首页" /></Link>
+    </main>
   )
 }

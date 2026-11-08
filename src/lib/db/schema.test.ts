@@ -458,6 +458,7 @@ describe('the ingestion schema', () => {
       '0012_reader_preferences_and_translations',
       '0013_information_capture',
       '0014_publication_access',
+      '0015_article_publication',
     ])
 
     const packageJson = readFileSync(join(root, 'package.json'), 'utf8')
